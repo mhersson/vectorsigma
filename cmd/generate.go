@@ -38,14 +38,13 @@ const (
 	packageFlag = "package"
 )
 
-// generateCmd represents the generate command.
-var generateCmd = &cobra.Command{
+// GenerateCmd represents the generate command.
+var GenerateCmd = &cobra.Command{
 	Use:   "generate",
 	Short: "Generate a FSM",
 	Long:  `Generate a FSM base on a UML input file.`,
 	Run: func(cmd *cobra.Command, _ []string) {
-		init, err := cmd.Flags().GetBool(initFlag)
-		generator.CheckError(err, "Error reading init flag")
+		init := cmd.Flag(initFlag).Changed
 		input, err := cmd.Flags().GetString(inputFlag)
 		generator.CheckError(err, "Error reading input flag")
 		output, err := cmd.Flags().GetString(outputFlag)
@@ -66,12 +65,12 @@ var generateCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(generateCmd)
+	rootCmd.AddCommand(GenerateCmd)
 
-	generateCmd.Flags().Bool(initFlag, false, "Initialize new go module")
-	generateCmd.Flags().StringP(moduleFlag, "m", "", "Name of new go module (defaults to current directory name)")
-	generateCmd.Flags().StringP(inputFlag, "i", "", "The UML input file")
-	generateCmd.Flags().StringP(outputFlag, "o", "",
+	GenerateCmd.Flags().Bool(initFlag, false, "Initialize new go module")
+	GenerateCmd.Flags().StringP(moduleFlag, "m", "", "Name of new go module (defaults to current directory name)")
+	GenerateCmd.Flags().StringP(inputFlag, "i", "", "The UML input file")
+	GenerateCmd.Flags().StringP(outputFlag, "o", "",
 		"The output path of the generated FSM (defaults to current directory)")
-	generateCmd.Flags().StringP(packageFlag, "p", "fsm", "The package name of the generated FSM")
+	GenerateCmd.Flags().StringP(packageFlag, "p", "fsm", "The package name of the generated FSM")
 }
