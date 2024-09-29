@@ -31,7 +31,7 @@ import (
 
 func TestFSM(t *testing.T) {
 	gomega.RegisterFailHandler(ginkgo.Fail)
-	ginkgo.RunSpecs(t, "FSM Suite")
+	ginkgo.RunSpecs(t, "UML parser")
 }
 
 var _ = ginkgo.Describe("FSM", func() {

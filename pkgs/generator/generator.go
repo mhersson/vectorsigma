@@ -43,14 +43,19 @@ type Generator struct {
 	Package string
 	FSM     *uml.FSM
 	FS      afero.Fs
-	Shell   *shell.Shell
+	Shell   shell.Interface
 }
 
 const ErrorPrefix = "\033[31mError:\033[0m"
 
 func CheckError(err error, msg string) {
 	if err != nil {
-		fmt.Printf("%s %s, %v\n", ErrorPrefix, msg, err)
+		if msg == "" {
+			fmt.Printf("%s %v\n", ErrorPrefix, err)
+		} else {
+			fmt.Printf("%s %s, %v\n", ErrorPrefix, msg, err)
+		}
+
 		os.Exit(1)
 	}
 }
@@ -87,21 +92,33 @@ func (g *Generator) ExecuteTemplate(filename string) []byte {
 }
 
 // Initialize a new go module.
-func (g *Generator) InitializeModule() {
+func (g *Generator) InitializeModule() error {
 	err := g.Shell.NewCommand("go", "mod", "init", g.Module).Run()
-	CheckError(err, "failed to initialize new go module")
+	if err != nil {
+		return fmt.Errorf("failed to initialize module: %w", err)
+	}
+
+	return nil
 }
 
 // Write file to disk.
-func (g *Generator) WriteFile(path string, data []byte) {
+func (g *Generator) WriteFile(path string, data []byte) error {
 	err := afero.WriteFile(g.FS, path, data, 0644)
-	CheckError(err, "failed to write file")
+	if err != nil {
+		return fmt.Errorf("failed to write file: %w", err)
+	}
+
+	return nil
 }
 
 // Format the generated code.
-func (g *Generator) FormatCode(path string) {
+func (g *Generator) FormatCode(path string) error {
 	err := g.Shell.NewCommand("go", "fmt", path).Run()
-	CheckError(err, "failed to format code")
+	if err != nil {
+		return fmt.Errorf("failed to format code: %w", err)
+	}
+
+	return nil
 }
 
 func (g *Generator) Generate(init bool, input, output string) {
@@ -112,10 +129,12 @@ func (g *Generator) Generate(init bool, input, output string) {
 		err := os.Chdir(output)
 		CheckError(err, "failed to change directory")
 
-		g.InitializeModule()
+		err = g.InitializeModule()
+		CheckError(err, "")
 
 		code := g.ExecuteTemplate("basic/main.go.tmpl")
-		g.WriteFile("main.go", code)
+		err = g.WriteFile("main.go", code)
+		CheckError(err, "")
 
 		err = g.FS.MkdirAll(filepath.Join("pkg", g.Package), 0755)
 		CheckError(err, "failed create package directory")
@@ -135,8 +154,10 @@ func (g *Generator) Generate(init bool, input, output string) {
 			filename = "zz_generated_" + filename
 		}
 
-		g.WriteFile(filepath.Join(output, filename), code)
-		g.FormatCode(filepath.Join(output, filename))
+		err := g.WriteFile(filepath.Join(output, filename), code)
+		CheckError(err, "")
+		err = g.FormatCode(filepath.Join(output, filename))
+		CheckError(err, "")
 	}
 }
 
