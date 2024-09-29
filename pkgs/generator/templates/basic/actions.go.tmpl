@@ -1,0 +1,18 @@
+package {{ .Package }}
+
+import ()
+
+func init() {
+{{- range $name := .FSM.ActionNames }}
+	AllActions[{{ $name }}] = &{{ $name }}Action{}
+{{- end }}
+}
+
+{{- range $name := .FSM.ActionNames }}
+type {{ $name }}Action struct{}
+
+func (a *{{ $name }}Action) Execute(ctx *Context, state *ExtendedState, parameters ...string) error {
+	// FIXME: Fake it or break it,  but don't leave it like this
+	return nil
+}
+{{ end }}

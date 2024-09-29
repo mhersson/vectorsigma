@@ -1,0 +1,79 @@
+# Don't exit in error when there are issues.
+run:
+  issues-exit-code: 0
+  timeout: 10m
+
+linters:
+  enable-all: true
+  disable:
+  - interfacer
+  - maligned
+  - depguard
+  - scopelint
+  - golint
+  - gomnd
+  - mnd
+  - gochecknoinits
+  - gci
+  - exhaustivestruct
+  - exhaustruct
+  - gochecknoglobals
+  - godox
+  - gofumpt
+  - forbidigo
+  - varnamelen
+  - cyclop
+  - nestif
+  - gocognit
+  - funlen
+  # deprecated
+  - deadcode
+  - varcheck
+  - nosnakecase
+  # no generic support
+  - structcheck
+  - nolintlint
+
+issues:
+  exclude-dirs:
+  - go/pkg/mod
+  exclude-rules:
+  # Exclude some linters from running on tests files.
+  - path: _test\.go
+    linters:
+    - dupl
+    - errcheck
+    - funlen
+    - gocyclo
+    - goerr113
+    - goconst
+    - gosec
+    - lll
+    - paralleltest
+    - varnamelen
+  # Exclude unused parameters warning from actions and guards files
+  - path: actions|guards\.go
+    linters:
+    - revive
+    text: "unused-parameter"
+  - path: actions|guards\.go
+    linters:
+    - unparam
+  fix: true
+  max-issues-per-linter: 0
+  max-same-issues: 0
+
+linters-settings:
+  varnamelen:
+    ignore-decls:
+    - g Gomega
+    - w http.ResponseWriter
+    - r *http.Request
+  ireturn:
+    # and interfaces provided by the standard library.
+    allow:
+    - anon
+    - error
+    - empty
+    - stdlib
+    - GomegaMatcher
