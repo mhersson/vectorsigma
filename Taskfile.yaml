@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: '3'
+
+vars:
+  name: vectorsigma
+  version: "0.1.0"
+
+tasks:
+  default:
+    silent: true
+    cmds:
+    - echo "Welcome to {{.name}}"
+    - task -l
+
+  test:
+    desc: Run all tests
+    cmds:
+    - ginkgo run --covermode set --coverprofile cover.out cmd pkgs/generator pkgs/uml
+
+
+  update-golden-files:
+    desc: Update golden files
+    cmds:
+    - ginkgo run --covermode set --coverprofile cover.out cmd -- -update
+
+
+  install:
+    desc: Install {{ .name }}
+    deps:
+    - test
+    cmds:
+    - go install

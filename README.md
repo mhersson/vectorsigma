@@ -1,11 +1,13 @@
 # VectorSigma
 
-Welcome to **VectorSigma**, a powerful FSM (Finite State Machine) generator
-inspired by the Transformers universe! The name "Vector Sigma" refers to a
-mystical artifact in the Transformers lore, known for its ability to bestow
-knowledge and wisdom upon the Cybertronians. Just as Vector Sigma plays a
-crucial role in the Transformers' universe, our application aims to empower
-developers by simplifying the creation and management of state machines.
+Welcome to **VectorSigma**, a powerful FSM (Finite State Machine) generator,
+with a name inspired by the Transformers universe! Revered for its power to
+grant knowledge and wisdom to the Cybertronians, Vector Sigma serves as a
+central hub of intelligence, enabling the creation of sentient beings and
+guiding them on their journeys. Similarly, our application seeks to empower
+developers by streamlining the creation and management of state machines,
+providing the tools and insights needed to elevate their projects to new
+heights.
 
 ## Overview
 

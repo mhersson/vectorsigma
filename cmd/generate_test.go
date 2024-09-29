@@ -18,7 +18,7 @@ import (
 func TestCmd(t *testing.T) {
 	t.Parallel()
 	gomega.RegisterFailHandler(ginkgo.Fail)
-	ginkgo.RunSpecs(t, "Cmd Suite")
+	ginkgo.RunSpecs(t, "Integration tests")
 }
 
 var (
@@ -40,11 +40,11 @@ var _ = ginkgo.DescribeTable("Generate Integration tests", ginkgo.Label("integra
 		err = os.Chdir(testPath)
 		gomega.Expect(err).ToNot(gomega.HaveOccurred())
 
-		/// Emulate command line arguments
+		// Add relative output path to arguments
 		arguments = append(arguments, "--output", "output")
 
 		cmd.GenerateCmd.ResetCommands()
-		cmd.GenerateCmd.Flag("init").Changed = false
+		cmd.GenerateCmd.Flag("init").Changed = false // Reset the flag
 		cmd.GenerateCmd.SetArgs(arguments)
 		cmd.GenerateCmd.Execute()
 
