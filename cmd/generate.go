@@ -68,9 +68,9 @@ func init() {
 	rootCmd.AddCommand(GenerateCmd)
 
 	GenerateCmd.Flags().Bool(initFlag, false, "Initialize new go module")
-	GenerateCmd.Flags().StringP(moduleFlag, "m", "", "Name of new go module (defaults to current directory name)")
+	GenerateCmd.Flags().StringP(moduleFlag, "m", "", "Name of new go module (default current directory name)")
 	GenerateCmd.Flags().StringP(inputFlag, "i", "", "The UML input file")
 	GenerateCmd.Flags().StringP(outputFlag, "o", "",
-		"The output path of the generated FSM (defaults to current directory)")
+		"The output path of the generated FSM (default current working directory)")
 	GenerateCmd.Flags().StringP(packageFlag, "p", "fsm", "The package name of the generated FSM")
 }
