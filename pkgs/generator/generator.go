@@ -48,29 +48,27 @@ type Generator struct {
 
 const ErrorPrefix = "\033[31mError:\033[0m"
 
-func CheckError(err error, msg string) {
+func CheckError(err error) {
 	if err != nil {
-		if msg == "" {
-			fmt.Printf("%s %v\n", ErrorPrefix, err)
-		} else {
-			fmt.Printf("%s %s, %v\n", ErrorPrefix, msg, err)
-		}
+		fmt.Printf("%s %v\n", ErrorPrefix, err)
 
 		os.Exit(1)
 	}
 }
 
-func ReadFile(path string) string {
+func ReadFile(path string) (string, error) {
 	content, err := os.ReadFile(path)
-	CheckError(err, "failed to read file")
+	if err != nil {
+		return "", fmt.Errorf("failed to read file: %w", err)
+	}
 
-	return string(content)
+	return string(content), nil
 }
 
 // Get the current working directory name.
 func GetCurrentWorkingDirectory(base bool) string {
 	dir, err := os.Getwd()
-	CheckError(err, "failed to get working directory")
+	CheckError(err)
 
 	if base {
 		return filepath.Base(dir)
@@ -79,16 +77,20 @@ func GetCurrentWorkingDirectory(base bool) string {
 	return dir
 }
 
-func (g *Generator) ExecuteTemplate(filename string) []byte {
-	tmpl, err := template.ParseFS(templates, "templates/"+filename)
-	CheckError(err, "failed to parse template")
+func (g *Generator) ExecuteTemplate(filename string) ([]byte, error) {
+	tmpl, err := template.ParseFS(templates, filename)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse template: %w", err)
+	}
 
 	buffer := bytes.NewBuffer([]byte{})
 
 	err = tmpl.Execute(buffer, g)
-	CheckError(err, "failed to execute template")
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute template: %w", err)
+	}
 
-	return buffer.Bytes()
+	return buffer.Bytes(), nil
 }
 
 // Initialize a new go module.
@@ -122,42 +124,47 @@ func (g *Generator) FormatCode(path string) error {
 }
 
 func (g *Generator) Generate(init bool, input, output string) {
-	data := ReadFile(input)
+	data, err := ReadFile(input)
+	CheckError(err)
+
 	g.FSM = uml.Parse(data)
 
 	if init {
 		err := os.Chdir(output)
-		CheckError(err, "failed to change directory")
+		CheckError(err)
 
 		err = g.InitializeModule()
-		CheckError(err, "")
+		CheckError(err)
 
-		code := g.ExecuteTemplate("basic/main.go.tmpl")
+		code, err := g.ExecuteTemplate("templates/basic/main.go.tmpl")
+		CheckError(err)
+
 		err = g.WriteFile("main.go", code)
-		CheckError(err, "")
+		CheckError(err)
 
 		err = g.FS.MkdirAll(filepath.Join("pkg", g.Package), 0755)
-		CheckError(err, "failed create package directory")
+		CheckError(err)
 
 		output = filepath.Join("pkg", g.Package)
 	} else {
 		err := g.FS.MkdirAll(filepath.Join(output, g.Package), 0755)
-		CheckError(err, "failed create output directory")
+		CheckError(err)
 
 		output = filepath.Join(output, g.Package)
 	}
 
 	for _, filename := range []string{"actions.go", "guards.go", "fsm.go", "state.go"} {
-		code := g.ExecuteTemplate("basic/" + filename + ".tmpl")
+		code, err := g.ExecuteTemplate("templates/basic/" + filename + ".tmpl")
+		CheckError(err)
 
 		if filename == "fsm.go" {
 			filename = "zz_generated_" + filename
 		}
 
-		err := g.WriteFile(filepath.Join(output, filename), code)
-		CheckError(err, "")
+		err = g.WriteFile(filepath.Join(output, filename), code)
+		CheckError(err)
 		err = g.FormatCode(filepath.Join(output, filename))
-		CheckError(err, "")
+		CheckError(err)
 	}
 }
 

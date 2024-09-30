@@ -46,13 +46,13 @@ var GenerateCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, _ []string) {
 		init := cmd.Flag(initFlag).Changed
 		input, err := cmd.Flags().GetString(inputFlag)
-		generator.CheckError(err, "Error reading input flag")
+		generator.CheckError(err)
 		output, err := cmd.Flags().GetString(outputFlag)
-		generator.CheckError(err, "Error reading output flag")
+		generator.CheckError(err)
 		pkg, err := cmd.Flags().GetString(packageFlag)
-		generator.CheckError(err, "Error reading package flag")
+		generator.CheckError(err)
 		module, err := cmd.Flags().GetString(moduleFlag)
-		generator.CheckError(err, "Error reading module flag")
+		generator.CheckError(err)
 
 		if input == "" {
 			fmt.Println(generator.ErrorPrefix + " missing required flag input")
