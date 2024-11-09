@@ -27,6 +27,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var Version string
+
 var rootCmd = &cobra.Command{
 	Use:   "vectorsigma",
 	Short: "VectorSigma is a FSM generator",
@@ -35,6 +37,7 @@ var rootCmd = &cobra.Command{
 VectorSigma takes a PlantUML file as input and generates a runnable state
 machine. Pass in the "--init" flag, and it will generatee a new Go module
 that includes a self-contained FSM application based on your UML diagram.`,
+	Version: Version,
 }
 
 func Execute() {

@@ -22,9 +22,6 @@ THE SOFTWARE.
 package cmd
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/mhersson/vectorsigma/pkgs/generator"
 
 	"github.com/spf13/cobra"
@@ -38,39 +35,29 @@ const (
 	packageFlag = "package"
 )
 
+var inputParams *generator.InputParams
+
 // GenerateCmd represents the generate command.
 var GenerateCmd = &cobra.Command{
 	Use:   "generate",
 	Short: "Generate a FSM",
 	Long:  `Generate a FSM base on a UML input file.`,
-	Run: func(cmd *cobra.Command, _ []string) {
-		init := cmd.Flag(initFlag).Changed
-		input, err := cmd.Flags().GetString(inputFlag)
-		generator.CheckError(err)
-		output, err := cmd.Flags().GetString(outputFlag)
-		generator.CheckError(err)
-		pkg, err := cmd.Flags().GetString(packageFlag)
-		generator.CheckError(err)
-		module, err := cmd.Flags().GetString(moduleFlag)
-		generator.CheckError(err)
-
-		if input == "" {
-			fmt.Println(generator.ErrorPrefix + " missing required flag input")
-			_ = cmd.Usage()
-			os.Exit(1)
-		}
-
-		generator.Run(init, module, pkg, input, output)
+	RunE: func(_ *cobra.Command, _ []string) error {
+		return generator.Run(inputParams)
 	},
 }
 
 func init() {
+	inputParams = &generator.InputParams{}
+
 	rootCmd.AddCommand(GenerateCmd)
 
-	GenerateCmd.Flags().Bool(initFlag, false, "Initialize new go module")
-	GenerateCmd.Flags().StringP(moduleFlag, "m", "", "Name of new go module (default current directory name)")
-	GenerateCmd.Flags().StringP(inputFlag, "i", "", "The UML input file")
-	GenerateCmd.Flags().StringP(outputFlag, "o", "",
+	GenerateCmd.Flags().BoolVar(&inputParams.Init, initFlag, false, "Initialize new go module")
+	GenerateCmd.Flags().StringVarP(&inputParams.Module, moduleFlag, "m", "",
+		"Name of new go module (default current directory name)")
+	GenerateCmd.Flags().StringVarP(&inputParams.Input, inputFlag, "i", "", "The UML input file")
+	_ = GenerateCmd.MarkFlagRequired(inputFlag)
+	GenerateCmd.Flags().StringVarP(&inputParams.Output, outputFlag, "o", "",
 		"The output path of the generated FSM (default current working directory)")
-	GenerateCmd.Flags().StringP(packageFlag, "p", "fsm", "The package name of the generated FSM")
+	GenerateCmd.Flags().StringVarP(&inputParams.Package, packageFlag, "p", "fsm", "The package name of the generated FSM")
 }
