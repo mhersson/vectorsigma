@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/mhersson/vectorsigma/cmd"
+	"github.com/spf13/cobra"
 
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
@@ -22,13 +23,17 @@ func TestCmd(t *testing.T) {
 }
 
 var (
-	update  = flag.Bool("update", false, "update golden files")
-	initCmd = []string{"-i", "../uml/traffic-lights.plantuml", "--init"}
-	genCmd  = []string{"-i", "../uml/traffic-lights.plantuml"}
+	update      = flag.Bool("update", false, "update golden files")
+	initCmd     = []string{"generate", "-i", "../uml/traffic-lights.plantuml", "--init"}
+	genCmd      = []string{"generate", "-i", "../uml/traffic-lights.plantuml"}
+	vectorsigma *cobra.Command
 )
 
 var _ = ginkgo.DescribeTable("Generate Integration tests", ginkgo.Label("integration"),
 	func(directory string, arguments []string) {
+		cmd.InputParams.Init = false
+		vectorsigma = cmd.RootCmd
+
 		testPath := filepath.Join("testdata", directory)
 		outputPath := filepath.Join(testPath, "output")
 		goldenPath := filepath.Join(testPath, "golden")
@@ -43,10 +48,10 @@ var _ = ginkgo.DescribeTable("Generate Integration tests", ginkgo.Label("integra
 		// Add relative output path to arguments
 		arguments = append(arguments, "--output", "output")
 
-		cmd.GenerateCmd.ResetCommands()
-		cmd.GenerateCmd.Flag("init").Changed = false // Reset the flag
-		cmd.GenerateCmd.SetArgs(arguments)
-		cmd.GenerateCmd.Execute()
+		vectorsigma.SetArgs(arguments)
+
+		err = vectorsigma.Execute()
+		gomega.Expect(err).ToNot(gomega.HaveOccurred())
 
 		err = os.Chdir(rootDir)
 		gomega.Expect(err).ToNot(gomega.HaveOccurred())
@@ -90,6 +95,10 @@ func checkOutput(goldenPath, outputPath string) error {
 
 		if err != nil {
 			return err
+		}
+
+		if d.Name() == "go.mod" {
+			return nil
 		}
 
 		if d.IsDir() {

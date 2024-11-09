@@ -29,7 +29,7 @@ import (
 
 var Version string
 
-var rootCmd = &cobra.Command{
+var RootCmd = &cobra.Command{
 	Use:   "vectorsigma",
 	Short: "VectorSigma is a FSM generator",
 	Long: `VectorSigma is a FSM generator.
@@ -41,7 +41,7 @@ that includes a self-contained FSM application based on your UML diagram.`,
 }
 
 func Execute() {
-	err := rootCmd.Execute()
+	err := RootCmd.Execute()
 	if err != nil {
 		os.Exit(1)
 	}
