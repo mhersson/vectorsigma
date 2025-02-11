@@ -1,13 +1,12 @@
 # VectorSigma
 
-Welcome to **VectorSigma**, a powerful FSM (Finite State Machine) generator,
-with a name inspired by the Transformers universe! Revered for its power to
-grant knowledge and wisdom to the Cybertronians, Vector Sigma serves as a
-central hub of intelligence, enabling the creation of sentient beings and
-guiding them on their journeys. Similarly, our application seeks to empower
-developers by streamlining the creation and management of state machines,
-providing the tools and insights needed to elevate their projects to new
-heights.
+Welcome to **VectorSigma**, a user-friendly FSM (Finite State Machine) generator
+with a name inspired by the Transformers universe. In the mythology, Vector
+Sigma is an ancient and powerful super-computer at the heart of Cybertron, known
+for its great wisdom and its ability to grant new Transformers life. In that
+spirit, our application aims to assist developers by simplifying the creation
+and management of state machines, providing a tool that makes it easy to bring
+their state machine projects to life.
 
 ## Overview
 
@@ -57,4 +56,4 @@ for more details.
 ---
 
 Join us on this journey to create robust state machines with VectorSigma, where
-the power of Transformers meets the elegance of Go programming!
+the power of Transformers meets the simple elegance of Go programming!

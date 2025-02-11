@@ -1,9 +1,9 @@
 # yaml-language-server: $schema=https://taskfile.dev/schema.json
 
-version: '3'
+version: "3"
 
 vars:
-  name: vectorsigma
+  name: Vector Sigma
   version: "0.1.0"
 
 tasks:
@@ -15,15 +15,15 @@ tasks:
 
   test:
     desc: Run all tests
+    silent: true
     cmds:
-    - ginkgo run --covermode set --coverprofile cover.out cmd pkgs/generator pkgs/uml
-
+    - go run github.com/onsi/ginkgo/v2/ginkgo run --covermode set --coverprofile cover.out ./...
 
   update-golden-files:
     desc: Update golden files
+    silent: true
     cmds:
-    - ginkgo run --covermode set --coverprofile cover.out cmd -- -update
-
+    - go run github.com/onsi/ginkgo/v2/ginkgo run --covermode set --coverprofile cover.out cmd -- -update
 
   install:
     desc: Install {{ .name }}

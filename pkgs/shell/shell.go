@@ -21,6 +21,10 @@ func (c *Command) Run() error {
 	return c.cmd.Run()
 }
 
+type Interface interface {
+	NewCommand(name string, args ...string) CmdRunner
+}
+
 type Shell struct{}
 
 // nolint:ireturn
@@ -29,8 +33,4 @@ func (s *Shell) NewCommand(name string, args ...string) CmdRunner {
 	cmd := exec.Command(name, args...)
 
 	return &Command{cmd: cmd}
-}
-
-type Interface interface {
-	NewCommand(name string, args ...string) CmdRunner
 }
