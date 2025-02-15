@@ -1,9 +1,16 @@
 package statemachine
 
+import (
+	"github.com/mhersson/vectorsigma/pkgs/generator"
+)
+
 type ExtendedState struct {
-	Input   string
-	Output  string
-	Module  string
-	Package string
-	Init    bool
+	Generator     *generator.Generator
+	GeneratedData map[string][]byte
+	Init          bool
+	Input         string
+	InputData     string
+	Module        string
+	Output        string
+	Package       string
 }

@@ -1,5 +1,7 @@
 package statemachine
 
+import "path/filepath"
+
 // Guards
 
 func (fsm *FSM) IsErrorGuard() bool {
@@ -7,9 +9,9 @@ func (fsm *FSM) IsErrorGuard() bool {
 }
 
 func (fsm *FSM) IsMarkdownGuard() bool {
-	return false
+	return filepath.Ext(fsm.ExtendedState.Input) == ".md"
 }
 
 func (fsm *FSM) IsStandaloneModuleGuard() bool {
-	return false
+	return fsm.ExtendedState.Init
 }

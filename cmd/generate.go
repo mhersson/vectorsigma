@@ -22,7 +22,7 @@ THE SOFTWARE.
 package cmd
 
 import (
-	"github.com/mhersson/vectorsigma/pkgs/generator"
+	"github.com/mhersson/vectorsigma/internal/statemachine"
 
 	"github.com/spf13/cobra"
 )
@@ -35,29 +35,29 @@ const (
 	packageFlag = "package"
 )
 
-var InputParams *generator.InputParams
+var sm *statemachine.FSM
 
 // GenerateCmd represents the generate command.
 var GenerateCmd = &cobra.Command{
 	Use:   "generate",
 	Short: "Generate a FSM",
-	Long:  `Generate a FSM base on a UML input file.`,
-	RunE: func(_ *cobra.Command, _ []string) error {
-		return generator.Run(InputParams)
+	Long:  `Generate a FSM from UML.`,
+	Run: func(_ *cobra.Command, _ []string) {
+		sm.Run()
 	},
 }
 
 func init() {
-	InputParams = &generator.InputParams{}
+	sm = statemachine.New()
 
 	RootCmd.AddCommand(GenerateCmd)
 
-	GenerateCmd.Flags().BoolVar(&InputParams.Init, initFlag, false, "Initialize new go module")
-	GenerateCmd.Flags().StringVarP(&InputParams.Module, moduleFlag, "m", "",
+	GenerateCmd.Flags().BoolVar(&sm.ExtendedState.Init, initFlag, false, "Initialize new go module")
+	GenerateCmd.Flags().StringVarP(&sm.ExtendedState.Module, moduleFlag, "m", "",
 		"Name of new go module (default current directory name)")
-	GenerateCmd.Flags().StringVarP(&InputParams.Input, inputFlag, "i", "", "The UML input file")
+	GenerateCmd.Flags().StringVarP(&sm.ExtendedState.Input, inputFlag, "i", "", "The UML input file")
 	_ = GenerateCmd.MarkFlagRequired(inputFlag)
-	GenerateCmd.Flags().StringVarP(&InputParams.Output, outputFlag, "o", "",
+	GenerateCmd.Flags().StringVarP(&sm.ExtendedState.Output, outputFlag, "o", "",
 		"The output path of the generated FSM (default current working directory)")
-	GenerateCmd.Flags().StringVarP(&InputParams.Package, packageFlag, "p", "fsm", "The package name of the generated FSM")
+	GenerateCmd.Flags().StringVarP(&sm.ExtendedState.Package, packageFlag, "p", "statemachine", "The package name of the generated FSM")
 }

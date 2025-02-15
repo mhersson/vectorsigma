@@ -12,30 +12,30 @@ type (
 )
 
 const (
-	FinalState            StateName = "FinalState"
-	Initializing          StateName = "Initializing"
-	LoadingInput          StateName = "LoadingInput"
-	ExtractingUML         StateName = "ExtractingUML"
-	ParsingUML            StateName = "ParsingUML"
-	Generating            StateName = "Generating"
-	CreatingOutputFolder  StateName = "CreatingOutputFolder"
-	WritingGeneratedFiles StateName = "WritingGeneratedFiles"
-	InitializingGoModule  StateName = "InitializingGoModule"
-	CopyingStaticFiles    StateName = "CopyingStaticFiles"
-	FormattingCode        StateName = "FormattingCode"
+	FinalState             StateName = "FinalState"
+	Initializing           StateName = "Initializing"
+	LoadingInput           StateName = "LoadingInput"
+	ExtractingUML          StateName = "ExtractingUML"
+	ParsingUML             StateName = "ParsingUML"
+	GeneratingStateMachine StateName = "GeneratingStateMachine"
+	CreatingOutputFolder   StateName = "CreatingOutputFolder"
+	WritingGeneratedFiles  StateName = "WritingGeneratedFiles"
+	InitializingGoModule   StateName = "InitializingGoModule"
+	GeneratingMainFile     StateName = "GeneratingMainFile"
+	FormattingCode         StateName = "FormattingCode"
 )
 
 const (
-	Initialize          ActionName = "Initialize"
-	LoadInput           ActionName = "LoadInput"
-	ExtractUML          ActionName = "ExtractUML"
-	ParseUML            ActionName = "ParseUML"
-	Generate            ActionName = "Generate"
-	CreateOutputFolder  ActionName = "CreateOutPutFolder"
-	WriteGeneratedFiles ActionName = "WriteGeneratedFiles"
-	InitializeGoModule  ActionName = "InitializingGoModule"
-	CopyStaticFiles     ActionName = "CopyStaticFiles"
-	FormatCode          ActionName = "FormatCode"
+	Initialize           ActionName = "Initialize"
+	LoadInput            ActionName = "LoadInput"
+	ExtractUML           ActionName = "ExtractUML"
+	ParseUML             ActionName = "ParseUML"
+	GenerateStateMachine ActionName = "GenerateStateMachine"
+	CreateOutputFolder   ActionName = "CreateOutPutFolder"
+	WriteGeneratedFiles  ActionName = "WriteGeneratedFiles"
+	InitializeGoModule   ActionName = "InitializingGoModule"
+	GenerateMainFile     ActionName = "GenerateMainFile"
+	FormatCode           ActionName = "FormatCode"
 )
 
 const (
@@ -131,13 +131,13 @@ func New() *FSM {
 		Guards: []Guard{{Name: IsError, Check: fsm.IsErrorGuard}},
 		Transitions: map[int]StateName{
 			0: FinalState,
-			1: Generating,
+			1: GeneratingStateMachine,
 		},
 	}
 
-	fsm.stateConfigs[Generating] = StateConfig{
+	fsm.stateConfigs[GeneratingStateMachine] = StateConfig{
 		Actions: []Action{
-			{Name: Generate, Execute: fsm.GenerateAction, Params: []string{}},
+			{Name: GenerateStateMachine, Execute: fsm.GenerateStateMachineAction, Params: []string{}},
 		},
 		Guards: []Guard{{Name: IsError, Check: fsm.IsErrorGuard}},
 		Transitions: map[int]StateName{
@@ -149,6 +149,32 @@ func New() *FSM {
 	fsm.stateConfigs[CreatingOutputFolder] = StateConfig{
 		Actions: []Action{
 			{Name: CreateOutputFolder, Execute: fsm.CreateOutputFolderAction, Params: []string{}},
+		},
+		Guards: []Guard{
+			{Name: IsError, Check: fsm.IsErrorGuard},
+			{Name: IsStandaloneModule, Check: fsm.IsStandaloneModuleGuard},
+		},
+		Transitions: map[int]StateName{
+			0: FinalState,
+			1: InitializingGoModule,
+			2: WritingGeneratedFiles,
+		},
+	}
+
+	fsm.stateConfigs[InitializingGoModule] = StateConfig{
+		Actions: []Action{
+			{Name: InitializeGoModule, Execute: fsm.InitializeGoModuleAction, Params: []string{}},
+		},
+		Guards: []Guard{{Name: IsError, Check: fsm.IsErrorGuard}},
+		Transitions: map[int]StateName{
+			0: FinalState,
+			1: GeneratingMainFile,
+		},
+	}
+
+	fsm.stateConfigs[GeneratingMainFile] = StateConfig{
+		Actions: []Action{
+			{Name: GenerateMainFile, Execute: fsm.GenerateMainFileAction, Params: []string{}},
 		},
 		Guards: []Guard{{Name: IsError, Check: fsm.IsErrorGuard}},
 		Transitions: map[int]StateName{
@@ -163,31 +189,7 @@ func New() *FSM {
 		},
 		Guards: []Guard{
 			{Name: IsError, Check: fsm.IsErrorGuard},
-			{Name: IsStandaloneModule, Check: fsm.IsStandaloneModuleGuard},
 		},
-		Transitions: map[int]StateName{
-			0: FinalState,
-			1: FormattingCode,
-			2: InitializingGoModule,
-		},
-	}
-
-	fsm.stateConfigs[InitializingGoModule] = StateConfig{
-		Actions: []Action{
-			{Name: InitializeGoModule, Execute: fsm.InitializeGoModuleAction, Params: []string{}},
-		},
-		Guards: []Guard{{Name: IsError, Check: fsm.IsErrorGuard}},
-		Transitions: map[int]StateName{
-			0: FinalState,
-			1: CopyingStaticFiles,
-		},
-	}
-
-	fsm.stateConfigs[CopyingStaticFiles] = StateConfig{
-		Actions: []Action{
-			{Name: CopyStaticFiles, Execute: fsm.CopyStaticFilesAction, Params: []string{}},
-		},
-		Guards: []Guard{{Name: IsError, Check: fsm.IsErrorGuard}},
 		Transitions: map[int]StateName{
 			0: FinalState,
 			1: FormattingCode,
@@ -210,7 +212,13 @@ func New() *FSM {
 
 // Run handles the state transitions based on the current state.
 func (fsm *FSM) Run() {
+transitionsLoop:
 	for {
+		// If we are in the FinalState, exit the FSM
+		if fsm.currentState == FinalState {
+			return
+		}
+
 		config, exists := fsm.stateConfigs[fsm.currentState]
 
 		if !exists {
@@ -242,7 +250,7 @@ func (fsm *FSM) Run() {
 
 						fsm.currentState = nextState
 
-						break
+						continue transitionsLoop
 					}
 				}
 			}
@@ -251,11 +259,6 @@ func (fsm *FSM) Run() {
 				fsm.logger.Debug("unguarded transition", "current", fsm.currentState, "next", nextState)
 				fsm.currentState = nextState
 			}
-		}
-
-		// If we are in the FinalState, exit the FSM
-		if fsm.currentState == FinalState {
-			return
 		}
 	}
 }

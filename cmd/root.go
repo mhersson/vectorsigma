@@ -31,12 +31,12 @@ var Version string
 
 var RootCmd = &cobra.Command{
 	Use:   "vectorsigma",
-	Short: "VectorSigma is a FSM generator",
-	Long: `VectorSigma is a FSM generator.
+	Short: "VectorSigma is a Finite State Machine generator",
+	Long: `VectorSigma is a Finite State Machine generator.
 
-VectorSigma takes a PlantUML file as input and generates a runnable state
-machine. Pass in the "--init" flag, and it will generatee a new Go module
-that includes a self-contained FSM application based on your UML diagram.`,
+VectorSigma takes PlantUML as input and generates a runnable state machine. Pass
+in the "--init" flag, and it will generatee a new Go module that includes a
+self-contained FSM application based on your UML diagram.`,
 	Version: Version,
 }
 
