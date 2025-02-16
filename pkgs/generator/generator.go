@@ -66,16 +66,6 @@ func (g *Generator) ExecuteTemplate(filename string) ([]byte, error) {
 	return buffer.Bytes(), nil
 }
 
-// Initialize a new go module.
-func (g *Generator) InitializeModule() error {
-	err := g.Shell.NewCommand("go", "mod", "init", g.Module).Run()
-	if err != nil {
-		return fmt.Errorf("failed to initialize module: %w", err)
-	}
-
-	return nil
-}
-
 // Write file to disk.
 func (g *Generator) WriteFile(path string, data []byte) error {
 	err := afero.WriteFile(g.FS, path, data, 0644)
