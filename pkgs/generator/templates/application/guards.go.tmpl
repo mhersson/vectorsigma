@@ -1,16 +1,9 @@
 package {{ .Package }}
 
-func init() {
 {{- range $name := .FSM.GuardNames }}
-	AllGuards[{{ $name }}] = &{{ $name }}Guard{}
-{{- end }}
-}
-
-{{- range $name := .FSM.GuardNames }}
-type {{ $name }}Guard struct{}
-
-func (g *{{ $name }}Guard) Evaluate(state *ExtendedState) bool {
-	//FIXME: Guard this anyway you want, but it should probably not look like this
+func (fsm *{{ $.FSM.Title }}) {{ $name }}Guard() bool {
+	//TODO: Implement me!
 	return false
 }
+
 {{ end }}
