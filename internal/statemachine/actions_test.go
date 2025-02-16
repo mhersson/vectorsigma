@@ -12,7 +12,6 @@ import (
 	"github.com/mhersson/vectorsigma/pkgs/uml"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
-	"go.uber.org/mock/gomock"
 )
 
 func TestFSM_InitializeAction(t *testing.T) {
@@ -385,9 +384,8 @@ func TestFSM_InitializeGoModuleAction(t *testing.T) {
 		params []string
 	}
 
-	ctrl := gomock.NewController(t)
-	mockShell := mock_shell.NewMockInterface(ctrl)
-	mockCmd := mock_shell.NewMockCmdRunner(ctrl)
+	mockShell := mock_shell.NewMockInterface(t)
+	mockCmd := mock_shell.NewMockCmdRunner(t)
 
 	tests := []struct {
 		name    string
@@ -491,9 +489,8 @@ func TestFSM_FormatCodeAction(t *testing.T) {
 		params []string
 	}
 
-	ctrl := gomock.NewController(t)
-	mockShell := mock_shell.NewMockInterface(ctrl)
-	mockCmd := mock_shell.NewMockCmdRunner(ctrl)
+	mockShell := mock_shell.NewMockInterface(t)
+	mockCmd := mock_shell.NewMockCmdRunner(t)
 
 	tests := []struct {
 		name    string
