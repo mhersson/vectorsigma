@@ -22,143 +22,347 @@ THE SOFTWARE.
 package uml_test
 
 import (
+	"fmt"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/mhersson/vectorsigma/pkgs/uml"
-	"github.com/onsi/ginkgo/v2"
-	"github.com/onsi/gomega"
+	"github.com/stretchr/testify/assert"
 )
 
-func TestFSM(t *testing.T) {
-	gomega.RegisterFailHandler(ginkgo.Fail)
-	ginkgo.RunSpecs(t, "UML parser")
+func TestFSM_IsTitle(t *testing.T) {
+	type fields struct {
+		States       map[string]*uml.State
+		Title        string
+		InitialState string
+		ActionNames  []string
+		GuardNames   []string
+	}
+	type args struct {
+		line string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   bool
+		expect string
+	}{
+		{
+			name: "Ok", args: args{line: "title My Title"}, expect: "MyTitle", want: true,
+		},
+		{
+
+			name: "Not Ok", args: args{line: "No Title"}, expect: "", want: false,
+		},
+	}
+
+	t.Parallel()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			f := &uml.FSM{}
+			if got := f.IsTitle(tt.args.line); got != tt.want {
+				t.Errorf("FSM.IsTitle() = %v, want %v", got, tt.want)
+			} else {
+				assert.Equal(t, f.Title, tt.expect)
+			}
+		})
+	}
 }
 
-var _ = ginkgo.Describe("FSM", func() {
-	var fsm *uml.FSM
+func TestFSM_IsInitialState(t *testing.T) {
+	type fields struct {
+		States       map[string]*uml.State
+		Title        string
+		InitialState string
+		ActionNames  []string
+		GuardNames   []string
+	}
+	type args struct {
+		line string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   bool
+		expect string
+	}{
+		{
+			name: "Ok", args: args{line: "[*] --> InitialState"}, expect: "InitialState", want: true,
+		},
+		{
+			name: "Ok no spaces", args: args{line: "[*]-->InitialState"}, expect: "InitialState", want: true,
+		},
+		{
 
-	ginkgo.BeforeEach(func() {
-		fsm = &uml.FSM{
-			States: make(map[string]*uml.State),
-		}
-	})
+			name: "Not Ok", args: args{line: "State --> State2"}, expect: "", want: false,
+		},
+	}
 
-	ginkgo.Describe("IsTitle", func() {
-		ginkgo.It("should parse valid titles", func() {
-			gomega.Expect(fsm.IsTitle("title My Title2")).To(gomega.BeTrue())
-			gomega.Expect(fsm.Title).To(gomega.Equal("MyTitle2"))
-
-			gomega.Expect(fsm.IsTitle("title Super Valid but a bit long title")).To(gomega.BeTrue())
-			gomega.Expect(fsm.Title).To(gomega.Equal("SuperValidbutabitlongtitle"))
+	t.Parallel()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			f := &uml.FSM{}
+			if got := f.IsInitialState(tt.args.line); got != tt.want {
+				t.Errorf("FSM.IsInitialState() = %v, want %v", got, tt.want)
+			} else {
+				assert.Equal(t, f.InitialState, tt.expect)
+			}
 		})
+	}
+}
 
-		ginkgo.It("should not parse invalid titles", func() {
-			gomega.Expect(fsm.IsTitle("wrong title")).To(gomega.BeFalse())
-			gomega.Expect(fsm.Title).To(gomega.Equal(""))
+func TestFSM_IsAction(t *testing.T) {
+	type fields struct {
+		States       map[string]*uml.State
+		Title        string
+		InitialState string
+		ActionNames  []string
+		GuardNames   []string
+	}
+	type args struct {
+		line string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   bool
+		expect string
+	}{
+		{
+			name: "Ok", args: args{line: "State: do / action"}, expect: "action",
+			want: true,
+		},
+		{
+			name: "Ok no spaces", args: args{line: "State:do/action"}, expect: "action",
+			want: true,
+		},
+		{
+			name: "Not OK", args: args{line: "State --> State2: guard"}, expect: "",
+			want: false,
+		},
+	}
 
-			gomega.Expect(fsm.IsTitle("title: invalid")).To(gomega.BeFalse())
-			gomega.Expect(fsm.Title).To(gomega.Equal(""))
+	t.Parallel()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			f := &uml.FSM{ActionNames: []string{}, States: make(map[string]*uml.State)}
+			if got := f.IsAction(tt.args.line); got != tt.want {
+				t.Errorf("FSM.IsAction() = %v, want %v", got, tt.want)
+			} else if tt.want {
+				assert.Contains(t, f.ActionNames, tt.expect)
+			}
 		})
-	})
+	}
+}
 
-	ginkgo.Describe("IsInitialState", func() {
-		ginkgo.It("should parse valid initial states", func() {
-			gomega.Expect(fsm.IsInitialState("[*] --> StartingConversation")).To(gomega.BeTrue())
-			gomega.Expect(fsm.InitialState).To(gomega.Equal("StartingConversation"))
+func TestFSM_IsGuardedTransition(t *testing.T) {
+	type fields struct {
+		States       map[string]*uml.State
+		Title        string
+		InitialState string
+		ActionNames  []string
+		GuardNames   []string
+	}
+	type args struct {
+		line string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   bool
+		expect string
+	}{
+		{
+			name: "Ok", args: args{line: "state --> state2: [ guard ]"}, expect: "guard",
+			want: true,
+		},
+		{
+			name: "Ok no spaces", args: args{line: "state-->state2:[guard]"}, expect: "guard",
+			want: true,
+		},
+		{
+			name: "Not Ok", args: args{line: "State: do / action"}, expect: "",
+			want: false,
+		},
+	}
 
-			gomega.Expect(fsm.IsInitialState("[*]--> StartingConversation2")).To(gomega.BeTrue())
-			gomega.Expect(fsm.InitialState).To(gomega.Equal("StartingConversation2"))
+	t.Parallel()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			f := &uml.FSM{GuardNames: []string{}, States: make(map[string]*uml.State)}
+
+			if got := f.IsGuardedTransition(tt.args.line); got != tt.want {
+				t.Errorf("FSM.IsGuardedTransition() = %v, want %v", got, tt.want)
+			} else if tt.want {
+				assert.Contains(t, f.GuardNames, tt.expect)
+			}
 		})
+	}
+}
 
-		ginkgo.It("should not parse invalid initial states", func() {
-			gomega.Expect(fsm.IsInitialState("[* ] --> StartingConversation")).To(gomega.BeFalse())
-			gomega.Expect(fsm.InitialState).To(gomega.Equal(""))
+func TestFSM_IsDefaultTransition(t *testing.T) {
+	type fields struct {
+		States       map[string]*uml.State
+		Title        string
+		InitialState string
+		ActionNames  []string
+		GuardNames   []string
+	}
+	type args struct {
+		line string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   bool
+		expect string
+	}{
+		{
+			name: "Ok", args: args{line: "state --> state2"}, expect: "state2",
+			want: true,
+		},
+		{
+			name: "Ok no spaces", args: args{line: "state-->state2"}, expect: "state2",
+			want: true,
+		},
+		{
+			name: "Ok", args: args{line: "state --> state2: guard"}, expect: "",
+			want: false,
+		},
+	}
 
-			gomega.Expect(fsm.IsInitialState(" [*]--> StartingConversation2")).To(gomega.BeFalse())
-			gomega.Expect(fsm.InitialState).To(gomega.Equal(""))
-
-			gomega.Expect(fsm.IsInitialState("[*] -> StartingConversation")).To(gomega.BeFalse())
-			gomega.Expect(fsm.InitialState).To(gomega.Equal(""))
+	t.Parallel()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			f := &uml.FSM{States: make(map[string]*uml.State)}
+			if got := f.IsDefaultTransition(tt.args.line); got != tt.want {
+				t.Errorf("FSM.IsDefaultTransition() = %v, want %v", got, tt.want)
+			} else if tt.want {
+				assert.Contains(t, f.States["state"].Transitions, uml.Transition{Target: tt.expect})
+			}
 		})
-	})
+	}
+}
 
-	ginkgo.Describe("IsAction", func() {
-		ginkgo.It("should parse valid actions", func() {
-			gomega.Expect(fsm.IsAction("StartingConversation: do / StartConversation")).To(gomega.BeTrue())
-			gomega.Expect(fsm.ActionNames).To(gomega.ContainElement("StartConversation"))
-			gomega.Expect(fsm.States["StartingConversation"].Actions).To(gomega.ContainElement(uml.Action{Name: "StartConversation"}))
+func TestParse(t *testing.T) {
+	type args struct {
+		data string
+	}
+	tests := []struct {
+		name string
+		args args
+		want *uml.FSM
+	}{
+		{
+			want: &uml.FSM{
+				States: map[string]*uml.State{
+					"Red": {
+						Name: "Red",
+						Actions: []uml.Action{{
+							Name:   "SwitchIn",
+							Params: `"5"`,
+						}},
+						Transitions: []uml.Transition{
+							{
+								Target: "FinalState",
+								Guard:  "IsError",
+							},
+							{
+								Target: "Green",
+								Guard:  "NotGonnaHappen",
+							},
+							{Target: "Yellow", Guard: ""}},
+					},
+					"Yellow": {
+						Name: "Yellow",
+						Actions: []uml.Action{{
+							Name:   "SwitchIn",
+							Params: `"1"`,
+						}},
+						Transitions: []uml.Transition{{
+							Target: "FinalState",
+							Guard:  "IsError",
+						}, {Target: "Green", Guard: ""}},
+					},
+					"FlashingYellow": {
+						Name: "FlashingYellow",
+						Actions: []uml.Action{{
+							Name:   "SwitchIn",
+							Params: `"3"`,
+						}},
+						Transitions: []uml.Transition{{
+							Target: "FinalState",
+							Guard:  "IsError",
+						}, {Target: "Red", Guard: ""}},
+					},
+					"Green": {
+						Name: "Green",
+						Actions: []uml.Action{{
+							Name:   "SwitchIn",
+							Params: `"5"`,
+						}},
+						Transitions: []uml.Transition{{
+							Target: "FinalState",
+							Guard:  "IsError",
+						}, {Target: "FlashingYellow", Guard: ""}},
+					},
+					"FinalState": {
+						Name: "FinalState",
+					},
+				},
+				Title:        "TrafficLight",
+				InitialState: "Red",
+				ActionNames:  []string{"SwitchIn"},
+				GuardNames:   []string{"IsError", "NotGonnaHappen"},
+			},
+			args: args{
+				data: `
+@startuml
 
-			gomega.Expect(fsm.IsAction("StartingConversation:do/StartConversation")).To(gomega.BeTrue())
-			gomega.Expect(fsm.ActionNames).To(gomega.ContainElement("StartConversation"))
-			gomega.Expect(fsm.States["StartingConversation"].Actions).To(gomega.ContainElement(uml.Action{Name: "StartConversation"}))
+title Traffic Light
+[*] --> Red
+Red: do / SwitchIn(5)
+Red -[dotted]-> [*]: [ IsError ]
+Red --> Green: [ NotGonnaHappen ]
+Red --> Yellow
+
+Yellow: do / SwitchIn(1)
+Yellow -[dotted]-> [*]: [ IsError]
+Yellow --> Green
+
+FlashingYellow: do / SwitchIn(3)
+FlashingYellow -[dotted]-> [*]: [ IsError ]
+FlashingYellow -[bold]-> Red
+
+Green: do / SwitchIn(5)
+Green -[dotted]-> [*]: [ IsError ]
+Green --> FlashingYellow
+
+@enduml
+`,
+			},
+		},
+	}
+
+	t.Parallel()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := uml.Parse(tt.args.data); !cmp.Equal(got, tt.want) {
+				fmt.Println(cmp.Diff(got, tt.want))
+				t.Errorf("Parse() = %v, want %v", got, tt.want)
+			}
 		})
-
-		ginkgo.It("should parse actions with parameters", func() {
-			gomega.Expect(fsm.IsAction("StartingConversation: do / StartConversation(5)")).To(gomega.BeTrue())
-			gomega.Expect(fsm.ActionNames).To(gomega.ContainElement("StartConversation"))
-			gomega.Expect(fsm.States["StartingConversation"].Actions).To(gomega.ContainElement(uml.Action{Name: "StartConversation", Params: `"5"`}))
-
-			gomega.Expect(fsm.IsAction("StartingConversation:do/StartConversation(one,two)")).To(gomega.BeTrue())
-			gomega.Expect(fsm.ActionNames).To(gomega.ContainElement("StartConversation"))
-			gomega.Expect(fsm.States["StartingConversation"].Actions).To(gomega.ContainElement(uml.Action{Name: "StartConversation", Params: `"one","two"`}))
-		})
-
-		ginkgo.It("should not parse invalid actions", func() {
-			gomega.Expect(fsm.IsAction("StartingConversation do / StartConversation")).To(gomega.BeFalse())
-			gomega.Expect(fsm.ActionNames).To(gomega.BeEmpty())
-			gomega.Expect(fsm.States).To(gomega.BeEmpty())
-		})
-	})
-
-	ginkgo.Describe("IsGuardedTransition", func() {
-		ginkgo.It("should parse valid guarded transitions", func() {
-			gomega.Expect(fsm.IsGuardedTransition("StartingConversation --> FinalState: [ IsError ]")).To(gomega.BeTrue())
-			gomega.Expect(fsm.GuardNames).To(gomega.ContainElement("IsError"))
-			gomega.Expect(fsm.States["StartingConversation"].Transitions).To(gomega.ContainElement(uml.Transition{Target: "FinalState", Guard: "IsError"}))
-			gomega.Expect(fsm.States["FinalState"]).NotTo(gomega.BeNil())
-
-			gomega.Expect(fsm.IsGuardedTransition("StartingConversation--> FinalState:[IsError ]")).To(gomega.BeTrue())
-			gomega.Expect(fsm.GuardNames).To(gomega.ContainElement("IsError"))
-			gomega.Expect(fsm.States["StartingConversation"].Transitions).To(gomega.ContainElement(uml.Transition{Target: "FinalState", Guard: "IsError"}))
-			gomega.Expect(fsm.States["FinalState"]).NotTo(gomega.BeNil())
-		})
-
-		ginkgo.It("should not parse invalid guarded transitions", func() {
-			gomega.Expect(fsm.IsGuardedTransition("StartingConversation --> FinalState: IsError")).To(gomega.BeFalse())
-			gomega.Expect(fsm.GuardNames).To(gomega.BeEmpty())
-			gomega.Expect(fsm.States).To(gomega.BeEmpty())
-		})
-
-		ginkgo.It("should parse valid guarded transitions to already parsed state", func() {
-			fsm.States["StartingConversation"] = &uml.State{Name: "StartingConversation"}
-
-			gomega.Expect(fsm.IsGuardedTransition("StartingConversation --> FinalState: [ IsError ]")).To(gomega.BeTrue())
-			gomega.Expect(fsm.GuardNames).To(gomega.ContainElement("IsError"))
-			gomega.Expect(fsm.States["StartingConversation"].Transitions).To(gomega.ContainElement(uml.Transition{Target: "FinalState", Guard: "IsError"}))
-			gomega.Expect(fsm.States["FinalState"]).NotTo(gomega.BeNil())
-		})
-	})
-
-	ginkgo.Describe("IsDefaultTransition", func() {
-		ginkgo.It("should parse valid default transitions", func() {
-			gomega.Expect(fsm.IsDefaultTransition("StartingConversation --> FinalState")).To(gomega.BeTrue())
-			gomega.Expect(fsm.States["StartingConversation"].Transitions).To(gomega.ContainElement(uml.Transition{Target: "FinalState"}))
-			gomega.Expect(fsm.States["FinalState"]).NotTo(gomega.BeNil())
-		})
-
-		ginkgo.It("should not parse invalid default transitions", func() {
-			fsm.States["StartingConversation"] = &uml.State{Name: "StartingConversation"}
-
-			gomega.Expect(fsm.IsDefaultTransition("StartingConversation-> FinalState")).To(gomega.BeFalse())
-			gomega.Expect(fsm.States["StartingConversation"].Transitions).To(gomega.BeNil())
-		})
-
-		ginkgo.It("should parse valid default transitions to already found state", func() {
-			fsm.States["StartingConversation"] = &uml.State{Name: "StartingConversation"}
-
-			gomega.Expect(fsm.IsDefaultTransition("StartingConversation --> FinalState")).To(gomega.BeTrue())
-			gomega.Expect(fsm.States["StartingConversation"].Transitions).To(gomega.ContainElement(uml.Transition{Target: "FinalState"}))
-			gomega.Expect(fsm.States["FinalState"]).NotTo(gomega.BeNil())
-		})
-	})
-})
+	}
+}

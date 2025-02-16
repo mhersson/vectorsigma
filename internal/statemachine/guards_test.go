@@ -23,8 +23,11 @@ func TestFSM_IsErrorGuard(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 	}
+
+	t.Parallel()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			fsm := &statemachine.FSM{
 				Logger:        tt.fields.logger,
 				CurrentState:  tt.fields.currentState,
@@ -54,8 +57,11 @@ func TestFSM_IsMarkdownGuard(t *testing.T) {
 		{name: "Is Markdown", fields: fields{ExtendedState: &statemachine.ExtendedState{Input: "input.md"}}, want: true},
 		{name: "Is Plantuml", fields: fields{ExtendedState: &statemachine.ExtendedState{Input: "input.plantuml"}}, want: false},
 	}
+
+	t.Parallel()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			fsm := &statemachine.FSM{
 				Logger:        tt.fields.logger,
 				CurrentState:  tt.fields.currentState,
@@ -85,8 +91,11 @@ func TestFSM_IsStandaloneModuleGuard(t *testing.T) {
 		{name: "Is Standalone Module", fields: fields{ExtendedState: &statemachine.ExtendedState{Init: true}}, want: true},
 		{name: "Is only a package", fields: fields{ExtendedState: &statemachine.ExtendedState{Init: false}}, want: false},
 	}
+
+	t.Parallel()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			fsm := &statemachine.FSM{
 				Logger:        tt.fields.logger,
 				CurrentState:  tt.fields.currentState,
