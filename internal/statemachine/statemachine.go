@@ -66,9 +66,9 @@ type StateConfig struct {
 
 // FSM represents the FSM for VectorSigma.
 type FSM struct {
-	logger        *slog.Logger
-	currentState  StateName
-	stateConfigs  map[StateName]StateConfig
+	Logger        *slog.Logger
+	CurrentState  StateName
+	StateConfigs  map[StateName]StateConfig
 	ExtendedState *ExtendedState
 }
 
@@ -78,17 +78,17 @@ func New() *FSM {
 	logLevel.Set(slog.LevelDebug)
 
 	fsm := &FSM{
-		logger: slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		Logger: slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 
 			Level: logLevel,
 		})),
-		currentState:  Initializing,
-		stateConfigs:  make(map[StateName]StateConfig),
+		CurrentState:  Initializing,
+		StateConfigs:  make(map[StateName]StateConfig),
 		ExtendedState: &ExtendedState{},
 	}
 
 	// Define state configurations
-	fsm.stateConfigs[Initializing] = StateConfig{
+	fsm.StateConfigs[Initializing] = StateConfig{
 		Actions: []Action{
 			{Name: Initialize, Execute: fsm.InitializeAction, Params: []string{}},
 		},
@@ -98,7 +98,7 @@ func New() *FSM {
 		},
 	}
 
-	fsm.stateConfigs[LoadingInput] = StateConfig{
+	fsm.StateConfigs[LoadingInput] = StateConfig{
 		Actions: []Action{
 			{Name: LoadInput, Execute: fsm.LoadInputAction, Params: []string{}},
 		},
@@ -113,7 +113,7 @@ func New() *FSM {
 		},
 	}
 
-	fsm.stateConfigs[ExtractingUML] = StateConfig{
+	fsm.StateConfigs[ExtractingUML] = StateConfig{
 		Actions: []Action{
 			{Name: ExtractUML, Execute: fsm.ExtractUMLAction, Params: []string{}},
 		},
@@ -124,7 +124,7 @@ func New() *FSM {
 		},
 	}
 
-	fsm.stateConfigs[ParsingUML] = StateConfig{
+	fsm.StateConfigs[ParsingUML] = StateConfig{
 		Actions: []Action{
 			{Name: ParseUML, Execute: fsm.ParseUMLAction, Params: []string{}},
 		},
@@ -135,7 +135,7 @@ func New() *FSM {
 		},
 	}
 
-	fsm.stateConfigs[GeneratingStateMachine] = StateConfig{
+	fsm.StateConfigs[GeneratingStateMachine] = StateConfig{
 		Actions: []Action{
 			{Name: GenerateStateMachine, Execute: fsm.GenerateStateMachineAction, Params: []string{}},
 		},
@@ -146,7 +146,7 @@ func New() *FSM {
 		},
 	}
 
-	fsm.stateConfigs[CreatingOutputFolder] = StateConfig{
+	fsm.StateConfigs[CreatingOutputFolder] = StateConfig{
 		Actions: []Action{
 			{Name: CreateOutputFolder, Execute: fsm.CreateOutputFolderAction, Params: []string{}},
 		},
@@ -161,7 +161,7 @@ func New() *FSM {
 		},
 	}
 
-	fsm.stateConfigs[InitializingGoModule] = StateConfig{
+	fsm.StateConfigs[InitializingGoModule] = StateConfig{
 		Actions: []Action{
 			{Name: InitializeGoModule, Execute: fsm.InitializeGoModuleAction, Params: []string{}},
 		},
@@ -172,7 +172,7 @@ func New() *FSM {
 		},
 	}
 
-	fsm.stateConfigs[GeneratingMainFile] = StateConfig{
+	fsm.StateConfigs[GeneratingMainFile] = StateConfig{
 		Actions: []Action{
 			{Name: GenerateMainFile, Execute: fsm.GenerateMainFileAction, Params: []string{}},
 		},
@@ -183,7 +183,7 @@ func New() *FSM {
 		},
 	}
 
-	fsm.stateConfigs[WritingGeneratedFiles] = StateConfig{
+	fsm.StateConfigs[WritingGeneratedFiles] = StateConfig{
 		Actions: []Action{
 			{Name: WriteGeneratedFiles, Execute: fsm.WriteGeneratedFilesAction, Params: []string{}},
 		},
@@ -196,7 +196,7 @@ func New() *FSM {
 		},
 	}
 
-	fsm.stateConfigs[FormattingCode] = StateConfig{
+	fsm.StateConfigs[FormattingCode] = StateConfig{
 		Actions: []Action{
 			{Name: FormatCode, Execute: fsm.FormatCodeAction, Params: []string{}},
 		},
@@ -215,40 +215,40 @@ func (fsm *FSM) Run() {
 transitionsLoop:
 	for {
 		// If we are in the FinalState, exit the FSM
-		if fsm.currentState == FinalState {
+		if fsm.CurrentState == FinalState {
 			return
 		}
 
-		config, exists := fsm.stateConfigs[fsm.currentState]
+		config, exists := fsm.StateConfigs[fsm.CurrentState]
 
 		if !exists {
-			fsm.logger.Error("missing state config", "state", fsm.currentState)
+			fsm.Logger.Error("missing state config", "state", fsm.CurrentState)
 
 			return
 		}
 
 		// Execute all actions for the current state
 		for _, action := range config.Actions {
-			fsm.logger.Debug("executing", "action", action.Name, "state", fsm.currentState)
+			fsm.Logger.Debug("executing", "action", action.Name, "state", fsm.CurrentState)
 
 			if err := action.Execute(action.Params...); err != nil {
-				fsm.logger.Error("action failed", "action", action.Name, "state", fsm.currentState, "error", err)
+				fsm.Logger.Error("action failed", "action", action.Name, "state", fsm.CurrentState, "error", err)
 				// FIXME: This migt not always be the wanted outcome
-				fsm.currentState = FinalState
+				fsm.CurrentState = FinalState
 
 				break
 			}
 		}
 
 		// Check guards and determine the next state
-		if fsm.currentState != FinalState {
+		if fsm.CurrentState != FinalState {
 			for guardIndex, guard := range config.Guards {
 				if guard.Check() {
 					// Transition to the state mapped to this guard index
 					if nextState, exists := config.Transitions[guardIndex]; exists {
-						fsm.logger.Debug("guarded transition", "guard", guard.Name, "current", fsm.currentState, "next", nextState)
+						fsm.Logger.Debug("guarded transition", "guard", guard.Name, "current", fsm.CurrentState, "next", nextState)
 
-						fsm.currentState = nextState
+						fsm.CurrentState = nextState
 
 						continue transitionsLoop
 					}
@@ -256,8 +256,8 @@ transitionsLoop:
 			}
 			// Check for unguarded transition
 			if nextState, exists := config.Transitions[len(config.Guards)]; exists {
-				fsm.logger.Debug("unguarded transition", "current", fsm.currentState, "next", nextState)
-				fsm.currentState = nextState
+				fsm.Logger.Debug("unguarded transition", "current", fsm.CurrentState, "next", nextState)
+				fsm.CurrentState = nextState
 			}
 		}
 	}

@@ -1,6 +1,7 @@
 package statemachine
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -41,7 +42,7 @@ func (fsm *FSM) InitializeAction(_ ...string) error {
 }
 
 func (fsm *FSM) LoadInputAction(_ ...string) error {
-	content, err := os.ReadFile(fsm.ExtendedState.Input)
+	content, err := afero.ReadFile(fsm.ExtendedState.Generator.FS, fsm.ExtendedState.Input)
 	if err != nil {
 		return fmt.Errorf("failed to read input file: %w", err)
 	}
@@ -61,12 +62,12 @@ func (fsm *FSM) ExtractUMLAction(_ ...string) error {
 
 	startIndex := strings.Index(markdown, startDelimiter)
 	if startIndex == -1 {
-		return nil
+		return errors.New("no plantuml found in markdown")
 	}
 
 	endIndex := strings.Index(markdown[startIndex+lenStartDelimiter:], endDelimiter)
 	if endIndex == -1 {
-		return nil
+		return errors.New("missing end of plantuml code block in markdown")
 	}
 
 	fsm.ExtendedState.InputData = markdown[startIndex+lenStartDelimiter : endIndex+startIndex+lenStartDelimiter]

@@ -1,0 +1,101 @@
+package statemachine_test
+
+import (
+	"testing"
+
+	"log/slog"
+
+	"github.com/mhersson/vectorsigma/internal/statemachine"
+)
+
+func TestFSM_IsErrorGuard(t *testing.T) {
+	type fields struct {
+		logger        *slog.Logger
+		currentState  statemachine.StateName
+		stateConfigs  map[statemachine.StateName]statemachine.StateConfig
+		ExtendedState *statemachine.ExtendedState
+	}
+
+	tests := []struct {
+		name   string
+		fields fields
+		want   bool
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fsm := &statemachine.FSM{
+				Logger:        tt.fields.logger,
+				CurrentState:  tt.fields.currentState,
+				StateConfigs:  tt.fields.stateConfigs,
+				ExtendedState: tt.fields.ExtendedState,
+			}
+			if got := fsm.IsErrorGuard(); got != tt.want {
+				t.Errorf("FSM.IsErrorGuard() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestFSM_IsMarkdownGuard(t *testing.T) {
+	type fields struct {
+		logger        *slog.Logger
+		currentState  statemachine.StateName
+		stateConfigs  map[statemachine.StateName]statemachine.StateConfig
+		ExtendedState *statemachine.ExtendedState
+	}
+
+	tests := []struct {
+		name   string
+		fields fields
+		want   bool
+	}{
+		{name: "Is Markdown", fields: fields{ExtendedState: &statemachine.ExtendedState{Input: "input.md"}}, want: true},
+		{name: "Is Plantuml", fields: fields{ExtendedState: &statemachine.ExtendedState{Input: "input.plantuml"}}, want: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fsm := &statemachine.FSM{
+				Logger:        tt.fields.logger,
+				CurrentState:  tt.fields.currentState,
+				StateConfigs:  tt.fields.stateConfigs,
+				ExtendedState: tt.fields.ExtendedState,
+			}
+			if got := fsm.IsMarkdownGuard(); got != tt.want {
+				t.Errorf("FSM.IsMarkdownGuard() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestFSM_IsStandaloneModuleGuard(t *testing.T) {
+	type fields struct {
+		logger        *slog.Logger
+		currentState  statemachine.StateName
+		stateConfigs  map[statemachine.StateName]statemachine.StateConfig
+		ExtendedState *statemachine.ExtendedState
+	}
+
+	tests := []struct {
+		name   string
+		fields fields
+		want   bool
+	}{
+		{name: "Is Standalone Module", fields: fields{ExtendedState: &statemachine.ExtendedState{Init: true}}, want: true},
+		{name: "Is only a package", fields: fields{ExtendedState: &statemachine.ExtendedState{Init: false}}, want: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fsm := &statemachine.FSM{
+				Logger:        tt.fields.logger,
+				CurrentState:  tt.fields.currentState,
+				StateConfigs:  tt.fields.stateConfigs,
+				ExtendedState: tt.fields.ExtendedState,
+			}
+			if got := fsm.IsStandaloneModuleGuard(); got != tt.want {
+				t.Errorf("FSM.IsStandaloneModuleGuard() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

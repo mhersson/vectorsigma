@@ -1,79 +1,39 @@
-# Don't exit in error when there are issues.
-run:
-  issues-exit-code: 0
-  timeout: 10m
-
 linters:
-  enable-all: true
-  disable:
-  - interfacer
-  - maligned
-  - depguard
-  - scopelint
-  - golint
-  - gomnd
-  - mnd
-  - gochecknoinits
-  - gci
-  - exhaustivestruct
-  - exhaustruct
-  - gochecknoglobals
-  - godox
-  - gofumpt
-  - forbidigo
-  - varnamelen
-  - cyclop
-  - nestif
-  - gocognit
-  - funlen
-  # deprecated
-  - deadcode
-  - varcheck
-  - nosnakecase
-  # no generic support
-  - structcheck
-  - nolintlint
+  enable-all: false
+  enable:
+  # Enabled by default -- Few false positives
+  - errcheck
+  - gosimple
+  - govet
+  - ineffassign
+  - staticcheck
+  - unused
 
-issues:
-  exclude-dirs:
-  - go/pkg/mod
-  exclude-rules:
-  # Exclude some linters from running on tests files.
-  - path: _test\.go
-    linters:
-    - dupl
-    - errcheck
-    - funlen
-    - gocyclo
-    - err113
-    - goconst
-    - gosec
-    - lll
-    - paralleltest
-    - varnamelen
-  # Exclude unused parameters warning from actions and guards files
-  - path: actions|guards\.go
-    linters:
-    - revive
-    text: "unused-parameter"
-  - path: actions|guards\.go
-    linters:
-    - unparam
-  fix: true
-  max-issues-per-linter: 0
-  max-same-issues: 0
-
+  # The following are additionally enabled
+  - containedctx
+  - gocritic
+  - godot # comments should end in dot
+  - goimports
+  - gosec #
+  - misspell
+  - nakedret
+  - nlreturn # new line before return
+  - noctx # check requests for context
+  - paralleltest # ensure tests are parallel when possible
+  # revive: A drop in replacement for golint, as used by e.g. etcd,
+  # grafana and others https://github.com/mgechev/revive#who-uses-revive
+  - revive
+  - stylecheck
+  - testifylint # use proper testify methods
+  - unconvert # Remove unnecessary type conversions
+  - unparam
+  - whitespace
+  disable-all: true
 linters-settings:
-  varnamelen:
-    ignore-decls:
-    - g Gomega
-    - w http.ResponseWriter
-    - r *http.Request
-  ireturn:
-    # and interfaces provided by the standard library.
-    allow:
-    - anon
-    - error
-    - empty
-    - stdlib
-    - GomegaMatcher
+  nakedret:
+    # Align with https://github.com/alexkohler/nakedret/blob/v1.0.2/cmd/nakedret/main.go#L10
+    max-func-lines: 5
+issues:
+  max-issues-per-linter: 50
+  max-same-issues: 8
+  fix: true

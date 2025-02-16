@@ -59,5 +59,6 @@ func init() {
 	_ = GenerateCmd.MarkFlagRequired(inputFlag)
 	GenerateCmd.Flags().StringVarP(&sm.ExtendedState.Output, outputFlag, "o", "",
 		"The output path of the generated FSM (default current working directory)")
-	GenerateCmd.Flags().StringVarP(&sm.ExtendedState.Package, packageFlag, "p", "statemachine", "The package name of the generated FSM")
+	GenerateCmd.Flags().StringVarP(&sm.ExtendedState.Package, packageFlag, "p", "statemachine",
+		"The package name of the generated FSM")
 }
