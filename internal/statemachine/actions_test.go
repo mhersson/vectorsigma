@@ -17,6 +17,7 @@ import (
 func TestFSM_InitializeAction(t *testing.T) {
 	type fields struct {
 		logger        *slog.Logger
+		context       *statemachine.Context
 		currentState  statemachine.StateName
 		stateConfigs  map[statemachine.StateName]statemachine.StateConfig
 		ExtendedState *statemachine.ExtendedState
@@ -32,7 +33,11 @@ func TestFSM_InitializeAction(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		{name: "OK", fields: fields{ExtendedState: &statemachine.ExtendedState{}}, wantErr: false},
+		{name: "OK", fields: fields{
+			context:       &statemachine.Context{},
+			ExtendedState: &statemachine.ExtendedState{}},
+			wantErr: false,
+		},
 	}
 
 	t.Parallel()
@@ -41,6 +46,7 @@ func TestFSM_InitializeAction(t *testing.T) {
 			t.Parallel()
 			fsm := &statemachine.FSM{
 				Logger:        tt.fields.logger,
+				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
 				StateConfigs:  tt.fields.stateConfigs,
 				ExtendedState: tt.fields.ExtendedState,
@@ -50,8 +56,8 @@ func TestFSM_InitializeAction(t *testing.T) {
 			} else if !tt.wantErr {
 				assert.NotEqual(t, "", fsm.ExtendedState.Output)
 				assert.NotEqual(t, "", fsm.ExtendedState.Module)
-				assert.Equal(t, fsm.ExtendedState.Generator.Module, fsm.ExtendedState.Module)
-				assert.Equal(t, fsm.ExtendedState.Generator.Package, fsm.ExtendedState.Package)
+				assert.Equal(t, fsm.Context.Generator.Module, fsm.ExtendedState.Module)
+				assert.Equal(t, fsm.Context.Generator.Package, fsm.ExtendedState.Package)
 			}
 		})
 	}
@@ -60,6 +66,7 @@ func TestFSM_InitializeAction(t *testing.T) {
 func TestFSM_LoadInputAction(t *testing.T) {
 	type fields struct {
 		logger        *slog.Logger
+		context       *statemachine.Context
 		currentState  statemachine.StateName
 		stateConfigs  map[statemachine.StateName]statemachine.StateConfig
 		ExtendedState *statemachine.ExtendedState
@@ -80,15 +87,14 @@ func TestFSM_LoadInputAction(t *testing.T) {
 	}{
 		{name: "OK",
 			fields: fields{
-				ExtendedState: &statemachine.ExtendedState{
-					Input:     "input.md",
-					Generator: &generator.Generator{FS: fs}}},
-			wantErr: false},
+				context:       &statemachine.Context{Generator: &generator.Generator{FS: fs}},
+				ExtendedState: &statemachine.ExtendedState{Input: "input.md"}},
+			wantErr: false,
+		},
 		{name: "NOT OK",
 			fields: fields{
-				ExtendedState: &statemachine.ExtendedState{
-					Input:     "invalid.md",
-					Generator: &generator.Generator{FS: fs}}},
+				context:       &statemachine.Context{Generator: &generator.Generator{FS: fs}},
+				ExtendedState: &statemachine.ExtendedState{Input: "invalid.md"}},
 			wantErr: true},
 	}
 
@@ -98,6 +104,7 @@ func TestFSM_LoadInputAction(t *testing.T) {
 			t.Parallel()
 			fsm := &statemachine.FSM{
 				Logger:        tt.fields.logger,
+				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
 				StateConfigs:  tt.fields.stateConfigs,
 				ExtendedState: tt.fields.ExtendedState,
@@ -112,6 +119,7 @@ func TestFSM_LoadInputAction(t *testing.T) {
 func TestFSM_ExtractUMLAction(t *testing.T) {
 	type fields struct {
 		logger        *slog.Logger
+		context       *statemachine.Context
 		currentState  statemachine.StateName
 		stateConfigs  map[statemachine.StateName]statemachine.StateConfig
 		ExtendedState *statemachine.ExtendedState
@@ -153,6 +161,7 @@ func TestFSM_ExtractUMLAction(t *testing.T) {
 			t.Parallel()
 			fsm := &statemachine.FSM{
 				Logger:        tt.fields.logger,
+				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
 				StateConfigs:  tt.fields.stateConfigs,
 				ExtendedState: tt.fields.ExtendedState,
@@ -169,6 +178,7 @@ func TestFSM_ExtractUMLAction(t *testing.T) {
 func TestFSM_ParseUMLAction(t *testing.T) {
 	type fields struct {
 		logger        *slog.Logger
+		context       *statemachine.Context
 		currentState  statemachine.StateName
 		stateConfigs  map[statemachine.StateName]statemachine.StateConfig
 		ExtendedState *statemachine.ExtendedState
@@ -186,9 +196,9 @@ func TestFSM_ParseUMLAction(t *testing.T) {
 	}{
 		{name: "OK",
 			fields: fields{
+				context: &statemachine.Context{Generator: &generator.Generator{}},
 				ExtendedState: &statemachine.ExtendedState{
 					InputData: "# Markdown ```plantuml\n@startuml\ntitle test title\n\nskin rose```",
-					Generator: &generator.Generator{},
 				}},
 			wantErr: false},
 	}
@@ -199,6 +209,7 @@ func TestFSM_ParseUMLAction(t *testing.T) {
 			t.Parallel()
 			fsm := &statemachine.FSM{
 				Logger:        tt.fields.logger,
+				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
 				StateConfigs:  tt.fields.stateConfigs,
 				ExtendedState: tt.fields.ExtendedState,
@@ -206,7 +217,7 @@ func TestFSM_ParseUMLAction(t *testing.T) {
 			if err := fsm.ParseUMLAction(tt.args.params...); (err != nil) != tt.wantErr {
 				t.Errorf("FSM.ParseUMLAction() error = %v, wantErr %v", err, tt.wantErr)
 			} else if !tt.wantErr {
-				assert.Equal(t, "testtitle", fsm.ExtendedState.Generator.FSM.Title)
+				assert.Equal(t, "testtitle", fsm.Context.Generator.FSM.Title)
 			}
 		})
 	}
@@ -215,6 +226,7 @@ func TestFSM_ParseUMLAction(t *testing.T) {
 func TestFSM_GenerateStateMachineAction(t *testing.T) {
 	type fields struct {
 		logger        *slog.Logger
+		context       *statemachine.Context
 		currentState  statemachine.StateName
 		stateConfigs  map[statemachine.StateName]statemachine.StateConfig
 		ExtendedState *statemachine.ExtendedState
@@ -232,8 +244,8 @@ func TestFSM_GenerateStateMachineAction(t *testing.T) {
 	}{
 		{name: "OK",
 			fields: fields{
+				context: &statemachine.Context{Generator: &generator.Generator{FSM: &uml.FSM{}, Package: "unittest"}},
 				ExtendedState: &statemachine.ExtendedState{
-					Generator:     &generator.Generator{FSM: &uml.FSM{}, Package: "unittest"},
 					Package:       "unittest",
 					GeneratedData: make(map[string][]byte),
 				}},
@@ -246,6 +258,7 @@ func TestFSM_GenerateStateMachineAction(t *testing.T) {
 			t.Parallel()
 			fsm := &statemachine.FSM{
 				Logger:        tt.fields.logger,
+				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
 				StateConfigs:  tt.fields.stateConfigs,
 				ExtendedState: tt.fields.ExtendedState,
@@ -264,6 +277,7 @@ func TestFSM_GenerateStateMachineAction(t *testing.T) {
 func TestFSM_CreateOutputFolderAction(t *testing.T) {
 	type fields struct {
 		logger        *slog.Logger
+		context       *statemachine.Context
 		currentState  statemachine.StateName
 		stateConfigs  map[statemachine.StateName]statemachine.StateConfig
 		ExtendedState *statemachine.ExtendedState
@@ -283,10 +297,10 @@ func TestFSM_CreateOutputFolderAction(t *testing.T) {
 	}{
 		{name: "OK",
 			fields: fields{
+				context: &statemachine.Context{Generator: &generator.Generator{FS: fs}},
 				ExtendedState: &statemachine.ExtendedState{
-					Output:    "outputfolder",
-					Package:   "statemachine",
-					Generator: &generator.Generator{FS: fs}}},
+					Output:  "outputfolder",
+					Package: "statemachine"}},
 			wantErr: false},
 	}
 
@@ -296,6 +310,7 @@ func TestFSM_CreateOutputFolderAction(t *testing.T) {
 			t.Parallel()
 			fsm := &statemachine.FSM{
 				Logger:        tt.fields.logger,
+				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
 				StateConfigs:  tt.fields.stateConfigs,
 				ExtendedState: tt.fields.ExtendedState,
@@ -313,6 +328,7 @@ func TestFSM_CreateOutputFolderAction(t *testing.T) {
 func TestFSM_WriteGeneratedFilesAction(t *testing.T) {
 	type fields struct {
 		logger        *slog.Logger
+		context       *statemachine.Context
 		currentState  statemachine.StateName
 		stateConfigs  map[statemachine.StateName]statemachine.StateConfig
 		ExtendedState *statemachine.ExtendedState
@@ -332,11 +348,12 @@ func TestFSM_WriteGeneratedFilesAction(t *testing.T) {
 	}{
 		{name: "OK",
 			fields: fields{
+				context: &statemachine.Context{Generator: &generator.Generator{FS: fs}},
 				ExtendedState: &statemachine.ExtendedState{
 					Output:        "outputfolder/statemachine",
 					Package:       "statemachine",
 					GeneratedData: map[string][]byte{"actions.go": []byte("actions"), "guards.go": []byte("guards")},
-					Generator:     &generator.Generator{FS: fs}}},
+				}},
 
 			wantErr: false},
 	}
@@ -347,6 +364,7 @@ func TestFSM_WriteGeneratedFilesAction(t *testing.T) {
 			t.Parallel()
 			fsm := &statemachine.FSM{
 				Logger:        tt.fields.logger,
+				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
 				StateConfigs:  tt.fields.stateConfigs,
 				ExtendedState: tt.fields.ExtendedState,
@@ -375,6 +393,7 @@ func TestFSM_WriteGeneratedFilesAction(t *testing.T) {
 func TestFSM_InitializeGoModuleAction(t *testing.T) {
 	type fields struct {
 		logger        *slog.Logger
+		context       *statemachine.Context
 		currentState  statemachine.StateName
 		stateConfigs  map[statemachine.StateName]statemachine.StateConfig
 		ExtendedState *statemachine.ExtendedState
@@ -395,10 +414,9 @@ func TestFSM_InitializeGoModuleAction(t *testing.T) {
 	}{
 		{name: "OK",
 			fields: fields{
-				ExtendedState: &statemachine.ExtendedState{
-					Generator: &generator.Generator{
-						Shell:  mockShell,
-						Module: "test-module"},
+				context: &statemachine.Context{Generator: &generator.Generator{
+					Shell:  mockShell,
+					Module: "test-module"},
 				},
 			},
 			wantErr: false,
@@ -411,6 +429,7 @@ func TestFSM_InitializeGoModuleAction(t *testing.T) {
 			t.Parallel()
 			fsm := &statemachine.FSM{
 				Logger:        tt.fields.logger,
+				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
 				StateConfigs:  tt.fields.stateConfigs,
 				ExtendedState: tt.fields.ExtendedState,
@@ -428,6 +447,7 @@ func TestFSM_InitializeGoModuleAction(t *testing.T) {
 func TestFSM_GenerateMainFileAction(t *testing.T) {
 	type fields struct {
 		logger        *slog.Logger
+		context       *statemachine.Context
 		currentState  statemachine.StateName
 		stateConfigs  map[statemachine.StateName]statemachine.StateConfig
 		ExtendedState *statemachine.ExtendedState
@@ -445,8 +465,8 @@ func TestFSM_GenerateMainFileAction(t *testing.T) {
 	}{
 		{name: "OK",
 			fields: fields{
+				context: &statemachine.Context{Generator: &generator.Generator{FSM: &uml.FSM{}, Package: "unittest"}},
 				ExtendedState: &statemachine.ExtendedState{
-					Generator:     &generator.Generator{FSM: &uml.FSM{}, Package: "unittest"},
 					Package:       "unittest",
 					GeneratedData: make(map[string][]byte),
 				},
@@ -461,6 +481,7 @@ func TestFSM_GenerateMainFileAction(t *testing.T) {
 			t.Parallel()
 			fsm := &statemachine.FSM{
 				Logger:        tt.fields.logger,
+				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
 				StateConfigs:  tt.fields.stateConfigs,
 				ExtendedState: tt.fields.ExtendedState,
@@ -480,6 +501,7 @@ func TestFSM_GenerateMainFileAction(t *testing.T) {
 func TestFSM_FormatCodeAction(t *testing.T) {
 	type fields struct {
 		logger        *slog.Logger
+		context       *statemachine.Context
 		currentState  statemachine.StateName
 		stateConfigs  map[statemachine.StateName]statemachine.StateConfig
 		ExtendedState *statemachine.ExtendedState
@@ -500,9 +522,10 @@ func TestFSM_FormatCodeAction(t *testing.T) {
 	}{
 		{name: "OK",
 			fields: fields{
+				context: &statemachine.Context{Generator: &generator.Generator{Shell: mockShell}},
 				ExtendedState: &statemachine.ExtendedState{
-					Output:    "out",
-					Generator: &generator.Generator{Shell: mockShell}},
+					Output: "out",
+				},
 			},
 			wantErr: false,
 		},
@@ -514,6 +537,7 @@ func TestFSM_FormatCodeAction(t *testing.T) {
 			t.Parallel()
 			fsm := &statemachine.FSM{
 				Logger:        tt.fields.logger,
+				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
 				StateConfigs:  tt.fields.stateConfigs,
 				ExtendedState: tt.fields.ExtendedState,

@@ -2,7 +2,6 @@ package statemachine
 
 import (
 	"log/slog"
-	"os"
 )
 
 type (
@@ -66,25 +65,21 @@ type StateConfig struct {
 
 // FSM represents the FSM for VectorSigma.
 type FSM struct {
-	Logger        *slog.Logger
+	Context       *Context
 	CurrentState  StateName
-	StateConfigs  map[StateName]StateConfig
+	Logger        *slog.Logger
 	ExtendedState *ExtendedState
+	StateConfigs  map[StateName]StateConfig
 }
 
 // New initializes a new finite state machine.
 func New() *FSM {
-	logLevel := new(slog.LevelVar)
-	logLevel.Set(slog.LevelDebug)
-
 	fsm := &FSM{
-		Logger: slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-
-			Level: logLevel,
-		})),
+		Context:       &Context{},
 		CurrentState:  Initializing,
-		StateConfigs:  make(map[StateName]StateConfig),
+		Logger:        slog.Default(),
 		ExtendedState: &ExtendedState{},
+		StateConfigs:  make(map[StateName]StateConfig),
 	}
 
 	// Define state configurations
@@ -229,7 +224,7 @@ transitionsLoop:
 
 		// Execute all actions for the current state
 		for _, action := range config.Actions {
-			fsm.Logger.Debug("executing", "action", action.Name, "state", fsm.CurrentState)
+			fsm.Logger.Info("executing", "action", action.Name, "state", fsm.CurrentState)
 
 			if err := action.Execute(action.Params...); err != nil {
 				fsm.Logger.Error("action failed", "action", action.Name, "state", fsm.CurrentState, "error", err)
@@ -244,7 +239,7 @@ transitionsLoop:
 			if guard.Check() {
 				// Transition to the state mapped to this guard index
 				if nextState, exists := config.Transitions[guardIndex]; exists {
-					fsm.Logger.Debug("guarded transition", "guard", guard.Name, "current", fsm.CurrentState, "next", nextState)
+					fsm.Logger.Info("guarded transition", "guard", guard.Name, "current", fsm.CurrentState, "next", nextState)
 
 					fsm.CurrentState = nextState
 
@@ -254,7 +249,7 @@ transitionsLoop:
 		}
 		// Check for unguarded transition
 		if nextState, exists := config.Transitions[len(config.Guards)]; exists {
-			fsm.Logger.Debug("unguarded transition", "current", fsm.CurrentState, "next", nextState)
+			fsm.Logger.Info("unguarded transition", "current", fsm.CurrentState, "next", nextState)
 			fsm.CurrentState = nextState
 		}
 	}

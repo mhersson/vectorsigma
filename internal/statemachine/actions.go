@@ -29,7 +29,7 @@ func (fsm *FSM) InitializeAction(_ ...string) error {
 		fsm.ExtendedState.Output = dir
 	}
 
-	fsm.ExtendedState.Generator = &generator.Generator{
+	fsm.Context.Generator = &generator.Generator{
 		FS:      afero.NewOsFs(),
 		Shell:   &shell.Shell{},
 		Module:  fsm.ExtendedState.Module,
@@ -42,7 +42,7 @@ func (fsm *FSM) InitializeAction(_ ...string) error {
 }
 
 func (fsm *FSM) LoadInputAction(_ ...string) error {
-	content, err := afero.ReadFile(fsm.ExtendedState.Generator.FS, fsm.ExtendedState.Input)
+	content, err := afero.ReadFile(fsm.Context.Generator.FS, fsm.ExtendedState.Input)
 	if err != nil {
 		return fmt.Errorf("failed to read input file: %w", err)
 	}
@@ -76,14 +76,14 @@ func (fsm *FSM) ExtractUMLAction(_ ...string) error {
 }
 
 func (fsm *FSM) ParseUMLAction(_ ...string) error {
-	fsm.ExtendedState.Generator.FSM = uml.Parse(fsm.ExtendedState.InputData)
+	fsm.Context.Generator.FSM = uml.Parse(fsm.ExtendedState.InputData)
 
 	return nil
 }
 
 func (fsm *FSM) GenerateStateMachineAction(_ ...string) error {
 	for _, filename := range []string{"actions.go", "guards.go", "fsm.go", "state.go"} {
-		code, err := fsm.ExtendedState.Generator.ExecuteTemplate("templates/application/" + filename + ".tmpl")
+		code, err := fsm.Context.Generator.ExecuteTemplate("templates/application/" + filename + ".tmpl")
 		if err != nil {
 			return fmt.Errorf("code generation failed: %w", err)
 		}
@@ -99,7 +99,7 @@ func (fsm *FSM) GenerateStateMachineAction(_ ...string) error {
 }
 
 func (fsm *FSM) CreateOutputFolderAction(_ ...string) error {
-	if err := fsm.ExtendedState.Generator.FS.MkdirAll(
+	if err := fsm.Context.Generator.FS.MkdirAll(
 		filepath.Join(fsm.ExtendedState.Output, fsm.ExtendedState.Package), 0755); err != nil {
 		return fmt.Errorf("failed to create package directory: %w", err)
 	}
@@ -109,7 +109,7 @@ func (fsm *FSM) CreateOutputFolderAction(_ ...string) error {
 
 func (fsm *FSM) WriteGeneratedFilesAction(_ ...string) error {
 	for filename, code := range fsm.ExtendedState.GeneratedData {
-		if err := fsm.ExtendedState.Generator.WriteFile(filepath.Join(fsm.ExtendedState.Output, filename), code); err != nil {
+		if err := fsm.Context.Generator.WriteFile(filepath.Join(fsm.ExtendedState.Output, filename), code); err != nil {
 			return fmt.Errorf("%w", err)
 		}
 	}
@@ -118,7 +118,7 @@ func (fsm *FSM) WriteGeneratedFilesAction(_ ...string) error {
 }
 
 func (fsm *FSM) InitializeGoModuleAction(_ ...string) error {
-	err := fsm.ExtendedState.Generator.InitializeModule()
+	err := fsm.Context.Generator.InitializeModule()
 	if err != nil {
 		return fmt.Errorf("%w", err)
 	}
@@ -129,7 +129,7 @@ func (fsm *FSM) InitializeGoModuleAction(_ ...string) error {
 func (fsm *FSM) GenerateMainFileAction(_ ...string) error {
 	filename := "main.go"
 
-	code, err := fsm.ExtendedState.Generator.ExecuteTemplate("templates/application/" + filename + ".tmpl")
+	code, err := fsm.Context.Generator.ExecuteTemplate("templates/application/" + filename + ".tmpl")
 	if err != nil {
 		return fmt.Errorf("code generation failed: %w", err)
 	}
@@ -140,7 +140,7 @@ func (fsm *FSM) GenerateMainFileAction(_ ...string) error {
 }
 
 func (fsm *FSM) FormatCodeAction(_ ...string) error {
-	err := fsm.ExtendedState.Generator.FormatCode(filepath.Join(fsm.ExtendedState.Output, "..."))
+	err := fsm.Context.Generator.FormatCode(filepath.Join(fsm.ExtendedState.Output, "..."))
 	if err != nil {
 		return fmt.Errorf("%w", err)
 	}
