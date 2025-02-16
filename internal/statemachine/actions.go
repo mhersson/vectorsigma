@@ -125,32 +125,30 @@ func (fsm *VectorSigma) WriteGeneratedFilesAction(_ ...string) error {
 	return nil
 }
 
-func (fsm *VectorSigma) InitializeGoModuleAction(_ ...string) error {
-	err := fsm.Context.Generator.InitializeModule()
-	if err != nil {
-		return fmt.Errorf("%w", err)
+func (fsm *VectorSigma) GenerateModuleFilesAction(_ ...string) error {
+	files := []string{"main.go", "go.mod"}
+
+	for _, filename := range files {
+		code, err := fsm.Context.Generator.ExecuteTemplate("templates/application/" + filename + ".tmpl")
+		if err != nil {
+			return fmt.Errorf("code generation failed: %w", err)
+		}
+
+		fsm.ExtendedState.GeneratedData[filename] = code
 	}
-
-	return nil
-}
-
-func (fsm *VectorSigma) GenerateMainFileAction(_ ...string) error {
-	filename := "main.go"
-
-	code, err := fsm.Context.Generator.ExecuteTemplate("templates/application/" + filename + ".tmpl")
-	if err != nil {
-		return fmt.Errorf("code generation failed: %w", err)
-	}
-
-	fsm.ExtendedState.GeneratedData[filename] = code
 
 	return nil
 }
 
 func (fsm *VectorSigma) FormatCodeAction(_ ...string) error {
-	err := fsm.Context.Generator.FormatCode(filepath.Join(fsm.ExtendedState.Output, "..."))
-	if err != nil {
-		return fmt.Errorf("%w", err)
+	for filename := range fsm.ExtendedState.GeneratedData {
+		if filename == "go.mod" {
+			continue
+		}
+		err := fsm.Context.Generator.FormatCode(filepath.Join(fsm.ExtendedState.Output, filename))
+		if err != nil {
+			return fmt.Errorf("%w", err)
+		}
 	}
 
 	return nil

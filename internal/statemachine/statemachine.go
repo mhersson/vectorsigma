@@ -20,8 +20,7 @@ const (
 	GeneratingStateMachine StateName = "GeneratingStateMachine"
 	CreatingOutputFolder   StateName = "CreatingOutputFolder"
 	WritingGeneratedFiles  StateName = "WritingGeneratedFiles"
-	InitializingGoModule   StateName = "InitializingGoModule"
-	GeneratingMainFile     StateName = "GeneratingMainFile"
+	GeneratingModuleFiles  StateName = "GeneratingModuleFiles"
 	FormattingCode         StateName = "FormattingCode"
 )
 
@@ -33,8 +32,7 @@ const (
 	GenerateStateMachine ActionName = "GenerateStateMachine"
 	CreateOutputFolder   ActionName = "CreateOutPutFolder"
 	WriteGeneratedFiles  ActionName = "WriteGeneratedFiles"
-	InitializeGoModule   ActionName = "InitializingGoModule"
-	GenerateMainFile     ActionName = "GenerateMainFile"
+	GenerateModuleFiles  ActionName = "GenerateModuleFiles"
 	FormatCode           ActionName = "FormatCode"
 )
 
@@ -157,25 +155,14 @@ func New() *VectorSigma {
 		},
 		Transitions: map[int]StateName{
 			0: FinalState,
-			1: InitializingGoModule,
+			1: GeneratingModuleFiles,
 			2: WritingGeneratedFiles,
 		},
 	}
 
-	fsm.StateConfigs[InitializingGoModule] = StateConfig{
+	fsm.StateConfigs[GeneratingModuleFiles] = StateConfig{
 		Actions: []Action{
-			{Name: InitializeGoModule, Execute: fsm.InitializeGoModuleAction, Params: []string{}},
-		},
-		Guards: []Guard{{Name: IsError, Check: fsm.IsErrorGuard}},
-		Transitions: map[int]StateName{
-			0: FinalState,
-			1: GeneratingMainFile,
-		},
-	}
-
-	fsm.StateConfigs[GeneratingMainFile] = StateConfig{
-		Actions: []Action{
-			{Name: GenerateMainFile, Execute: fsm.GenerateMainFileAction, Params: []string{}},
+			{Name: GenerateModuleFiles, Execute: fsm.GenerateModuleFilesAction, Params: []string{}},
 		},
 		Guards: []Guard{{Name: IsError, Check: fsm.IsErrorGuard}},
 		Transitions: map[int]StateName{

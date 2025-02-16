@@ -10,72 +10,74 @@ import (
 	"testing"
 
 	"github.com/mhersson/vectorsigma/cmd"
+	"github.com/mhersson/vectorsigma/internal/statemachine"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 var (
-	update = flag.Bool("update", false, "update golden files")
-	// initCmd     = []string{"generate", "-i", "../uml/traffic-lights.plantuml", "--init"}.
-	defaultCmd  = []string{"generate", "-i", "../uml/traffic-lights.plantuml"}
+	update      = flag.Bool("update", false, "update golden files")
 	vectorsigma *cobra.Command
 )
 
 // Just use the standard go test.
+// nolint: paralleltest
 func Test_IntegrationTest(t *testing.T) {
 	tests := []struct {
 		name           string
 		testdatafolder string
-		arguments      []string
+		init           bool
+		input          string
+		output         string
+		pkg            string
+		// arguments      []string
 	}{
-		{
-			name:           "Generate package",
-			testdatafolder: "package",
-			arguments:      defaultCmd,
-		},
+		{name: "Initialize module", testdatafolder: "new_module", output: "output", init: true, input: "../uml/traffic-lights.plantuml", pkg: "integrationtest"},
+		{name: "Generate package", testdatafolder: "package", output: "output", init: false, input: "../uml/traffic-lights.plantuml", pkg: "integrationtest"},
 	}
 
-	t.Parallel()
+	rootDir, _ := os.Getwd()
 
 	for _, tt := range tests {
-		cmd.SM.ExtendedState.Init = false
-		vectorsigma = cmd.RootCmd
+		t.Run(tt.name, func(t *testing.T) {
+			testPath := filepath.Join("testdata", tt.testdatafolder)
+			outputPath := filepath.Join(testPath, tt.output)
+			goldenPath := filepath.Join(testPath, "golden")
 
-		testPath := filepath.Join("testdata", tt.testdatafolder)
-		outputPath := filepath.Join(testPath, "output")
-		goldenPath := filepath.Join(testPath, "golden")
-		rootDir, _ := os.Getwd()
-
-		err := cleanup(outputPath)
-		require.NoError(t, err)
-
-		err = os.Chdir(testPath)
-		require.NoError(t, err)
-
-		// Add relative output path to arguments
-		tt.arguments = append(tt.arguments, "--output", "output")
-
-		vectorsigma.SetArgs(tt.arguments)
-
-		err = vectorsigma.Execute()
-		require.NoError(t, err)
-
-		err = os.Chdir(rootDir)
-		require.NoError(t, err)
-
-		// If update is set replace the all expected files with the generated ones
-		if *update {
-			err = os.RemoveAll(goldenPath)
+			err := cleanup(outputPath)
 			require.NoError(t, err)
 
-			err = copyFiles(outputPath, goldenPath)
+			err = os.Chdir(testPath)
 			require.NoError(t, err)
-		}
 
-		// Check the output
-		err = checkOutput(t, goldenPath, outputPath)
-		require.NoError(t, err)
+			vectorsigma = cmd.RootCmd
+			vectorsigma.SetArgs([]string{"generate", "--input", "weoveridethis"})
+
+			cmd.SM = statemachine.New()
+			cmd.SM.ExtendedState.Init = tt.init
+			cmd.SM.ExtendedState.Input = tt.input
+			cmd.SM.ExtendedState.Package = tt.pkg
+			cmd.SM.ExtendedState.Output = tt.output
+
+			err = vectorsigma.Execute()
+			require.NoError(t, err)
+
+			// If update is set replace the all expected files with the generated ones
+			if *update {
+				err = os.RemoveAll(goldenPath)
+				require.NoError(t, err)
+
+				err = copyFiles(outputPath, goldenPath)
+				require.NoError(t, err)
+			}
+
+			err = os.Chdir(rootDir)
+			require.NoError(t, err)
+			// Check the output
+			err = checkOutput(t, goldenPath, outputPath)
+			require.NoError(t, err)
+		})
 	}
 }
 

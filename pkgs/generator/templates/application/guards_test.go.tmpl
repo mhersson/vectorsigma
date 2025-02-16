@@ -11,7 +11,7 @@ func Test{{ $.FSM.Title }}_{{ $name }}Guard(t *testing.T) {
 	type fields struct {
         context       *{{ $.Package }}.Context
 		currentState  {{ $.Package }}.StateName
-		stateConfigs  map[{{ $.Package }}.StateName]statemachine.StateConfig
+		stateConfigs  map[{{ $.Package }}.StateName]{{ $.Package }}.StateConfig
 		ExtendedState *{{ $.Package }}.ExtendedState
 	}
 
