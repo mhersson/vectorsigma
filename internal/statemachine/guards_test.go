@@ -4,14 +4,11 @@ import (
 	"errors"
 	"testing"
 
-	"log/slog"
-
 	"github.com/mhersson/vectorsigma/internal/statemachine"
 )
 
 func TestFSM_IsErrorGuard(t *testing.T) {
 	type fields struct {
-		logger        *slog.Logger
 		currentState  statemachine.StateName
 		stateConfigs  map[statemachine.StateName]statemachine.StateConfig
 		ExtendedState *statemachine.ExtendedState
@@ -31,7 +28,6 @@ func TestFSM_IsErrorGuard(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			fsm := &statemachine.FSM{
-				Logger:        tt.fields.logger,
 				CurrentState:  tt.fields.currentState,
 				StateConfigs:  tt.fields.stateConfigs,
 				ExtendedState: tt.fields.ExtendedState,
@@ -45,7 +41,6 @@ func TestFSM_IsErrorGuard(t *testing.T) {
 
 func TestFSM_IsMarkdownGuard(t *testing.T) {
 	type fields struct {
-		logger        *slog.Logger
 		currentState  statemachine.StateName
 		stateConfigs  map[statemachine.StateName]statemachine.StateConfig
 		ExtendedState *statemachine.ExtendedState
@@ -65,7 +60,6 @@ func TestFSM_IsMarkdownGuard(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			fsm := &statemachine.FSM{
-				Logger:        tt.fields.logger,
 				CurrentState:  tt.fields.currentState,
 				StateConfigs:  tt.fields.stateConfigs,
 				ExtendedState: tt.fields.ExtendedState,
@@ -79,7 +73,6 @@ func TestFSM_IsMarkdownGuard(t *testing.T) {
 
 func TestFSM_IsStandaloneModuleGuard(t *testing.T) {
 	type fields struct {
-		logger        *slog.Logger
 		currentState  statemachine.StateName
 		stateConfigs  map[statemachine.StateName]statemachine.StateConfig
 		ExtendedState *statemachine.ExtendedState
@@ -99,7 +92,6 @@ func TestFSM_IsStandaloneModuleGuard(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			fsm := &statemachine.FSM{
-				Logger:        tt.fields.logger,
 				CurrentState:  tt.fields.currentState,
 				StateConfigs:  tt.fields.stateConfigs,
 				ExtendedState: tt.fields.ExtendedState,

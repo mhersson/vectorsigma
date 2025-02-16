@@ -2,6 +2,7 @@ package statemachine
 
 import (
 	"log/slog"
+	"os"
 )
 
 type (
@@ -67,17 +68,22 @@ type StateConfig struct {
 type FSM struct {
 	Context       *Context
 	CurrentState  StateName
-	Logger        *slog.Logger
 	ExtendedState *ExtendedState
 	StateConfigs  map[StateName]StateConfig
 }
 
 // New initializes a new finite state machine.
 func New() *FSM {
+	logLevel := new(slog.LevelVar)
+	logLevel.Set(slog.LevelInfo)
+
+	if os.Getenv("VECTORSIGMA_DEBUG") != "" {
+		logLevel.Set(slog.LevelDebug)
+	}
+
 	fsm := &FSM{
-		Context:       &Context{},
+		Context:       &Context{Logger: slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel}))},
 		CurrentState:  Initializing,
-		Logger:        slog.Default(),
 		ExtendedState: &ExtendedState{},
 		StateConfigs:  make(map[StateName]StateConfig),
 	}
@@ -217,17 +223,17 @@ transitionsLoop:
 		config, exists := fsm.StateConfigs[fsm.CurrentState]
 
 		if !exists {
-			fsm.Logger.Error("missing state config", "state", fsm.CurrentState)
+			fsm.Context.Logger.Error("missing state config", "state", fsm.CurrentState)
 
 			return
 		}
 
 		// Execute all actions for the current state
 		for _, action := range config.Actions {
-			fsm.Logger.Info("executing", "action", action.Name, "state", fsm.CurrentState)
+			fsm.Context.Logger.Debug("executing", "action", action.Name, "state", fsm.CurrentState)
 
 			if err := action.Execute(action.Params...); err != nil {
-				fsm.Logger.Error("action failed", "action", action.Name, "state", fsm.CurrentState, "error", err)
+				fsm.Context.Logger.Error("action failed", "action", action.Name, "state", fsm.CurrentState, "error", err)
 				fsm.ExtendedState.Error = err
 
 				break
@@ -239,7 +245,7 @@ transitionsLoop:
 			if guard.Check() {
 				// Transition to the state mapped to this guard index
 				if nextState, exists := config.Transitions[guardIndex]; exists {
-					fsm.Logger.Info("guarded transition", "guard", guard.Name, "current", fsm.CurrentState, "next", nextState)
+					fsm.Context.Logger.Debug("guarded transition", "guard", guard.Name, "current", fsm.CurrentState, "next", nextState)
 
 					fsm.CurrentState = nextState
 
@@ -249,7 +255,7 @@ transitionsLoop:
 		}
 		// Check for unguarded transition
 		if nextState, exists := config.Transitions[len(config.Guards)]; exists {
-			fsm.Logger.Info("unguarded transition", "current", fsm.CurrentState, "next", nextState)
+			fsm.Context.Logger.Debug("unguarded transition", "current", fsm.CurrentState, "next", nextState)
 			fsm.CurrentState = nextState
 		}
 	}

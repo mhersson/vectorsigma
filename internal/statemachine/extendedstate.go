@@ -1,12 +1,15 @@
 package statemachine
 
 import (
+	"log/slog"
+
 	"github.com/mhersson/vectorsigma/pkgs/generator"
 )
 
 // A struct that holds the items needed for the actions to do their work.
 // Things like client libraries and loggers, go here.
 type Context struct {
+	Logger    *slog.Logger // Do NOT delete this!
 	Generator *generator.Generator
 }
 

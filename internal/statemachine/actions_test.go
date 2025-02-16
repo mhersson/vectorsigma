@@ -4,8 +4,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"log/slog"
-
 	"github.com/mhersson/vectorsigma/internal/statemachine"
 	"github.com/mhersson/vectorsigma/pkgs/generator"
 	"github.com/mhersson/vectorsigma/pkgs/shell/mock_shell"
@@ -16,7 +14,6 @@ import (
 
 func TestFSM_InitializeAction(t *testing.T) {
 	type fields struct {
-		logger        *slog.Logger
 		context       *statemachine.Context
 		currentState  statemachine.StateName
 		stateConfigs  map[statemachine.StateName]statemachine.StateConfig
@@ -45,7 +42,6 @@ func TestFSM_InitializeAction(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			fsm := &statemachine.FSM{
-				Logger:        tt.fields.logger,
 				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
 				StateConfigs:  tt.fields.stateConfigs,
@@ -65,7 +61,6 @@ func TestFSM_InitializeAction(t *testing.T) {
 
 func TestFSM_LoadInputAction(t *testing.T) {
 	type fields struct {
-		logger        *slog.Logger
 		context       *statemachine.Context
 		currentState  statemachine.StateName
 		stateConfigs  map[statemachine.StateName]statemachine.StateConfig
@@ -103,7 +98,6 @@ func TestFSM_LoadInputAction(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			fsm := &statemachine.FSM{
-				Logger:        tt.fields.logger,
 				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
 				StateConfigs:  tt.fields.stateConfigs,
@@ -118,7 +112,6 @@ func TestFSM_LoadInputAction(t *testing.T) {
 
 func TestFSM_ExtractUMLAction(t *testing.T) {
 	type fields struct {
-		logger        *slog.Logger
 		context       *statemachine.Context
 		currentState  statemachine.StateName
 		stateConfigs  map[statemachine.StateName]statemachine.StateConfig
@@ -160,7 +153,6 @@ func TestFSM_ExtractUMLAction(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			fsm := &statemachine.FSM{
-				Logger:        tt.fields.logger,
 				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
 				StateConfigs:  tt.fields.stateConfigs,
@@ -177,7 +169,6 @@ func TestFSM_ExtractUMLAction(t *testing.T) {
 
 func TestFSM_ParseUMLAction(t *testing.T) {
 	type fields struct {
-		logger        *slog.Logger
 		context       *statemachine.Context
 		currentState  statemachine.StateName
 		stateConfigs  map[statemachine.StateName]statemachine.StateConfig
@@ -208,7 +199,6 @@ func TestFSM_ParseUMLAction(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			fsm := &statemachine.FSM{
-				Logger:        tt.fields.logger,
 				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
 				StateConfigs:  tt.fields.stateConfigs,
@@ -225,7 +215,6 @@ func TestFSM_ParseUMLAction(t *testing.T) {
 
 func TestFSM_GenerateStateMachineAction(t *testing.T) {
 	type fields struct {
-		logger        *slog.Logger
 		context       *statemachine.Context
 		currentState  statemachine.StateName
 		stateConfigs  map[statemachine.StateName]statemachine.StateConfig
@@ -257,7 +246,6 @@ func TestFSM_GenerateStateMachineAction(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			fsm := &statemachine.FSM{
-				Logger:        tt.fields.logger,
 				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
 				StateConfigs:  tt.fields.stateConfigs,
@@ -276,7 +264,6 @@ func TestFSM_GenerateStateMachineAction(t *testing.T) {
 
 func TestFSM_CreateOutputFolderAction(t *testing.T) {
 	type fields struct {
-		logger        *slog.Logger
 		context       *statemachine.Context
 		currentState  statemachine.StateName
 		stateConfigs  map[statemachine.StateName]statemachine.StateConfig
@@ -309,7 +296,6 @@ func TestFSM_CreateOutputFolderAction(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			fsm := &statemachine.FSM{
-				Logger:        tt.fields.logger,
 				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
 				StateConfigs:  tt.fields.stateConfigs,
@@ -327,7 +313,6 @@ func TestFSM_CreateOutputFolderAction(t *testing.T) {
 
 func TestFSM_WriteGeneratedFilesAction(t *testing.T) {
 	type fields struct {
-		logger        *slog.Logger
 		context       *statemachine.Context
 		currentState  statemachine.StateName
 		stateConfigs  map[statemachine.StateName]statemachine.StateConfig
@@ -363,7 +348,6 @@ func TestFSM_WriteGeneratedFilesAction(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			fsm := &statemachine.FSM{
-				Logger:        tt.fields.logger,
 				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
 				StateConfigs:  tt.fields.stateConfigs,
@@ -392,7 +376,6 @@ func TestFSM_WriteGeneratedFilesAction(t *testing.T) {
 
 func TestFSM_InitializeGoModuleAction(t *testing.T) {
 	type fields struct {
-		logger        *slog.Logger
 		context       *statemachine.Context
 		currentState  statemachine.StateName
 		stateConfigs  map[statemachine.StateName]statemachine.StateConfig
@@ -428,7 +411,6 @@ func TestFSM_InitializeGoModuleAction(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			fsm := &statemachine.FSM{
-				Logger:        tt.fields.logger,
 				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
 				StateConfigs:  tt.fields.stateConfigs,
@@ -446,7 +428,6 @@ func TestFSM_InitializeGoModuleAction(t *testing.T) {
 
 func TestFSM_GenerateMainFileAction(t *testing.T) {
 	type fields struct {
-		logger        *slog.Logger
 		context       *statemachine.Context
 		currentState  statemachine.StateName
 		stateConfigs  map[statemachine.StateName]statemachine.StateConfig
@@ -480,7 +461,6 @@ func TestFSM_GenerateMainFileAction(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			fsm := &statemachine.FSM{
-				Logger:        tt.fields.logger,
 				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
 				StateConfigs:  tt.fields.stateConfigs,
@@ -500,7 +480,6 @@ func TestFSM_GenerateMainFileAction(t *testing.T) {
 
 func TestFSM_FormatCodeAction(t *testing.T) {
 	type fields struct {
-		logger        *slog.Logger
 		context       *statemachine.Context
 		currentState  statemachine.StateName
 		stateConfigs  map[statemachine.StateName]statemachine.StateConfig
@@ -536,7 +515,6 @@ func TestFSM_FormatCodeAction(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			fsm := &statemachine.FSM{
-				Logger:        tt.fields.logger,
 				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
 				StateConfigs:  tt.fields.stateConfigs,
