@@ -25,6 +25,8 @@ import (
 	"bytes"
 	"embed"
 	"fmt"
+	"path/filepath"
+	"strings"
 	"text/template"
 
 	"github.com/spf13/afero"
@@ -45,7 +47,11 @@ type Generator struct {
 }
 
 func (g *Generator) ExecuteTemplate(filename string) ([]byte, error) {
-	tmpl, err := template.ParseFS(templates, filename)
+	funcMap := template.FuncMap{
+		"toUpper": strings.ToUpper,
+	}
+
+	tmpl, err := template.New(filepath.Base(filename)).Funcs(funcMap).ParseFS(templates, filename)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse template: %w", err)
 	}

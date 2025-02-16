@@ -64,7 +64,7 @@ func New() *{{ .FSM.Title }} {
 	logLevel := new(slog.LevelVar)
 	logLevel.Set(slog.LevelInfo)
 
-	if os.Getenv("{{ .FSM.Title }}_DEBUG") != "" {
+	if os.Getenv("{{ .FSM.Title | toUpper }}_DEBUG") != "" {
 		logLevel.Set(slog.LevelDebug)
 	}
 
