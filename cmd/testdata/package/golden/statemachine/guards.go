@@ -1,4 +1,4 @@
-package fsm
+package statemachine
 
 func init() {
 	AllGuards[IsError] = &IsErrorGuard{}

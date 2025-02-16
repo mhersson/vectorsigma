@@ -33,7 +33,7 @@ import (
 	"github.com/mhersson/vectorsigma/pkgs/uml"
 )
 
-//go:embed templates/basic/*
+//go:embed templates/application/*
 var templates embed.FS
 
 type Generator struct {

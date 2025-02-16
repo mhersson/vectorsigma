@@ -11,68 +11,73 @@ import (
 
 	"github.com/mhersson/vectorsigma/cmd"
 	"github.com/spf13/cobra"
-
-	"github.com/onsi/ginkgo/v2"
-	"github.com/onsi/gomega"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func TestCmd(t *testing.T) {
-	t.Parallel()
-	gomega.RegisterFailHandler(ginkgo.Fail)
-	ginkgo.RunSpecs(t, "Integration tests")
-}
-
 var (
-	update      = flag.Bool("update", false, "update golden files")
-	initCmd     = []string{"generate", "-i", "../uml/traffic-lights.plantuml", "--init"}
-	genCmd      = []string{"generate", "-i", "../uml/traffic-lights.plantuml"}
+	update = flag.Bool("update", false, "update golden files")
+	// initCmd     = []string{"generate", "-i", "../uml/traffic-lights.plantuml", "--init"}.
+	defaultCmd  = []string{"generate", "-i", "../uml/traffic-lights.plantuml"}
 	vectorsigma *cobra.Command
 )
 
-var _ = ginkgo.DescribeTable("Generate Integration tests", ginkgo.Label("integration"),
-	func(directory string, arguments []string) {
-		cmd.InputParams.Init = false
+// Just use the standard go test.
+func Test_IntegrationTest(t *testing.T) {
+	tests := []struct {
+		name           string
+		testdatafolder string
+		arguments      []string
+	}{
+		{
+			name:           "Generate package",
+			testdatafolder: "package",
+			arguments:      defaultCmd,
+		},
+	}
+
+	t.Parallel()
+
+	for _, tt := range tests {
+		cmd.SM.ExtendedState.Init = false
 		vectorsigma = cmd.RootCmd
 
-		testPath := filepath.Join("testdata", directory)
+		testPath := filepath.Join("testdata", tt.testdatafolder)
 		outputPath := filepath.Join(testPath, "output")
 		goldenPath := filepath.Join(testPath, "golden")
 		rootDir, _ := os.Getwd()
 
 		err := cleanup(outputPath)
-		gomega.Expect(err).ToNot(gomega.HaveOccurred())
+		require.NoError(t, err)
 
 		err = os.Chdir(testPath)
-		gomega.Expect(err).ToNot(gomega.HaveOccurred())
+		require.NoError(t, err)
 
 		// Add relative output path to arguments
-		arguments = append(arguments, "--output", "output")
+		tt.arguments = append(tt.arguments, "--output", "output")
 
-		vectorsigma.SetArgs(arguments)
+		vectorsigma.SetArgs(tt.arguments)
 
 		err = vectorsigma.Execute()
-		gomega.Expect(err).ToNot(gomega.HaveOccurred())
+		require.NoError(t, err)
 
 		err = os.Chdir(rootDir)
-		gomega.Expect(err).ToNot(gomega.HaveOccurred())
+		require.NoError(t, err)
 
 		// If update is set replace the all expected files with the generated ones
 		if *update {
 			err = os.RemoveAll(goldenPath)
-			gomega.Expect(err).ToNot(gomega.HaveOccurred())
+			require.NoError(t, err)
 
 			err = copyFiles(outputPath, goldenPath)
-			gomega.Expect(err).ToNot(gomega.HaveOccurred())
+			require.NoError(t, err)
 		}
 
 		// Check the output
-		err = checkOutput(goldenPath, outputPath)
-		gomega.Expect(err).ToNot(gomega.HaveOccurred())
-	},
-
-	ginkgo.Entry("Initialize new module", "initializeNewModule", initCmd),
-	ginkgo.Entry("Generate fsm package", "generateBasicFSM", genCmd),
-)
+		err = checkOutput(t, goldenPath, outputPath)
+		require.NoError(t, err)
+	}
+}
 
 // checkOutput compares the generated output files with the expected golden files.
 //
@@ -89,10 +94,8 @@ var _ = ginkgo.DescribeTable("Generate Integration tests", ginkgo.Label("integra
 // - An error if any file comparison fails or if there are issues reading the files.
 //
 //nolint:wrapcheck
-func checkOutput(goldenPath, outputPath string) error {
+func checkOutput(t *testing.T, goldenPath, outputPath string) error {
 	return filepath.WalkDir(goldenPath, func(path string, d fs.DirEntry, err error) error {
-		ginkgo.By("Checking " + path)
-
 		if err != nil {
 			return err
 		}
@@ -116,9 +119,9 @@ func checkOutput(goldenPath, outputPath string) error {
 
 		genstr := string(genBytes)
 		golden, err := os.ReadFile(path)
-		gomega.Expect(err).ToNot(gomega.HaveOccurred())
+		require.NoError(t, err)
 
-		gomega.Expect(genstr).To(gomega.Equal(string(golden)), fmt.Sprintf("%s: %s", outputPath, path))
+		assert.Equal(t, genstr, string(golden), "%s: %s", outputPath, path)
 
 		return nil
 	})

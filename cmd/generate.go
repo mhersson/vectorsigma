@@ -35,7 +35,7 @@ const (
 	packageFlag = "package"
 )
 
-var sm *statemachine.FSM
+var SM *statemachine.FSM
 
 // GenerateCmd represents the generate command.
 var GenerateCmd = &cobra.Command{
@@ -43,22 +43,22 @@ var GenerateCmd = &cobra.Command{
 	Short: "Generate a FSM",
 	Long:  `Generate a FSM from UML.`,
 	Run: func(_ *cobra.Command, _ []string) {
-		sm.Run()
+		SM.Run()
 	},
 }
 
 func init() {
-	sm = statemachine.New()
+	SM = statemachine.New()
 
 	RootCmd.AddCommand(GenerateCmd)
 
-	GenerateCmd.Flags().BoolVar(&sm.ExtendedState.Init, initFlag, false, "Initialize new go module")
-	GenerateCmd.Flags().StringVarP(&sm.ExtendedState.Module, moduleFlag, "m", "",
+	GenerateCmd.Flags().BoolVar(&SM.ExtendedState.Init, initFlag, false, "Initialize new go module")
+	GenerateCmd.Flags().StringVarP(&SM.ExtendedState.Module, moduleFlag, "m", "",
 		"Name of new go module (default current directory name)")
-	GenerateCmd.Flags().StringVarP(&sm.ExtendedState.Input, inputFlag, "i", "", "The UML input file")
+	GenerateCmd.Flags().StringVarP(&SM.ExtendedState.Input, inputFlag, "i", "", "The UML input file")
 	_ = GenerateCmd.MarkFlagRequired(inputFlag)
-	GenerateCmd.Flags().StringVarP(&sm.ExtendedState.Output, outputFlag, "o", "",
+	GenerateCmd.Flags().StringVarP(&SM.ExtendedState.Output, outputFlag, "o", "",
 		"The output path of the generated FSM (default current working directory)")
-	GenerateCmd.Flags().StringVarP(&sm.ExtendedState.Package, packageFlag, "p", "statemachine",
+	GenerateCmd.Flags().StringVarP(&SM.ExtendedState.Package, packageFlag, "p", "statemachine",
 		"The package name of the generated FSM")
 }

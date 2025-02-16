@@ -59,11 +59,8 @@ test: ## Run tests.
 run: ## Run main.go with arguments.
 	@go run -ldflags $(LDFLAGS) ./main.go $(RUN_ARGS)
 
-ginkgo: ## Run tests with Ginkgo.
-	@go run github.com/onsi/ginkgo/v2/ginkgo run --covermode set --coverprofile cover.out ./...
-
 golden: ## Update golden files.
-	@go run github.com/onsi/ginkgo/v2/ginkgo run --covermode set --coverprofile cover.out cmd -- -update
+	@go test ./... -coverprofile cover.out -- -update
 
 docker-image: ## Build Docker image.
 	@docker buildx build --build-arg VERSION=$(VERSION) -t vectorsigma:$(VERSION) .

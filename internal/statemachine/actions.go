@@ -83,7 +83,7 @@ func (fsm *FSM) ParseUMLAction(_ ...string) error {
 
 func (fsm *FSM) GenerateStateMachineAction(_ ...string) error {
 	for _, filename := range []string{"actions.go", "guards.go", "fsm.go", "state.go"} {
-		code, err := fsm.ExtendedState.Generator.ExecuteTemplate("templates/basic/" + filename + ".tmpl")
+		code, err := fsm.ExtendedState.Generator.ExecuteTemplate("templates/application/" + filename + ".tmpl")
 		if err != nil {
 			return fmt.Errorf("code generation failed: %w", err)
 		}
@@ -129,7 +129,7 @@ func (fsm *FSM) InitializeGoModuleAction(_ ...string) error {
 func (fsm *FSM) GenerateMainFileAction(_ ...string) error {
 	filename := "main.go"
 
-	code, err := fsm.ExtendedState.Generator.ExecuteTemplate("templates/basic/" + filename + ".tmpl")
+	code, err := fsm.ExtendedState.Generator.ExecuteTemplate("templates/application/" + filename + ".tmpl")
 	if err != nil {
 		return fmt.Errorf("code generation failed: %w", err)
 	}
