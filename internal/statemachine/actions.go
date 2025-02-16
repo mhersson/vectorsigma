@@ -15,7 +15,7 @@ import (
 
 // Actions
 
-func (fsm *FSM) InitializeAction(_ ...string) error {
+func (fsm *VectorSigma) InitializeAction(_ ...string) error {
 	dir, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("failed to get working directory: %w", err)
@@ -41,7 +41,7 @@ func (fsm *FSM) InitializeAction(_ ...string) error {
 	return nil
 }
 
-func (fsm *FSM) LoadInputAction(_ ...string) error {
+func (fsm *VectorSigma) LoadInputAction(_ ...string) error {
 	content, err := afero.ReadFile(fsm.Context.Generator.FS, fsm.ExtendedState.Input)
 	if err != nil {
 		return fmt.Errorf("failed to read input file: %w", err)
@@ -52,7 +52,7 @@ func (fsm *FSM) LoadInputAction(_ ...string) error {
 	return nil
 }
 
-func (fsm *FSM) ExtractUMLAction(_ ...string) error {
+func (fsm *VectorSigma) ExtractUMLAction(_ ...string) error {
 	const startDelimiter = "```plantuml"
 
 	const endDelimiter = "```"
@@ -75,13 +75,13 @@ func (fsm *FSM) ExtractUMLAction(_ ...string) error {
 	return nil
 }
 
-func (fsm *FSM) ParseUMLAction(_ ...string) error {
+func (fsm *VectorSigma) ParseUMLAction(_ ...string) error {
 	fsm.Context.Generator.FSM = uml.Parse(fsm.ExtendedState.InputData)
 
 	return nil
 }
 
-func (fsm *FSM) GenerateStateMachineAction(_ ...string) error {
+func (fsm *VectorSigma) GenerateStateMachineAction(_ ...string) error {
 	for _, filename := range []string{"actions.go", "guards.go", "fsm.go", "state.go"} {
 		code, err := fsm.Context.Generator.ExecuteTemplate("templates/application/" + filename + ".tmpl")
 		if err != nil {
@@ -98,7 +98,7 @@ func (fsm *FSM) GenerateStateMachineAction(_ ...string) error {
 	return nil
 }
 
-func (fsm *FSM) CreateOutputFolderAction(_ ...string) error {
+func (fsm *VectorSigma) CreateOutputFolderAction(_ ...string) error {
 	if err := fsm.Context.Generator.FS.MkdirAll(
 		filepath.Join(fsm.ExtendedState.Output, fsm.ExtendedState.Package), 0755); err != nil {
 		return fmt.Errorf("failed to create package directory: %w", err)
@@ -107,7 +107,7 @@ func (fsm *FSM) CreateOutputFolderAction(_ ...string) error {
 	return nil
 }
 
-func (fsm *FSM) WriteGeneratedFilesAction(_ ...string) error {
+func (fsm *VectorSigma) WriteGeneratedFilesAction(_ ...string) error {
 	for filename, code := range fsm.ExtendedState.GeneratedData {
 		if err := fsm.Context.Generator.WriteFile(filepath.Join(fsm.ExtendedState.Output, filename), code); err != nil {
 			return fmt.Errorf("%w", err)
@@ -117,7 +117,7 @@ func (fsm *FSM) WriteGeneratedFilesAction(_ ...string) error {
 	return nil
 }
 
-func (fsm *FSM) InitializeGoModuleAction(_ ...string) error {
+func (fsm *VectorSigma) InitializeGoModuleAction(_ ...string) error {
 	err := fsm.Context.Generator.InitializeModule()
 	if err != nil {
 		return fmt.Errorf("%w", err)
@@ -126,7 +126,7 @@ func (fsm *FSM) InitializeGoModuleAction(_ ...string) error {
 	return nil
 }
 
-func (fsm *FSM) GenerateMainFileAction(_ ...string) error {
+func (fsm *VectorSigma) GenerateMainFileAction(_ ...string) error {
 	filename := "main.go"
 
 	code, err := fsm.Context.Generator.ExecuteTemplate("templates/application/" + filename + ".tmpl")
@@ -139,7 +139,7 @@ func (fsm *FSM) GenerateMainFileAction(_ ...string) error {
 	return nil
 }
 
-func (fsm *FSM) FormatCodeAction(_ ...string) error {
+func (fsm *VectorSigma) FormatCodeAction(_ ...string) error {
 	err := fsm.Context.Generator.FormatCode(filepath.Join(fsm.ExtendedState.Output, "..."))
 	if err != nil {
 		return fmt.Errorf("%w", err)

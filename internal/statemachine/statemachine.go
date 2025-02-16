@@ -64,16 +64,16 @@ type StateConfig struct {
 	Transitions map[int]StateName // Maps guard index to the next state
 }
 
-// FSM represents the FSM for VectorSigma.
-type FSM struct {
+// VectorSigma represents the Finite State Machine (fsm) for VectorSigma.
+type VectorSigma struct {
 	Context       *Context
 	CurrentState  StateName
 	ExtendedState *ExtendedState
 	StateConfigs  map[StateName]StateConfig
 }
 
-// New initializes a new finite state machine.
-func New() *FSM {
+// New initializes a new FSM.
+func New() *VectorSigma {
 	logLevel := new(slog.LevelVar)
 	logLevel.Set(slog.LevelInfo)
 
@@ -81,7 +81,7 @@ func New() *FSM {
 		logLevel.Set(slog.LevelDebug)
 	}
 
-	fsm := &FSM{
+	fsm := &VectorSigma{
 		Context:       &Context{Logger: slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel}))},
 		CurrentState:  Initializing,
 		ExtendedState: &ExtendedState{},
@@ -212,7 +212,7 @@ func New() *FSM {
 }
 
 // Run handles the state transitions based on the current state.
-func (fsm *FSM) Run() {
+func (fsm *VectorSigma) Run() {
 transitionsLoop:
 	for {
 		// If we are in the FinalState, exit the FSM

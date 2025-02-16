@@ -41,7 +41,7 @@ func TestFSM_InitializeAction(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			fsm := &statemachine.FSM{
+			fsm := &statemachine.VectorSigma{
 				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
 				StateConfigs:  tt.fields.stateConfigs,
@@ -97,7 +97,7 @@ func TestFSM_LoadInputAction(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			fsm := &statemachine.FSM{
+			fsm := &statemachine.VectorSigma{
 				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
 				StateConfigs:  tt.fields.stateConfigs,
@@ -152,7 +152,7 @@ func TestFSM_ExtractUMLAction(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			fsm := &statemachine.FSM{
+			fsm := &statemachine.VectorSigma{
 				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
 				StateConfigs:  tt.fields.stateConfigs,
@@ -198,7 +198,7 @@ func TestFSM_ParseUMLAction(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			fsm := &statemachine.FSM{
+			fsm := &statemachine.VectorSigma{
 				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
 				StateConfigs:  tt.fields.stateConfigs,
@@ -245,7 +245,7 @@ func TestFSM_GenerateStateMachineAction(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			fsm := &statemachine.FSM{
+			fsm := &statemachine.VectorSigma{
 				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
 				StateConfigs:  tt.fields.stateConfigs,
@@ -295,7 +295,7 @@ func TestFSM_CreateOutputFolderAction(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			fsm := &statemachine.FSM{
+			fsm := &statemachine.VectorSigma{
 				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
 				StateConfigs:  tt.fields.stateConfigs,
@@ -347,7 +347,7 @@ func TestFSM_WriteGeneratedFilesAction(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			fsm := &statemachine.FSM{
+			fsm := &statemachine.VectorSigma{
 				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
 				StateConfigs:  tt.fields.stateConfigs,
@@ -410,7 +410,7 @@ func TestFSM_InitializeGoModuleAction(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			fsm := &statemachine.FSM{
+			fsm := &statemachine.VectorSigma{
 				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
 				StateConfigs:  tt.fields.stateConfigs,
@@ -460,7 +460,7 @@ func TestFSM_GenerateMainFileAction(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			fsm := &statemachine.FSM{
+			fsm := &statemachine.VectorSigma{
 				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
 				StateConfigs:  tt.fields.stateConfigs,
@@ -514,7 +514,7 @@ func TestFSM_FormatCodeAction(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			fsm := &statemachine.FSM{
+			fsm := &statemachine.VectorSigma{
 				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
 				StateConfigs:  tt.fields.stateConfigs,

@@ -35,7 +35,7 @@ const (
 	packageFlag = "package"
 )
 
-var SM *statemachine.FSM
+var SM *statemachine.VectorSigma
 
 // GenerateCmd represents the generate command.
 var GenerateCmd = &cobra.Command{
