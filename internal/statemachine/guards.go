@@ -5,7 +5,7 @@ import "path/filepath"
 // Guards
 
 func (fsm *FSM) IsErrorGuard() bool {
-	return false
+	return fsm.ExtendedState.Error != nil
 }
 
 func (fsm *FSM) IsMarkdownGuard() bool {

@@ -233,32 +233,29 @@ transitionsLoop:
 
 			if err := action.Execute(action.Params...); err != nil {
 				fsm.Logger.Error("action failed", "action", action.Name, "state", fsm.CurrentState, "error", err)
-				// FIXME: This migt not always be the wanted outcome
-				fsm.CurrentState = FinalState
+				fsm.ExtendedState.Error = err
 
 				break
 			}
 		}
 
 		// Check guards and determine the next state
-		if fsm.CurrentState != FinalState {
-			for guardIndex, guard := range config.Guards {
-				if guard.Check() {
-					// Transition to the state mapped to this guard index
-					if nextState, exists := config.Transitions[guardIndex]; exists {
-						fsm.Logger.Debug("guarded transition", "guard", guard.Name, "current", fsm.CurrentState, "next", nextState)
+		for guardIndex, guard := range config.Guards {
+			if guard.Check() {
+				// Transition to the state mapped to this guard index
+				if nextState, exists := config.Transitions[guardIndex]; exists {
+					fsm.Logger.Debug("guarded transition", "guard", guard.Name, "current", fsm.CurrentState, "next", nextState)
 
-						fsm.CurrentState = nextState
+					fsm.CurrentState = nextState
 
-						continue transitionsLoop
-					}
+					continue transitionsLoop
 				}
 			}
-			// Check for unguarded transition
-			if nextState, exists := config.Transitions[len(config.Guards)]; exists {
-				fsm.Logger.Debug("unguarded transition", "current", fsm.CurrentState, "next", nextState)
-				fsm.CurrentState = nextState
-			}
+		}
+		// Check for unguarded transition
+		if nextState, exists := config.Transitions[len(config.Guards)]; exists {
+			fsm.Logger.Debug("unguarded transition", "current", fsm.CurrentState, "next", nextState)
+			fsm.CurrentState = nextState
 		}
 	}
 }

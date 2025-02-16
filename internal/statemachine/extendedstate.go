@@ -13,4 +13,5 @@ type ExtendedState struct {
 	Module        string
 	Output        string
 	Package       string
+	Error         error
 }

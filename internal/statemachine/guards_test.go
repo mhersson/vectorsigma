@@ -1,6 +1,7 @@
 package statemachine_test
 
 import (
+	"errors"
 	"testing"
 
 	"log/slog"
@@ -21,7 +22,8 @@ func TestFSM_IsErrorGuard(t *testing.T) {
 		fields fields
 		want   bool
 	}{
-		// TODO: Add test cases.
+		{name: "IsError", fields: fields{ExtendedState: &statemachine.ExtendedState{Error: errors.New("error")}}, want: true},
+		{name: "NoError", fields: fields{ExtendedState: &statemachine.ExtendedState{Error: nil}}, want: false},
 	}
 
 	t.Parallel()
