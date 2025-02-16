@@ -7,7 +7,7 @@ import (
 	"github.com/mhersson/vectorsigma/internal/statemachine"
 )
 
-func TestFSM_IsErrorGuard(t *testing.T) {
+func TestVectorSigma_IsErrorGuard(t *testing.T) {
 	type fields struct {
 		context       *statemachine.Context
 		currentState  statemachine.StateName
@@ -35,13 +35,13 @@ func TestFSM_IsErrorGuard(t *testing.T) {
 				ExtendedState: tt.fields.ExtendedState,
 			}
 			if got := fsm.IsErrorGuard(); got != tt.want {
-				t.Errorf("FSM.IsErrorGuard() = %v, want %v", got, tt.want)
+				t.Errorf("VectorSigma.IsErrorGuard() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestFSM_IsMarkdownGuard(t *testing.T) {
+func TestVectorSigma_IsMarkdownGuard(t *testing.T) {
 	type fields struct {
 		context       *statemachine.Context
 		currentState  statemachine.StateName
@@ -69,13 +69,13 @@ func TestFSM_IsMarkdownGuard(t *testing.T) {
 				ExtendedState: tt.fields.ExtendedState,
 			}
 			if got := fsm.IsMarkdownGuard(); got != tt.want {
-				t.Errorf("FSM.IsMarkdownGuard() = %v, want %v", got, tt.want)
+				t.Errorf("VectorSigma.IsMarkdownGuard() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestFSM_IsStandaloneModuleGuard(t *testing.T) {
+func TestVectorSigma_IsStandaloneModuleGuard(t *testing.T) {
 	type fields struct {
 		context       *statemachine.Context
 		currentState  statemachine.StateName
@@ -103,7 +103,7 @@ func TestFSM_IsStandaloneModuleGuard(t *testing.T) {
 				ExtendedState: tt.fields.ExtendedState,
 			}
 			if got := fsm.IsStandaloneModuleGuard(); got != tt.want {
-				t.Errorf("FSM.IsStandaloneModuleGuard() = %v, want %v", got, tt.want)
+				t.Errorf("VectorSigma.IsStandaloneModuleGuard() = %v, want %v", got, tt.want)
 			}
 		})
 	}

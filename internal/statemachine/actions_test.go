@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestFSM_InitializeAction(t *testing.T) {
+func TestVectorSigma_InitializeAction(t *testing.T) {
 	type fields struct {
 		context       *statemachine.Context
 		currentState  statemachine.StateName
@@ -48,7 +48,7 @@ func TestFSM_InitializeAction(t *testing.T) {
 				ExtendedState: tt.fields.ExtendedState,
 			}
 			if err := fsm.InitializeAction(tt.args.params...); (err != nil) != tt.wantErr {
-				t.Errorf("FSM.InitializeAction() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("VectorSigma.InitializeAction() error = %v, wantErr %v", err, tt.wantErr)
 			} else if !tt.wantErr {
 				assert.NotEqual(t, "", fsm.ExtendedState.Output)
 				assert.NotEqual(t, "", fsm.ExtendedState.Module)
@@ -59,7 +59,7 @@ func TestFSM_InitializeAction(t *testing.T) {
 	}
 }
 
-func TestFSM_LoadInputAction(t *testing.T) {
+func TestVectorSigma_LoadInputAction(t *testing.T) {
 	type fields struct {
 		context       *statemachine.Context
 		currentState  statemachine.StateName
@@ -104,13 +104,13 @@ func TestFSM_LoadInputAction(t *testing.T) {
 				ExtendedState: tt.fields.ExtendedState,
 			}
 			if err := fsm.LoadInputAction(tt.args.params...); (err != nil) != tt.wantErr {
-				t.Errorf("FSM.LoadInputAction() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("VectorSigma.LoadInputAction() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
-func TestFSM_ExtractUMLAction(t *testing.T) {
+func TestVectorSigma_ExtractUMLAction(t *testing.T) {
 	type fields struct {
 		context       *statemachine.Context
 		currentState  statemachine.StateName
@@ -159,7 +159,7 @@ func TestFSM_ExtractUMLAction(t *testing.T) {
 				ExtendedState: tt.fields.ExtendedState,
 			}
 			if err := fsm.ExtractUMLAction(tt.args.params...); (err != nil) != tt.wantErr {
-				t.Errorf("FSM.ExtractUMLAction() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("VectorSigma.ExtractUMLAction() error = %v, wantErr %v", err, tt.wantErr)
 			} else if !tt.wantErr {
 				assert.Equal(t, "\n@startuml", fsm.ExtendedState.InputData)
 			}
@@ -167,7 +167,7 @@ func TestFSM_ExtractUMLAction(t *testing.T) {
 	}
 }
 
-func TestFSM_ParseUMLAction(t *testing.T) {
+func TestVectorSigma_ParseUMLAction(t *testing.T) {
 	type fields struct {
 		context       *statemachine.Context
 		currentState  statemachine.StateName
@@ -205,7 +205,7 @@ func TestFSM_ParseUMLAction(t *testing.T) {
 				ExtendedState: tt.fields.ExtendedState,
 			}
 			if err := fsm.ParseUMLAction(tt.args.params...); (err != nil) != tt.wantErr {
-				t.Errorf("FSM.ParseUMLAction() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("VectorSigma.ParseUMLAction() error = %v, wantErr %v", err, tt.wantErr)
 			} else if !tt.wantErr {
 				assert.Equal(t, "testtitle", fsm.Context.Generator.FSM.Title)
 			}
@@ -213,7 +213,7 @@ func TestFSM_ParseUMLAction(t *testing.T) {
 	}
 }
 
-func TestFSM_GenerateStateMachineAction(t *testing.T) {
+func TestVectorSigma_GenerateStateMachineAction(t *testing.T) {
 	type fields struct {
 		context       *statemachine.Context
 		currentState  statemachine.StateName
@@ -252,7 +252,7 @@ func TestFSM_GenerateStateMachineAction(t *testing.T) {
 				ExtendedState: tt.fields.ExtendedState,
 			}
 			if err := fsm.GenerateStateMachineAction(tt.args.params...); (err != nil) != tt.wantErr {
-				t.Errorf("FSM.GenerateStateMachineAction() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("VectorSigma.GenerateStateMachineAction() error = %v, wantErr %v", err, tt.wantErr)
 			} else if !tt.wantErr {
 				for k, v := range fsm.ExtendedState.GeneratedData {
 					assert.Contains(t, string(v), "package unittest", k)
@@ -262,7 +262,7 @@ func TestFSM_GenerateStateMachineAction(t *testing.T) {
 	}
 }
 
-func TestFSM_CreateOutputFolderAction(t *testing.T) {
+func TestVectorSigma_CreateOutputFolderAction(t *testing.T) {
 	type fields struct {
 		context       *statemachine.Context
 		currentState  statemachine.StateName
@@ -302,7 +302,7 @@ func TestFSM_CreateOutputFolderAction(t *testing.T) {
 				ExtendedState: tt.fields.ExtendedState,
 			}
 			if err := fsm.CreateOutputFolderAction(tt.args.params...); (err != nil) != tt.wantErr {
-				t.Errorf("FSM.CreateOutputFolderAction() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("VectorSigma.CreateOutputFolderAction() error = %v, wantErr %v", err, tt.wantErr)
 			} else if !tt.wantErr {
 				exists, _ := afero.Exists(fs, filepath.Join(tt.fields.ExtendedState.Output, tt.fields.ExtendedState.Package))
 				assert.True(t, exists)
@@ -311,7 +311,7 @@ func TestFSM_CreateOutputFolderAction(t *testing.T) {
 	}
 }
 
-func TestFSM_WriteGeneratedFilesAction(t *testing.T) {
+func TestVectorSigma_WriteGeneratedFilesAction(t *testing.T) {
 	type fields struct {
 		context       *statemachine.Context
 		currentState  statemachine.StateName
@@ -354,7 +354,7 @@ func TestFSM_WriteGeneratedFilesAction(t *testing.T) {
 				ExtendedState: tt.fields.ExtendedState,
 			}
 			if err := fsm.WriteGeneratedFilesAction(tt.args.params...); (err != nil) != tt.wantErr {
-				t.Errorf("FSM.WriteGeneratedFilesAction() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("VectorSigma.WriteGeneratedFilesAction() error = %v, wantErr %v", err, tt.wantErr)
 			} else if !tt.wantErr {
 				assert.NoError(t, fs.MkdirAll(tt.fields.ExtendedState.Output, 0o755))
 
@@ -374,7 +374,7 @@ func TestFSM_WriteGeneratedFilesAction(t *testing.T) {
 	}
 }
 
-func TestFSM_InitializeGoModuleAction(t *testing.T) {
+func TestVectorSigma_InitializeGoModuleAction(t *testing.T) {
 	type fields struct {
 		context       *statemachine.Context
 		currentState  statemachine.StateName
@@ -420,13 +420,13 @@ func TestFSM_InitializeGoModuleAction(t *testing.T) {
 			mockCmd.EXPECT().Run().Return(nil)
 
 			if err := fsm.InitializeGoModuleAction(tt.args.params...); (err != nil) != tt.wantErr {
-				t.Errorf("FSM.InitializeGoModuleAction() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("VectorSigma.InitializeGoModuleAction() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
-func TestFSM_GenerateMainFileAction(t *testing.T) {
+func TestVectorSigma_GenerateMainFileAction(t *testing.T) {
 	type fields struct {
 		context       *statemachine.Context
 		currentState  statemachine.StateName
@@ -467,7 +467,7 @@ func TestFSM_GenerateMainFileAction(t *testing.T) {
 				ExtendedState: tt.fields.ExtendedState,
 			}
 			if err := fsm.GenerateMainFileAction(tt.args.params...); (err != nil) != tt.wantErr {
-				t.Errorf("FSM.GenerateMainFileAction() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("VectorSigma.GenerateMainFileAction() error = %v, wantErr %v", err, tt.wantErr)
 			} else if !tt.wantErr {
 				for k, v := range fsm.ExtendedState.GeneratedData {
 					assert.Equal(t, "main.go", k)
@@ -478,7 +478,7 @@ func TestFSM_GenerateMainFileAction(t *testing.T) {
 	}
 }
 
-func TestFSM_FormatCodeAction(t *testing.T) {
+func TestVectorSigma_FormatCodeAction(t *testing.T) {
 	type fields struct {
 		context       *statemachine.Context
 		currentState  statemachine.StateName
@@ -525,7 +525,7 @@ func TestFSM_FormatCodeAction(t *testing.T) {
 			mockCmd.EXPECT().Run().Return(nil)
 
 			if err := fsm.FormatCodeAction(tt.args.params...); (err != nil) != tt.wantErr {
-				t.Errorf("FSM.FormatCodeAction() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("VectorSigma.FormatCodeAction() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
