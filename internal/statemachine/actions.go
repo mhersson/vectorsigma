@@ -82,7 +82,15 @@ func (fsm *VectorSigma) ParseUMLAction(_ ...string) error {
 }
 
 func (fsm *VectorSigma) GenerateStateMachineAction(_ ...string) error {
-	for _, filename := range []string{"actions.go", "guards.go", "statemachine.go", "extendedstate.go"} {
+	files := []string{
+		"actions.go",
+		"actions_test.go",
+		"guards.go",
+		"guards_test.go",
+		"statemachine.go",
+		"extendedstate.go"}
+
+	for _, filename := range files {
 		code, err := fsm.Context.Generator.ExecuteTemplate("templates/application/" + filename + ".tmpl")
 		if err != nil {
 			return fmt.Errorf("code generation failed: %w", err)

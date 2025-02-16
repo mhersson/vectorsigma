@@ -9,6 +9,7 @@ import (
 
 func TestFSM_IsErrorGuard(t *testing.T) {
 	type fields struct {
+		context       *statemachine.Context
 		currentState  statemachine.StateName
 		stateConfigs  map[statemachine.StateName]statemachine.StateConfig
 		ExtendedState *statemachine.ExtendedState
@@ -28,6 +29,7 @@ func TestFSM_IsErrorGuard(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			fsm := &statemachine.VectorSigma{
+				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
 				StateConfigs:  tt.fields.stateConfigs,
 				ExtendedState: tt.fields.ExtendedState,
@@ -41,6 +43,7 @@ func TestFSM_IsErrorGuard(t *testing.T) {
 
 func TestFSM_IsMarkdownGuard(t *testing.T) {
 	type fields struct {
+		context       *statemachine.Context
 		currentState  statemachine.StateName
 		stateConfigs  map[statemachine.StateName]statemachine.StateConfig
 		ExtendedState *statemachine.ExtendedState
@@ -60,6 +63,7 @@ func TestFSM_IsMarkdownGuard(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			fsm := &statemachine.VectorSigma{
+				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
 				StateConfigs:  tt.fields.stateConfigs,
 				ExtendedState: tt.fields.ExtendedState,
@@ -73,6 +77,7 @@ func TestFSM_IsMarkdownGuard(t *testing.T) {
 
 func TestFSM_IsStandaloneModuleGuard(t *testing.T) {
 	type fields struct {
+		context       *statemachine.Context
 		currentState  statemachine.StateName
 		stateConfigs  map[statemachine.StateName]statemachine.StateConfig
 		ExtendedState *statemachine.ExtendedState
@@ -92,6 +97,7 @@ func TestFSM_IsStandaloneModuleGuard(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			fsm := &statemachine.VectorSigma{
+				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
 				StateConfigs:  tt.fields.stateConfigs,
 				ExtendedState: tt.fields.ExtendedState,
