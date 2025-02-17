@@ -3,11 +3,11 @@
 title Traffic Light
 [*] --> Red
 Red: do / SwitchIn(5)
-Red -[dotted]-> [*]: [ IsError ]
+Red -[dotted]-> [*]: IsError
 Red --> Yellow
 
 Yellow: do / SwitchIn(1)
-Yellow -[dotted]-> [*]: [ IsError]
+Yellow -[dotted]-> [*]: [IsError
 Yellow --> Green
 
 FlashingYellow: do / SwitchIn(3)
@@ -15,7 +15,7 @@ FlashingYellow -[dotted]-> [*]: [ IsError ]
 FlashingYellow -[bold]-> Red
 
 Green: do / SwitchIn(5)
-Green -[dotted]-> [*]: [ IsError ]
+Green -[dotted]-> [*]:      IsError   ]
 Green --> FlashingYellow
 
 @enduml

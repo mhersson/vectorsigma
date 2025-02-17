@@ -34,7 +34,7 @@ const (
 	// StartingConversation: do / StartConversation(param).
 	actionPattern = `^(\w+):\s*do\s*\/\s*(\w+)(\((.*)\))?$`
 	// StartingConversation --> FinalState: [ isError ].
-	guardedTransitionPattern = `^(\w+)\s*-->\s*(\w+):\s*\[\s*(\w+)\s*\]$`
+	guardedTransitionPattern = `^(\w+)\s*-->\s*(\w+):\s*\[?\s*(\w+)\s*\]?$`
 	// StartingConversation --> FinalState.
 	defaultTransitionPattern = `^(\w+)\s*-->\s*(\w+)$`
 	FinalState               = "FinalState"
