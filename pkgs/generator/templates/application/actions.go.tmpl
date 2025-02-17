@@ -1,0 +1,9 @@
+package {{ .Package }}
+
+{{- range $name := .FSM.ActionNames }}
+func (fsm *{{ $.FSM.Title }}) {{ $name }}Action(_ ...string) error {
+	// TODO: Implement me!
+	return nil
+}
+
+{{ end }}

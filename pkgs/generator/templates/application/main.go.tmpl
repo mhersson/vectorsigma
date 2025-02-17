@@ -1,0 +1,10 @@
+package main
+
+import (
+	"{{ .Module }}/{{ .Package }}"
+)
+
+func main() {
+	SM := {{ .Package }}.New()
+	SM.Run()
+}

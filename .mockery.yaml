@@ -1,0 +1,11 @@
+with-expecter: true
+filename: "mock_{{.InterfaceName | snakecase}}.go"
+dir: "{{.InterfaceDir}}/mock_{{.PackageName}}"
+mockname: "Mock{{.InterfaceName}}"
+outpkg: "mock_{{.PackageName}}"
+inpackage: false
+packages:
+  github.com/mhersson/vectorsigma/pkgs/shell:
+    interfaces:
+      Interface:
+      CmdRunner:
