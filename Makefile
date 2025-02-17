@@ -60,7 +60,7 @@ run: ## Run main.go with arguments.
 	@go run -ldflags $(LDFLAGS) ./main.go $(RUN_ARGS)
 
 golden: ## Update golden files.
-	go test -update -coverprofile cover.out ./cmd
+	go test ./cmd -coverprofile cover.out -args -update
 
 docker-image: ## Build Docker image.
 	@docker buildx build --build-arg VERSION=$(VERSION) -t vectorsigma:$(VERSION) .

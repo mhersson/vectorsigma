@@ -33,8 +33,22 @@ func Test_IntegrationTest(t *testing.T) {
 		pkg            string
 		// arguments      []string
 	}{
-		{name: "Initialize module", testdatafolder: "new_module", output: "output", init: true, input: "../uml/traffic-lights.plantuml", pkg: "integrationtest"},
-		{name: "Generate package", testdatafolder: "package", output: "output", init: false, input: "../uml/traffic-lights.plantuml", pkg: "integrationtest"},
+		{
+			name:           "Initialize module",
+			testdatafolder: "new_module",
+			output:         "output",
+			init:           true,
+			input:          "../uml/traffic-lights.plantuml",
+			pkg:            "integrationtest",
+		},
+		{
+			name:           "Generate package",
+			testdatafolder: "package",
+			output:         "output",
+			init:           false,
+			input:          "../uml/traffic-lights.plantuml",
+			pkg:            "integrationtest",
+		},
 	}
 
 	rootDir, _ := os.Getwd()
@@ -52,7 +66,7 @@ func Test_IntegrationTest(t *testing.T) {
 			require.NoError(t, err)
 
 			vectorsigma = cmd.RootCmd
-			vectorsigma.SetArgs([]string{"generate", "--input", "weoveridethis"})
+			vectorsigma.SetArgs([]string{"generate", "--input", "weoverridethis"})
 
 			cmd.SM = statemachine.New()
 			cmd.SM.ExtendedState.Init = tt.init
@@ -63,7 +77,9 @@ func Test_IntegrationTest(t *testing.T) {
 			err = vectorsigma.Execute()
 			require.NoError(t, err)
 
-			// If update is set replace the all expected files with the generated ones
+			err = os.Chdir(rootDir)
+			require.NoError(t, err)
+
 			if *update {
 				err = os.RemoveAll(goldenPath)
 				require.NoError(t, err)
@@ -72,8 +88,6 @@ func Test_IntegrationTest(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			err = os.Chdir(rootDir)
-			require.NoError(t, err)
 			// Check the output
 			err = checkOutput(t, goldenPath, outputPath)
 			require.NoError(t, err)
