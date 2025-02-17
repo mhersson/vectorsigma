@@ -25,16 +25,25 @@ func (fsm *VectorSigma) InitializeAction(_ ...string) error {
 		fsm.ExtendedState.Module = filepath.Base(dir)
 	}
 
+	relativePath := ""
 	if fsm.ExtendedState.Output == "" {
 		fsm.ExtendedState.Output = dir
+	} else if fsm.ExtendedState.Output != "" && !fsm.ExtendedState.Init {
+		// When generating a package for an existing project we need the relative path
+		// to be able to correctly set the import in the actions and guards test files
+		relativePath = fsm.ExtendedState.Output
+		if strings.HasPrefix(relativePath, ".") {
+			return errors.New("invalid output - must be a subdir of current working directory without leading ./")
+		}
 	}
 
 	fsm.Context.Generator = &generator.Generator{
-		FS:      afero.NewOsFs(),
-		Shell:   &shell.Shell{},
-		Module:  fsm.ExtendedState.Module,
-		Package: fsm.ExtendedState.Package,
-		Init:    fsm.ExtendedState.Init,
+		FS:           afero.NewOsFs(),
+		Shell:        &shell.Shell{},
+		Module:       fsm.ExtendedState.Module,
+		Package:      fsm.ExtendedState.Package,
+		Init:         fsm.ExtendedState.Init,
+		RelativePath: relativePath,
 	}
 
 	fsm.ExtendedState.GeneratedData = make(map[string][]byte)

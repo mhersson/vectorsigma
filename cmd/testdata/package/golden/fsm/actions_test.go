@@ -1,7 +1,7 @@
 package fsm_test
 
 import (
-	"package/fsm"
+	"package/output/fsm"
 	"testing"
 )
 

@@ -39,12 +39,13 @@ import (
 var templates embed.FS
 
 type Generator struct {
-	FS      afero.Fs
-	Shell   shell.Interface
-	FSM     *uml.FSM
-	Module  string
-	Package string
-	Init    bool
+	FS           afero.Fs
+	Shell        shell.Interface
+	FSM          *uml.FSM
+	Module       string
+	Package      string
+	RelativePath string
+	Init         bool
 }
 
 func (g *Generator) ExecuteTemplate(filename string) ([]byte, error) {

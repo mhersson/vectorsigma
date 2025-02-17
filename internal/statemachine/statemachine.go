@@ -92,9 +92,10 @@ func New() *VectorSigma {
 		Actions: []Action{
 			{Name: Initialize, Execute: fsm.InitializeAction, Params: []string{}},
 		},
-		Guards: []Guard{},
+		Guards: []Guard{{Name: IsError, Check: fsm.IsErrorGuard}},
 		Transitions: map[int]StateName{
-			0: LoadingInput,
+			0: FinalState,
+			1: LoadingInput,
 		},
 	}
 

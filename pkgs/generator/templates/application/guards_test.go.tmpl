@@ -6,7 +6,11 @@ import (
 {{- if .Init }}
 	"{{ .Module }}/internal/{{ .Package }}"
 {{- else }}
+	{{- if eq .RelativePath "" }}
 	"{{ .Module }}/{{ .Package }}"
+	{{- else }}
+	"{{ .Module }}/{{ .RelativePath }}/{{ .Package }}"
+	{{- end }}
 {{- end }}
 )
 
