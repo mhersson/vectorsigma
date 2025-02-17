@@ -1,9 +1,8 @@
 package fsm_test
 
 import (
-	"testing"
-
 	"package/fsm"
+	"testing"
 )
 
 func TestTrafficLight_IsErrorGuard(t *testing.T) {

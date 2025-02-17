@@ -12,16 +12,17 @@ type (
 )
 
 const (
-	FinalState             StateName = "FinalState"
-	Initializing           StateName = "Initializing"
-	LoadingInput           StateName = "LoadingInput"
-	ExtractingUML          StateName = "ExtractingUML"
-	ParsingUML             StateName = "ParsingUML"
-	GeneratingStateMachine StateName = "GeneratingStateMachine"
-	CreatingOutputFolder   StateName = "CreatingOutputFolder"
-	WritingGeneratedFiles  StateName = "WritingGeneratedFiles"
-	GeneratingModuleFiles  StateName = "GeneratingModuleFiles"
-	FormattingCode         StateName = "FormattingCode"
+	FinalState                   StateName = "FinalState"
+	Initializing                 StateName = "Initializing"
+	LoadingInput                 StateName = "LoadingInput"
+	ExtractingUML                StateName = "ExtractingUML"
+	ParsingUML                   StateName = "ParsingUML"
+	GeneratingStateMachine       StateName = "GeneratingStateMachine"
+	CreatingInternalOutputFolder StateName = "CreatingInternalOutputFolder"
+	CreatingOutputFolder         StateName = "CreatingOutputFolder"
+	WritingGeneratedFiles        StateName = "WritingGeneratedFiles"
+	GeneratingModuleFiles        StateName = "GeneratingModuleFiles"
+	FormattingCode               StateName = "FormattingCode"
 )
 
 const (
@@ -138,10 +139,38 @@ func New() *VectorSigma {
 		Actions: []Action{
 			{Name: GenerateStateMachine, Execute: fsm.GenerateStateMachineAction, Params: []string{}},
 		},
+		Guards: []Guard{
+			{Name: IsError, Check: fsm.IsErrorGuard},
+			{Name: IsStandaloneModule, Check: fsm.IsStandaloneModuleGuard},
+		},
+		Transitions: map[int]StateName{
+			0: FinalState,
+			1: GeneratingModuleFiles,
+			2: CreatingOutputFolder,
+		},
+	}
+
+	fsm.StateConfigs[GeneratingModuleFiles] = StateConfig{
+		Actions: []Action{
+			{Name: GenerateModuleFiles, Execute: fsm.GenerateModuleFilesAction, Params: []string{}},
+		},
 		Guards: []Guard{{Name: IsError, Check: fsm.IsErrorGuard}},
 		Transitions: map[int]StateName{
 			0: FinalState,
-			1: CreatingOutputFolder,
+			1: CreatingInternalOutputFolder,
+		},
+	}
+
+	fsm.StateConfigs[CreatingInternalOutputFolder] = StateConfig{
+		Actions: []Action{
+			{Name: CreateOutputFolder, Execute: fsm.CreateOutputFolderAction, Params: []string{"internal"}},
+		},
+		Guards: []Guard{
+			{Name: IsError, Check: fsm.IsErrorGuard},
+		},
+		Transitions: map[int]StateName{
+			0: FinalState,
+			1: WritingGeneratedFiles,
 		},
 	}
 
@@ -151,20 +180,7 @@ func New() *VectorSigma {
 		},
 		Guards: []Guard{
 			{Name: IsError, Check: fsm.IsErrorGuard},
-			{Name: IsStandaloneModule, Check: fsm.IsStandaloneModuleGuard},
 		},
-		Transitions: map[int]StateName{
-			0: FinalState,
-			1: GeneratingModuleFiles,
-			2: WritingGeneratedFiles,
-		},
-	}
-
-	fsm.StateConfigs[GeneratingModuleFiles] = StateConfig{
-		Actions: []Action{
-			{Name: GenerateModuleFiles, Execute: fsm.GenerateModuleFilesAction, Params: []string{}},
-		},
-		Guards: []Guard{{Name: IsError, Check: fsm.IsErrorGuard}},
 		Transitions: map[int]StateName{
 			0: FinalState,
 			1: WritingGeneratedFiles,

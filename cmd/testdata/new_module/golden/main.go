@@ -1,7 +1,7 @@
 package main
 
 import (
-	"new_module/fsm"
+	"new_module/internal/fsm"
 )
 
 func main() {

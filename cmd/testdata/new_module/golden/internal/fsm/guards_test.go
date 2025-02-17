@@ -1,12 +1,11 @@
 package fsm_test
 
 import (
+	"new_module/internal/fsm"
 	"testing"
-
-	"new_module/fsm"
 )
 
-func TestTrafficLight_SwitchInAction(t *testing.T) {
+func TestTrafficLight_IsErrorGuard(t *testing.T) {
 	type fields struct {
 		context       *fsm.Context
 		currentState  fsm.StateName
@@ -14,15 +13,10 @@ func TestTrafficLight_SwitchInAction(t *testing.T) {
 		ExtendedState *fsm.ExtendedState
 	}
 
-	type args struct {
-		params []string
-	}
-
 	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr bool
+		name   string
+		fields fields
+		want   bool
 	}{
 		// TODO: Add test cases.
 	}
@@ -37,8 +31,8 @@ func TestTrafficLight_SwitchInAction(t *testing.T) {
 				StateConfigs:  tt.fields.stateConfigs,
 				ExtendedState: tt.fields.ExtendedState,
 			}
-			if err := fsm.SwitchInAction(tt.args.params...); (err != nil) != tt.wantErr {
-				t.Errorf("TrafficLight.SwitchInAction() error = %v, wantErr %v", err, tt.wantErr)
+			if got := fsm.IsErrorGuard(); got != tt.want {
+				t.Errorf("TrafficLight.IsErrorGuard() = %v, want %v", got, tt.want)
 			}
 		})
 	}

@@ -44,6 +44,7 @@ type Generator struct {
 	FSM     *uml.FSM
 	Module  string
 	Package string
+	Init    bool
 }
 
 func (g *Generator) ExecuteTemplate(filename string) ([]byte, error) {
