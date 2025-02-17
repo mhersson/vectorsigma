@@ -39,7 +39,7 @@ func Test_IntegrationTest(t *testing.T) {
 			output:         "output",
 			init:           true,
 			input:          "../uml/traffic-lights.plantuml",
-			pkg:            "integrationtest",
+			pkg:            "fsm",
 		},
 		{
 			name:           "Generate package",
@@ -47,7 +47,7 @@ func Test_IntegrationTest(t *testing.T) {
 			output:         "output",
 			init:           false,
 			input:          "../uml/traffic-lights.plantuml",
-			pkg:            "integrationtest",
+			pkg:            "fsm",
 		},
 	}
 

@@ -1,17 +1,17 @@
-package integrationtest_test
+package fsm_test
 
 import (
 	"testing"
 
-	"new_module/integrationtest"
+	"package/fsm"
 )
 
 func TestTrafficLight_SwitchInAction(t *testing.T) {
 	type fields struct {
-		context       *integrationtest.Context
-		currentState  integrationtest.StateName
-		stateConfigs  map[integrationtest.StateName]integrationtest.StateConfig
-		ExtendedState *integrationtest.ExtendedState
+		context       *fsm.Context
+		currentState  fsm.StateName
+		stateConfigs  map[fsm.StateName]fsm.StateConfig
+		ExtendedState *fsm.ExtendedState
 	}
 
 	type args struct {
@@ -31,7 +31,7 @@ func TestTrafficLight_SwitchInAction(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			fsm := &integrationtest.TrafficLight{
+			fsm := &fsm.TrafficLight{
 				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
 				StateConfigs:  tt.fields.stateConfigs,

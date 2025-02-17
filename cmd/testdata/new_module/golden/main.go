@@ -1,10 +1,10 @@
 package main
 
 import (
-	"new_module/integrationtest"
+	"new_module/fsm"
 )
 
 func main() {
-	SM := integrationtest.New()
+	SM := fsm.New()
 	SM.Run()
 }

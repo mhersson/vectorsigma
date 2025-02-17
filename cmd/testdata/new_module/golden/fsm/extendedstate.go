@@ -1,4 +1,4 @@
-package integrationtest
+package fsm
 
 import (
 	"log/slog"
