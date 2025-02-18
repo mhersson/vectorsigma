@@ -289,6 +289,14 @@ func TestVectorSigma_CreateOutputFolderAction(t *testing.T) {
 					Output:  "outputfolder",
 					Package: "statemachine"}},
 			wantErr: false},
+		{name: "OK in internal",
+			fields: fields{
+				context: &statemachine.Context{Generator: &generator.Generator{FS: fs}},
+				ExtendedState: &statemachine.ExtendedState{
+					Output:  "outputfolder",
+					Package: "statemachine"}},
+			args:    args{[]string{"internal"}},
+			wantErr: false},
 	}
 
 	t.Parallel()
@@ -304,8 +312,13 @@ func TestVectorSigma_CreateOutputFolderAction(t *testing.T) {
 			if err := fsm.CreateOutputFolderAction(tt.args.params...); (err != nil) != tt.wantErr {
 				t.Errorf("VectorSigma.CreateOutputFolderAction() error = %v, wantErr %v", err, tt.wantErr)
 			} else if !tt.wantErr {
-				exists, _ := afero.Exists(fs, filepath.Join(tt.fields.ExtendedState.Output, tt.fields.ExtendedState.Package))
-				assert.True(t, exists)
+				if tt.args.params != nil {
+					exists, _ := afero.Exists(fs, filepath.Join(tt.fields.ExtendedState.Output, tt.args.params[0], tt.fields.ExtendedState.Package))
+					assert.True(t, exists)
+				} else {
+					exists, _ := afero.Exists(fs, filepath.Join(tt.fields.ExtendedState.Output, tt.fields.ExtendedState.Package))
+					assert.True(t, exists)
+				}
 			}
 		})
 	}
