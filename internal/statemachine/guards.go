@@ -15,3 +15,7 @@ func (fsm *VectorSigma) IsMarkdownGuard() bool {
 func (fsm *VectorSigma) IsStandaloneModuleGuard() bool {
 	return fsm.ExtendedState.Init
 }
+
+func (fsm *VectorSigma) PackageExistsGuard() bool {
+	return fsm.ExtendedState.PackageExits
+}

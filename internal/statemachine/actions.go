@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/mhersson/vectorsigma/pkgs/generator"
@@ -122,10 +123,35 @@ func (fsm *VectorSigma) CreateOutputFolderAction(params ...string) error {
 		outputfolder = filepath.Join(fsm.ExtendedState.Output, params[0], fsm.ExtendedState.Package)
 	}
 
+	if exists, _ := fsm.Context.Generator.Exists(outputfolder); exists {
+		fsm.ExtendedState.PackageExits = true
+
+		return nil
+	}
+
 	if err := fsm.Context.Generator.FS.MkdirAll(outputfolder, 0755); err != nil {
 		return fmt.Errorf("failed to create package directory: %w", err)
 	}
 
+	return nil
+}
+
+func (fsm *VectorSigma) FilterExistingFilesAction(_ ...string) error {
+	files := []string{"extendedstate.go"}
+
+	for filename := range fsm.ExtendedState.GeneratedData {
+		if exists, _ := fsm.Context.Generator.Exists(filepath.Join(fsm.ExtendedState.Output, filename)); exists {
+			if exists && slices.Contains(files, filepath.Base(filename)) {
+				delete(fsm.ExtendedState.GeneratedData, filename)
+			}
+		}
+	}
+
+	return nil
+}
+
+func (fsm *VectorSigma) MakeIncrementalUpdatesAction(_ ...string) error {
+	// TODO: Implement me
 	return nil
 }
 
@@ -149,6 +175,14 @@ func (fsm *VectorSigma) GenerateModuleFilesAction(_ ...string) error {
 	}
 
 	for _, filename := range files {
+		if exists, err := fsm.Context.Generator.Exists(filepath.Join(fsm.ExtendedState.Output, filename)); exists || err != nil {
+			if exists {
+				return errors.New("failed to initialize new module. file exists " + filename)
+			}
+			if err != nil {
+				return fmt.Errorf("failed to check if path exists %s - %w", filename, err)
+			}
+		}
 		code, err := fsm.Context.Generator.ExecuteTemplate("templates/application/" + filename + ".tmpl")
 		if err != nil {
 			return fmt.Errorf("code generation failed: %w", err)

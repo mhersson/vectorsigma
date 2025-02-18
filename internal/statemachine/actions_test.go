@@ -10,6 +10,7 @@ import (
 	"github.com/mhersson/vectorsigma/pkgs/uml"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestVectorSigma_InitializeAction(t *testing.T) {
@@ -324,6 +325,99 @@ func TestVectorSigma_CreateOutputFolderAction(t *testing.T) {
 	}
 }
 
+func TestVectorSigma_FilterExistingFilesAction(t *testing.T) {
+	type fields struct {
+		context       *statemachine.Context
+		currentState  statemachine.StateName
+		stateConfigs  map[statemachine.StateName]statemachine.StateConfig
+		ExtendedState *statemachine.ExtendedState
+	}
+
+	type args struct {
+		params []string
+	}
+
+	var fs = afero.NewMemMapFs()
+
+	_ = fs.Mkdir("outputfolder/statemachine", 0o755)
+	_ = afero.WriteFile(fs, "outputfolder/statemachine/extendedstate.go", []byte("1"), 0o644)
+	_ = afero.WriteFile(fs, "outputfolder/statemachine/action.go", []byte("1"), 0o644)
+
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+	}{
+		{name: "File exists",
+			fields: fields{
+				context: &statemachine.Context{Generator: &generator.Generator{FS: fs}},
+				ExtendedState: &statemachine.ExtendedState{
+					GeneratedData: map[string][]byte{"statemachine/extendedstate.go": []byte("1"), "statemachine/action.go": []byte("1")},
+					Output:        "outputfolder",
+					Package:       "statemachine"},
+			},
+			wantErr: false},
+	}
+
+	t.Parallel()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			fsm := &statemachine.VectorSigma{
+				Context:       tt.fields.context,
+				CurrentState:  tt.fields.currentState,
+				StateConfigs:  tt.fields.stateConfigs,
+				ExtendedState: tt.fields.ExtendedState,
+			}
+			if err := fsm.FilterExistingFilesAction(tt.args.params...); (err != nil) != tt.wantErr {
+				t.Errorf("VectorSigma.FilterExistingFilesAction() error = %v, wantErr %v", err, tt.wantErr)
+			} else if !tt.wantErr {
+				assert.NotContains(t, tt.fields.ExtendedState.GeneratedData, "statemachine/extendedstate.go")
+				assert.Contains(t, tt.fields.ExtendedState.GeneratedData, "statemachine/action.go")
+			}
+		})
+	}
+}
+
+func TestVectorSigma_MakeIncrementalUpdatesAction(t *testing.T) {
+	type fields struct {
+		context       *statemachine.Context
+		currentState  statemachine.StateName
+		stateConfigs  map[statemachine.StateName]statemachine.StateConfig
+		ExtendedState *statemachine.ExtendedState
+	}
+
+	type args struct {
+		params []string
+	}
+
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+	}{
+		// TODO: Implement me!
+	}
+
+	t.Parallel()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			fsm := &statemachine.VectorSigma{
+				Context:       tt.fields.context,
+				CurrentState:  tt.fields.currentState,
+				StateConfigs:  tt.fields.stateConfigs,
+				ExtendedState: tt.fields.ExtendedState,
+			}
+			if err := fsm.MakeIncrementalUpdatesAction(tt.args.params...); (err != nil) != tt.wantErr {
+				t.Errorf("VectorSigma.MakeIncrementalUpdatesAction() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
 func TestVectorSigma_WriteGeneratedFilesAction(t *testing.T) {
 	type fields struct {
 		context       *statemachine.Context
@@ -399,6 +493,8 @@ func TestVectorSigma_GenerateModuleFilesAction(t *testing.T) {
 		params []string
 	}
 
+	fs := afero.NewMemMapFs()
+
 	tests := []struct {
 		name    string
 		fields  fields
@@ -407,27 +503,44 @@ func TestVectorSigma_GenerateModuleFilesAction(t *testing.T) {
 	}{
 		{name: "OK",
 			fields: fields{
-				context: &statemachine.Context{Generator: &generator.Generator{FSM: &uml.FSM{}, Package: "unittest"}},
+				context: &statemachine.Context{Generator: &generator.Generator{FSM: &uml.FSM{}, FS: fs}},
 				ExtendedState: &statemachine.ExtendedState{
-					Package:       "unittest",
-					Module:        "mymodule",
+					Output:        "output",
+					Module:        "unittest",
 					GeneratedData: make(map[string][]byte),
 				},
 			},
 			wantErr: false,
 		},
+		{name: "Module exist",
+			fields: fields{
+				context: &statemachine.Context{Generator: &generator.Generator{FSM: &uml.FSM{}, FS: fs}},
+				ExtendedState: &statemachine.ExtendedState{
+					Output:        "output",
+					Module:        "unittest",
+					GeneratedData: make(map[string][]byte),
+				},
+			},
+			wantErr: true,
+		},
 	}
 
-	t.Parallel()
-	for _, tt := range tests {
+	for _, tt := range tests { //nolint:paralleltest
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			fsm := &statemachine.VectorSigma{
 				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
 				StateConfigs:  tt.fields.stateConfigs,
 				ExtendedState: tt.fields.ExtendedState,
 			}
+
+			if tt.wantErr {
+				err := fs.Mkdir(tt.fields.ExtendedState.Output, 0o755)
+				require.NoError(t, err)
+				err = afero.WriteFile(fs, filepath.Join(tt.fields.ExtendedState.Output, "go.mod"), []byte("module unittest"), 0o644)
+				require.NoError(t, err)
+			}
+
 			if err := fsm.GenerateModuleFilesAction(tt.args.params...); (err != nil) != tt.wantErr {
 				t.Errorf("VectorSigma.GenerateModuleFilesAction() error = %v, wantErr %v", err, tt.wantErr)
 			} else if !tt.wantErr {

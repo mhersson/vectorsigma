@@ -68,6 +68,11 @@ func (g *Generator) ExecuteTemplate(filename string) ([]byte, error) {
 	return buffer.Bytes(), nil
 }
 
+// Check if file or folder exists.
+func (g *Generator) Exists(path string) (bool, error) {
+	return afero.Exists(g.FS, path)
+}
+
 // Write file to disk.
 func (g *Generator) WriteFile(path string, data []byte) error {
 	err := afero.WriteFile(g.FS, path, data, 0644)

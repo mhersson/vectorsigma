@@ -20,27 +20,32 @@ const (
 	GeneratingStateMachine       StateName = "GeneratingStateMachine"
 	CreatingInternalOutputFolder StateName = "CreatingInternalOutputFolder"
 	CreatingOutputFolder         StateName = "CreatingOutputFolder"
+	FilteringExistingFiles       StateName = "FilteringExistingFiles"
+	MakingIncrementalUpdates     StateName = "MakingIncrementalUpdates"
 	WritingGeneratedFiles        StateName = "WritingGeneratedFiles"
 	GeneratingModuleFiles        StateName = "GeneratingModuleFiles"
 	FormattingCode               StateName = "FormattingCode"
 )
 
 const (
-	Initialize           ActionName = "Initialize"
-	LoadInput            ActionName = "LoadInput"
-	ExtractUML           ActionName = "ExtractUML"
-	ParseUML             ActionName = "ParseUML"
-	GenerateStateMachine ActionName = "GenerateStateMachine"
-	CreateOutputFolder   ActionName = "CreateOutPutFolder"
-	WriteGeneratedFiles  ActionName = "WriteGeneratedFiles"
-	GenerateModuleFiles  ActionName = "GenerateModuleFiles"
-	FormatCode           ActionName = "FormatCode"
+	Initialize             ActionName = "Initialize"
+	LoadInput              ActionName = "LoadInput"
+	ExtractUML             ActionName = "ExtractUML"
+	ParseUML               ActionName = "ParseUML"
+	GenerateStateMachine   ActionName = "GenerateStateMachine"
+	CreateOutputFolder     ActionName = "CreateOutPutFolder"
+	FilterExistingFiles    ActionName = "FilterExistingFiles"
+	MakeIncrementalUpdates ActionName = "MakeIncrementalUpdates"
+	WriteGeneratedFiles    ActionName = "WriteGeneratedFiles"
+	GenerateModuleFiles    ActionName = "GenerateModuleFiles"
+	FormatCode             ActionName = "FormatCode"
 )
 
 const (
 	IsError            GuardName = "IsError"
 	IsMarkdown         GuardName = "IsMarkdown"
 	IsStandaloneModule GuardName = "IsStandaloneModule"
+	PackageExists      GuardName = "PackageExists"
 )
 
 // Action represents a function that can be executed in a state and may return an error.
@@ -168,16 +173,46 @@ func New() *VectorSigma {
 		},
 		Guards: []Guard{
 			{Name: IsError, Check: fsm.IsErrorGuard},
+			{Name: PackageExists, Check: fsm.PackageExistsGuard},
 		},
 		Transitions: map[int]StateName{
 			0: FinalState,
-			1: WritingGeneratedFiles,
+			1: FilteringExistingFiles,
+			2: WritingGeneratedFiles,
 		},
 	}
 
 	fsm.StateConfigs[CreatingOutputFolder] = StateConfig{
 		Actions: []Action{
 			{Name: CreateOutputFolder, Execute: fsm.CreateOutputFolderAction, Params: []string{}},
+		},
+		Guards: []Guard{
+			{Name: IsError, Check: fsm.IsErrorGuard},
+			{Name: PackageExists, Check: fsm.PackageExistsGuard},
+		},
+		Transitions: map[int]StateName{
+			0: FinalState,
+			1: FilteringExistingFiles,
+			2: WritingGeneratedFiles,
+		},
+	}
+
+	fsm.StateConfigs[FilteringExistingFiles] = StateConfig{
+		Actions: []Action{
+			{Name: FilterExistingFiles, Execute: fsm.FilterExistingFilesAction, Params: []string{}},
+		},
+		Guards: []Guard{
+			{Name: IsError, Check: fsm.IsErrorGuard},
+		},
+		Transitions: map[int]StateName{
+			0: FinalState,
+			1: MakingIncrementalUpdates,
+		},
+	}
+
+	fsm.StateConfigs[MakingIncrementalUpdates] = StateConfig{
+		Actions: []Action{
+			{Name: MakeIncrementalUpdates, Execute: fsm.MakeIncrementalUpdatesAction, Params: []string{}},
 		},
 		Guards: []Guard{
 			{Name: IsError, Check: fsm.IsErrorGuard},

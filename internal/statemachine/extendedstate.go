@@ -19,6 +19,7 @@ type Context struct {
 type ExtendedState struct {
 	GeneratedData map[string][]byte
 	Init          bool
+	PackageExits  bool
 	Input         string
 	InputData     string
 	Module        string

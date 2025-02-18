@@ -108,3 +108,37 @@ func TestVectorSigma_IsStandaloneModuleGuard(t *testing.T) {
 		})
 	}
 }
+
+func TestVectorSigma_PackageExistsGuard(t *testing.T) {
+	type fields struct {
+		context       *statemachine.Context
+		currentState  statemachine.StateName
+		stateConfigs  map[statemachine.StateName]statemachine.StateConfig
+		ExtendedState *statemachine.ExtendedState
+	}
+
+	tests := []struct {
+		name   string
+		fields fields
+		want   bool
+	}{
+		{name: "Package exists", fields: fields{ExtendedState: &statemachine.ExtendedState{PackageExits: true}}, want: true},
+		{name: "Package does not exist", fields: fields{ExtendedState: &statemachine.ExtendedState{PackageExits: false}}, want: false},
+	}
+
+	t.Parallel()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			fsm := &statemachine.VectorSigma{
+				Context:       tt.fields.context,
+				CurrentState:  tt.fields.currentState,
+				StateConfigs:  tt.fields.stateConfigs,
+				ExtendedState: tt.fields.ExtendedState,
+			}
+			if got := fsm.PackageExistsGuard(); got != tt.want {
+				t.Errorf("VectorSigma.PackageExistsGuard() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
