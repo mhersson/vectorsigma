@@ -5,6 +5,7 @@ import (
 	"testing"
 )
 
+// +vectorsigma:guard:IsError
 func TestTrafficLight_IsErrorGuard(t *testing.T) {
 	type fields struct {
 		context       *fsm.Context

@@ -1,6 +1,7 @@
 package {{ .Package }}
 
 {{- range $name := .FSM.ActionNames }}
+// +vectorsigma:action:{{ $name }}
 func (fsm *{{ $.FSM.Title }}) {{ $name }}Action(_ ...string) error {
 	// TODO: Implement me!
 	return nil

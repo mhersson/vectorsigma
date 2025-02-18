@@ -5,6 +5,7 @@ import (
 	"testing"
 )
 
+// +vectorsigma:action:SwitchIn
 func TestTrafficLight_SwitchInAction(t *testing.T) {
 	type fields struct {
 		context       *fsm.Context
