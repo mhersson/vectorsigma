@@ -173,12 +173,10 @@ func New() *VectorSigma {
 		},
 		Guards: []Guard{
 			{Name: IsError, Check: fsm.IsErrorGuard},
-			{Name: PackageExists, Check: fsm.PackageExistsGuard},
 		},
 		Transitions: map[int]StateName{
 			0: FinalState,
-			1: FilteringExistingFiles,
-			2: WritingGeneratedFiles,
+			1: WritingGeneratedFiles,
 		},
 	}
 
