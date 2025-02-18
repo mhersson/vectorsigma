@@ -33,8 +33,8 @@ func (fsm *VectorSigma) InitializeAction(_ ...string) error {
 		// When generating a package for an existing project we need the relative path
 		// to be able to correctly set the import in the actions and guards test files
 		relativePath = fsm.ExtendedState.Output
-		if strings.HasPrefix(relativePath, ".") {
-			return errors.New("invalid output - must be a subdir of current working directory without leading ./")
+		if strings.HasPrefix(relativePath, ".") || strings.HasPrefix(fsm.ExtendedState.Output, "/") {
+			return errors.New("invalid output - output must be a sub directory of the current working directory without leading ./")
 		}
 	}
 
@@ -108,6 +108,7 @@ func (fsm *VectorSigma) GenerateStateMachineAction(_ ...string) error {
 		}
 
 		if filename == "statemachine.go" {
+			// Make it very clear that this is a generated file that should not be modified
 			filename = "zz_generated_" + filename
 		}
 
@@ -137,7 +138,8 @@ func (fsm *VectorSigma) CreateOutputFolderAction(params ...string) error {
 }
 
 func (fsm *VectorSigma) FilterExistingFilesAction(_ ...string) error {
-	files := []string{"extendedstate.go"}
+	// We should error out before if main.go or go.mod exists, but anyways..
+	files := []string{"extendedstate.go", "main.go", "go.mod"}
 
 	for filename := range fsm.ExtendedState.GeneratedData {
 		if exists, _ := fsm.Context.Generator.Exists(filepath.Join(fsm.ExtendedState.Output, filename)); exists {
