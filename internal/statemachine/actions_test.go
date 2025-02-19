@@ -1,6 +1,7 @@
 package statemachine_test
 
 import (
+	"log/slog"
 	"path/filepath"
 	"testing"
 
@@ -392,13 +393,80 @@ func TestVectorSigma_MakeIncrementalUpdatesAction(t *testing.T) {
 		params []string
 	}
 
+	existingCode := `package statemachine
+
+// +vectorsigma:action:SwitchIn
+func (fsm *TrafficLight) SwitchInAction(_ ...string) (string, error) {
+	// TODO: Implement me!
+	// This should be overwritten
+	return "", nil
+}
+
+// +vectorsigma:action:helloworld
+func helloworld() error {
+	// this should be deleted
+	return nil
+}
+
+func thisshouldbeleftalone() error {
+	return nil
+}
+`
+
+	generatedCode := `package statemachine
+
+// +vectorsigma:action:SwitchIn
+func (fsm *TrafficLight) SwitchInAction(_ ...string) error {
+	// TODO: Implement me!
+	return nil
+}
+
+// +vectorsigma:action:THIS_SHOULD_BE_ADDED
+func (fsm *TrafficLight) AddMe(_ ...string) error {
+	// TODO: Implement me!
+	return nil
+}
+`
+
+	wantedCode := `package statemachine
+
+// +vectorsigma:action:SwitchIn
+func (fsm *TrafficLight) SwitchInAction(_ ...string) error {
+	// TODO: Implement me!
+	return nil
+}
+
+func thisshouldbeleftalone() error {
+	return nil
+}
+
+// +vectorsigma:action:THIS_SHOULD_BE_ADDED
+func (fsm *TrafficLight) AddMe(_ ...string) error {
+	// TODO: Implement me!
+	return nil
+}
+`
+
+	var fs = afero.NewMemMapFs()
+
+	_ = fs.Mkdir("outputfolder/statemachine", 0o755)
+	_ = afero.WriteFile(fs, "outputfolder/statemachine/actions.go", []byte(existingCode), 0o644)
+
 	tests := []struct {
 		name    string
 		fields  fields
 		args    args
 		wantErr bool
 	}{
-		// TODO: Implement me!
+		{name: "OK",
+			fields: fields{
+				context: &statemachine.Context{Generator: &generator.Generator{FS: fs}, Logger: slog.Default()},
+				ExtendedState: &statemachine.ExtendedState{
+					GeneratedData: map[string][]byte{"statemachine/actions.go": []byte(generatedCode)},
+					Output:        "outputfolder",
+					Package:       "statemachine"},
+			},
+			wantErr: false},
 	}
 
 	t.Parallel()
@@ -413,6 +481,8 @@ func TestVectorSigma_MakeIncrementalUpdatesAction(t *testing.T) {
 			}
 			if err := fsm.MakeIncrementalUpdatesAction(tt.args.params...); (err != nil) != tt.wantErr {
 				t.Errorf("VectorSigma.MakeIncrementalUpdatesAction() error = %v, wantErr %v", err, tt.wantErr)
+			} else if !tt.wantErr {
+				assert.Equal(t, wantedCode, string(fsm.ExtendedState.GeneratedData["statemachine/actions.go"]))
 			}
 		})
 	}

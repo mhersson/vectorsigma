@@ -29,6 +29,9 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/dave/dst"
+	"github.com/dave/dst/decorator"
+
 	"github.com/spf13/afero"
 
 	"github.com/mhersson/vectorsigma/pkgs/shell"
@@ -91,4 +94,116 @@ func (g *Generator) FormatCode(path string) error {
 	}
 
 	return nil
+}
+
+// Compare the generated code with the existing code.
+func (g *Generator) IncrementalUpdate(fullpath string, data []byte) ([]byte, bool, error) {
+	// load existing code
+	existing, err := afero.ReadFile(g.FS, fullpath)
+	if err != nil {
+		return nil, false, fmt.Errorf("failed to read existing code: %w", err)
+	}
+
+	containsChanges := false
+
+	exisitingNode, err := decorator.Parse(existing)
+	if err != nil {
+		return nil, false, fmt.Errorf("failed to parse existing code: %w", err)
+	}
+
+	generatedNode, err := decorator.Parse(data)
+	if err != nil {
+		return nil, false, fmt.Errorf("failed to parse generated code: %w", err)
+	}
+
+	// Compare the two trees if any function are in the generated code and not
+	// in the existing code add the new function to the existing code. If any
+	// function are in the existing code and not in the generated code, and has
+	// a doc comment prefixed with '// +vectorsigma' remove them from the
+	// existing code. If any functions are in both trees, replace the existing
+	// code with the generated code if the existing code still contains a `//
+	// TODO: Impment me!` comment in the function body. If not leave it alone.
+	for _, genDecl := range generatedNode.Decls {
+		if genDecl, ok := genDecl.(*dst.FuncDecl); ok {
+			found := false
+			for i, exDecl := range exisitingNode.Decls {
+				exDecl, ok := exDecl.(*dst.FuncDecl)
+				if !ok {
+					continue
+				}
+
+				if exDecl.Name.Name == genDecl.Name.Name {
+					found = true
+					// Check if the existing function has a TODO comment
+					hasTODO := false
+					for _, line := range exDecl.Body.List {
+						d := line.Decorations()
+						for _, x := range d.Start.All() {
+							if x == "// TODO: Implement me!" {
+								fmt.Println("FOUND TODO:")
+								hasTODO = true
+
+								break
+							}
+						}
+					}
+
+					if hasTODO {
+						// Replace the existing function with the generated one
+						containsChanges = true
+						exisitingNode.Decls[i] = genDecl
+					}
+
+					break
+				}
+			}
+
+			if !found {
+				// Add the new function to the existing code
+				containsChanges = true
+				exisitingNode.Decls = append(exisitingNode.Decls, genDecl)
+			}
+		}
+	}
+
+	// Remove functions with the // +vectorsigma comment that are not in the generated code
+	for i := 0; i < len(exisitingNode.Decls); i++ {
+		exDecl, ok := exisitingNode.Decls[i].(*dst.FuncDecl)
+		if !ok {
+			continue
+		}
+
+		found := false
+		for _, genDecl := range generatedNode.Decls {
+			genDecl, ok := genDecl.(*dst.FuncDecl)
+			if !ok {
+				continue
+			}
+
+			if exDecl.Name.Name == genDecl.Name.Name {
+				found = true
+
+				break
+			}
+		}
+
+		if !found {
+			for _, line := range exDecl.Decorations().Start {
+				if strings.HasPrefix(line, "// +vectorsigma:") {
+					containsChanges = true
+					exisitingNode.Decls = append(exisitingNode.Decls[:i], exisitingNode.Decls[i+1:]...)
+					i--
+
+					break
+				}
+			}
+		}
+	}
+
+	var buf bytes.Buffer
+	if err := decorator.Fprint(&buf, exisitingNode); err != nil {
+		return nil, containsChanges, fmt.Errorf("failed to print modified code: %w", err)
+	}
+
+	return buf.Bytes(), containsChanges, nil
 }

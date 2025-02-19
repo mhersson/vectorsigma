@@ -118,13 +118,44 @@ func (fsm *VectorSigma) GenerateStateMachineAction(_ ...string) error {
 	return nil
 }
 
+func (fsm *VectorSigma) GenerateModuleFilesAction(_ ...string) error {
+	files := []string{"main.go", "go.mod"}
+
+	// Change the file path to projectroot/internal/package for new modules
+	generatedFiles := make(map[string][]byte)
+	for f, c := range fsm.ExtendedState.GeneratedData {
+		generatedFiles[filepath.Join("internal", f)] = c
+	}
+
+	for _, filename := range files {
+		if exists, err := fsm.Context.Generator.Exists(filepath.Join(fsm.ExtendedState.Output, filename)); exists || err != nil {
+			if exists {
+				return errors.New("failed to initialize new module. file exists " + filename)
+			}
+			if err != nil {
+				return fmt.Errorf("failed to check if path exists %s - %w", filename, err)
+			}
+		}
+		code, err := fsm.Context.Generator.ExecuteTemplate("templates/application/" + filename + ".tmpl")
+		if err != nil {
+			return fmt.Errorf("code generation failed: %w", err)
+		}
+
+		generatedFiles[filename] = code
+	}
+
+	fsm.ExtendedState.GeneratedData = generatedFiles
+
+	return nil
+}
+
 func (fsm *VectorSigma) CreateOutputFolderAction(params ...string) error {
 	outputfolder := filepath.Join(fsm.ExtendedState.Output, fsm.ExtendedState.Package)
 	if len(params) > 0 {
 		outputfolder = filepath.Join(fsm.ExtendedState.Output, params[0], fsm.ExtendedState.Package)
 	}
 
-	if exists, _ := fsm.Context.Generator.Exists(outputfolder); exists {
+	if exists, _ := fsm.Context.Generator.Exists(outputfolder); exists && !fsm.ExtendedState.Init {
 		fsm.ExtendedState.PackageExits = true
 
 		return nil
@@ -153,7 +184,24 @@ func (fsm *VectorSigma) FilterExistingFilesAction(_ ...string) error {
 }
 
 func (fsm *VectorSigma) MakeIncrementalUpdatesAction(_ ...string) error {
-	// TODO: Implement me
+	files := []string{"actions.go", "actions_test.go", "guards.go", "guards_test.go"}
+
+	for f, c := range fsm.ExtendedState.GeneratedData {
+		if slices.Contains(files, filepath.Base(f)) {
+			fullpath := filepath.Join(fsm.ExtendedState.Output, f)
+			if exists, err := fsm.Context.Generator.Exists(fullpath); exists && err == nil {
+				fsm.Context.Logger.Info("Running incremental update", "file", f)
+				code, _, err := fsm.Context.Generator.IncrementalUpdate(fullpath, c)
+				if err != nil {
+					return fmt.Errorf("incremental update failed: %w", err)
+				}
+				fsm.ExtendedState.GeneratedData[f] = code
+			} else if err != nil {
+				return fmt.Errorf("failed to check if file exists: %w", err)
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -163,37 +211,6 @@ func (fsm *VectorSigma) WriteGeneratedFilesAction(_ ...string) error {
 			return fmt.Errorf("%w", err)
 		}
 	}
-
-	return nil
-}
-
-func (fsm *VectorSigma) GenerateModuleFilesAction(_ ...string) error {
-	files := []string{"main.go", "go.mod"}
-
-	// Change the file path to projectroot/internal/package for new modules
-	generatedFiles := make(map[string][]byte)
-	for f, c := range fsm.ExtendedState.GeneratedData {
-		generatedFiles[filepath.Join("internal", f)] = c
-	}
-
-	for _, filename := range files {
-		if exists, err := fsm.Context.Generator.Exists(filepath.Join(fsm.ExtendedState.Output, filename)); exists || err != nil {
-			if exists {
-				return errors.New("failed to initialize new module. file exists " + filename)
-			}
-			if err != nil {
-				return fmt.Errorf("failed to check if path exists %s - %w", filename, err)
-			}
-		}
-		code, err := fsm.Context.Generator.ExecuteTemplate("templates/application/" + filename + ".tmpl")
-		if err != nil {
-			return fmt.Errorf("code generation failed: %w", err)
-		}
-
-		generatedFiles[filename] = code
-	}
-
-	fsm.ExtendedState.GeneratedData = generatedFiles
 
 	return nil
 }
