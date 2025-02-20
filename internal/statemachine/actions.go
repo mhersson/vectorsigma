@@ -16,6 +16,7 @@ import (
 
 // Actions
 
+// +vectorsigma:action:Initialize
 func (fsm *VectorSigma) InitializeAction(_ ...string) error {
 	dir, err := os.Getwd()
 	if err != nil {
@@ -52,6 +53,7 @@ func (fsm *VectorSigma) InitializeAction(_ ...string) error {
 	return nil
 }
 
+// +vectorsigma:action:LoadInput
 func (fsm *VectorSigma) LoadInputAction(_ ...string) error {
 	content, err := afero.ReadFile(fsm.Context.Generator.FS, fsm.ExtendedState.Input)
 	if err != nil {
@@ -63,6 +65,7 @@ func (fsm *VectorSigma) LoadInputAction(_ ...string) error {
 	return nil
 }
 
+// +vectorsigma:action:ExtractUML
 func (fsm *VectorSigma) ExtractUMLAction(_ ...string) error {
 	const startDelimiter = "```plantuml"
 
@@ -86,12 +89,14 @@ func (fsm *VectorSigma) ExtractUMLAction(_ ...string) error {
 	return nil
 }
 
+// +vectorsigma:action:ParseUML
 func (fsm *VectorSigma) ParseUMLAction(_ ...string) error {
 	fsm.Context.Generator.FSM = uml.Parse(fsm.ExtendedState.InputData)
 
 	return nil
 }
 
+// +vectorsigma:action:GenerateStateMachine
 func (fsm *VectorSigma) GenerateStateMachineAction(_ ...string) error {
 	files := []string{
 		"actions.go",
@@ -118,6 +123,7 @@ func (fsm *VectorSigma) GenerateStateMachineAction(_ ...string) error {
 	return nil
 }
 
+// +vectorsigma:action:GenerateModuleFiles
 func (fsm *VectorSigma) GenerateModuleFilesAction(_ ...string) error {
 	files := []string{"main.go", "go.mod"}
 
@@ -149,6 +155,7 @@ func (fsm *VectorSigma) GenerateModuleFilesAction(_ ...string) error {
 	return nil
 }
 
+// +vectorsigma:action:CreateOutputFolder
 func (fsm *VectorSigma) CreateOutputFolderAction(params ...string) error {
 	outputfolder := filepath.Join(fsm.ExtendedState.Output, fsm.ExtendedState.Package)
 	if len(params) > 0 {
@@ -168,6 +175,7 @@ func (fsm *VectorSigma) CreateOutputFolderAction(params ...string) error {
 	return nil
 }
 
+// +vectorsigma:action:FilterExistingFiles
 func (fsm *VectorSigma) FilterExistingFilesAction(_ ...string) error {
 	// We should error out before if main.go or go.mod exists, but anyways..
 	files := []string{"extendedstate.go", "main.go", "go.mod"}
@@ -183,6 +191,7 @@ func (fsm *VectorSigma) FilterExistingFilesAction(_ ...string) error {
 	return nil
 }
 
+// +vectorsigma:action:MakeIncrementalUpdates
 func (fsm *VectorSigma) MakeIncrementalUpdatesAction(_ ...string) error {
 	files := []string{"actions.go", "actions_test.go", "guards.go", "guards_test.go"}
 
@@ -205,6 +214,7 @@ func (fsm *VectorSigma) MakeIncrementalUpdatesAction(_ ...string) error {
 	return nil
 }
 
+// +vectorsigma:action:WriteGeneratedFiles
 func (fsm *VectorSigma) WriteGeneratedFilesAction(_ ...string) error {
 	for filename, code := range fsm.ExtendedState.GeneratedData {
 		if err := fsm.Context.Generator.WriteFile(filepath.Join(fsm.ExtendedState.Output, filename), code); err != nil {
@@ -215,6 +225,7 @@ func (fsm *VectorSigma) WriteGeneratedFilesAction(_ ...string) error {
 	return nil
 }
 
+// +vectorsigma:action:FormatCode
 func (fsm *VectorSigma) FormatCodeAction(_ ...string) error {
 	for filename := range fsm.ExtendedState.GeneratedData {
 		if filename == "go.mod" {

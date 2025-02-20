@@ -7,6 +7,7 @@ import (
 	"github.com/mhersson/vectorsigma/internal/statemachine"
 )
 
+// +vectorsigma:guard:IsError
 func TestVectorSigma_IsErrorGuard(t *testing.T) {
 	type fields struct {
 		context       *statemachine.Context
@@ -41,6 +42,7 @@ func TestVectorSigma_IsErrorGuard(t *testing.T) {
 	}
 }
 
+// +vectorsigma:guard:IsMarkdown
 func TestVectorSigma_IsMarkdownGuard(t *testing.T) {
 	type fields struct {
 		context       *statemachine.Context
@@ -75,7 +77,8 @@ func TestVectorSigma_IsMarkdownGuard(t *testing.T) {
 	}
 }
 
-func TestVectorSigma_IsStandaloneModuleGuard(t *testing.T) {
+// +vectorsigma:guard:IsInitializingModule
+func TestVectorSigma_IsInitializingModuleGuard(t *testing.T) {
 	type fields struct {
 		context       *statemachine.Context
 		currentState  statemachine.StateName
@@ -102,13 +105,14 @@ func TestVectorSigma_IsStandaloneModuleGuard(t *testing.T) {
 				StateConfigs:  tt.fields.stateConfigs,
 				ExtendedState: tt.fields.ExtendedState,
 			}
-			if got := fsm.IsStandaloneModuleGuard(); got != tt.want {
+			if got := fsm.IsInitializingModuleGuard(); got != tt.want {
 				t.Errorf("VectorSigma.IsStandaloneModuleGuard() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
+// +vectorsigma:guard:PackageExists
 func TestVectorSigma_PackageExistsGuard(t *testing.T) {
 	type fields struct {
 		context       *statemachine.Context

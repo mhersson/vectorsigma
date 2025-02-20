@@ -42,10 +42,10 @@ const (
 )
 
 const (
-	IsError            GuardName = "IsError"
-	IsMarkdown         GuardName = "IsMarkdown"
-	IsStandaloneModule GuardName = "IsStandaloneModule"
-	PackageExists      GuardName = "PackageExists"
+	IsError              GuardName = "IsError"
+	IsMarkdown           GuardName = "IsMarkdown"
+	IsInitializingModule GuardName = "IsInitializingModule"
+	PackageExists        GuardName = "PackageExists"
 )
 
 // Action represents a function that can be executed in a state and may return an error.
@@ -147,7 +147,7 @@ func New() *VectorSigma {
 		},
 		Guards: []Guard{
 			{Name: IsError, Check: fsm.IsErrorGuard},
-			{Name: IsStandaloneModule, Check: fsm.IsStandaloneModuleGuard},
+			{Name: IsInitializingModule, Check: fsm.IsInitializingModuleGuard},
 		},
 		Transitions: map[int]StateName{
 			0: FinalState,

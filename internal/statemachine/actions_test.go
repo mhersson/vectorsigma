@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// +vectorsigma:action:Initialize
 func TestVectorSigma_InitializeAction(t *testing.T) {
 	type fields struct {
 		context       *statemachine.Context
@@ -61,6 +62,7 @@ func TestVectorSigma_InitializeAction(t *testing.T) {
 	}
 }
 
+// +vectorsigma:action:LoadInput
 func TestVectorSigma_LoadInputAction(t *testing.T) {
 	type fields struct {
 		context       *statemachine.Context
@@ -112,6 +114,7 @@ func TestVectorSigma_LoadInputAction(t *testing.T) {
 	}
 }
 
+// +vectorsigma:action:ExtractUML
 func TestVectorSigma_ExtractUMLAction(t *testing.T) {
 	type fields struct {
 		context       *statemachine.Context
@@ -169,6 +172,7 @@ func TestVectorSigma_ExtractUMLAction(t *testing.T) {
 	}
 }
 
+// +vectorsigma:action:ParseUML
 func TestVectorSigma_ParseUMLAction(t *testing.T) {
 	type fields struct {
 		context       *statemachine.Context
@@ -215,6 +219,7 @@ func TestVectorSigma_ParseUMLAction(t *testing.T) {
 	}
 }
 
+// +vectorsigma:action:GenerateStateMachine
 func TestVectorSigma_GenerateStateMachineAction(t *testing.T) {
 	type fields struct {
 		context       *statemachine.Context
@@ -264,6 +269,7 @@ func TestVectorSigma_GenerateStateMachineAction(t *testing.T) {
 	}
 }
 
+// +vectorsigma:action:CreateOutputFolder
 func TestVectorSigma_CreateOutputFolderAction(t *testing.T) {
 	type fields struct {
 		context       *statemachine.Context
@@ -326,6 +332,7 @@ func TestVectorSigma_CreateOutputFolderAction(t *testing.T) {
 	}
 }
 
+// +vectorsigma:action:FilterExistingFiles
 func TestVectorSigma_FilterExistingFilesAction(t *testing.T) {
 	type fields struct {
 		context       *statemachine.Context
@@ -381,6 +388,7 @@ func TestVectorSigma_FilterExistingFilesAction(t *testing.T) {
 	}
 }
 
+// +vectorsigma:action:MakeIncrementalUpdates
 func TestVectorSigma_MakeIncrementalUpdatesAction(t *testing.T) {
 	type fields struct {
 		context       *statemachine.Context
@@ -488,6 +496,7 @@ func (fsm *TrafficLight) AddMe(_ ...string) error {
 	}
 }
 
+// +vectorsigma:action:WriteGeneratedFiles
 func TestVectorSigma_WriteGeneratedFilesAction(t *testing.T) {
 	type fields struct {
 		context       *statemachine.Context
@@ -551,7 +560,8 @@ func TestVectorSigma_WriteGeneratedFilesAction(t *testing.T) {
 	}
 }
 
-func TestVectorSigma_GenerateModuleFilesAction(t *testing.T) {
+// +vectorsigma:action:GenerateModuleFiles
+func TestVectorSigma_GenerateModuleFilesAction(t *testing.T) { //nolint:paralleltest
 	type fields struct {
 		context       *statemachine.Context
 		currentState  statemachine.StateName
@@ -627,6 +637,7 @@ func TestVectorSigma_GenerateModuleFilesAction(t *testing.T) {
 	}
 }
 
+// +vectorsigma:action:FormatCode
 func TestVectorSigma_FormatCodeAction(t *testing.T) {
 	type fields struct {
 		context       *statemachine.Context
