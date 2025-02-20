@@ -96,7 +96,13 @@ func (g *Generator) FormatCode(path string) error {
 	return nil
 }
 
-// Compare the generated code with the existing code.
+// IncrementalUpdate compares the generated code with the existing code.  if any
+// of the functions in the generated code are not in the existing code add them.
+// If any functions are in the existing code and not in the generated code, and
+// have a doc comment prefixed with '// +vectorsigma' remove them from the
+// existing code. If any functions are in both trees, replace the existing code
+// with the generated code if the existing code still contains a `// TODO:
+// Impment me!` comment in the function body.
 func (g *Generator) IncrementalUpdate(fullpath string, data []byte) ([]byte, bool, error) {
 	// load existing code
 	existing, err := afero.ReadFile(g.FS, fullpath)
@@ -116,17 +122,34 @@ func (g *Generator) IncrementalUpdate(fullpath string, data []byte) ([]byte, boo
 		return nil, false, fmt.Errorf("failed to parse generated code: %w", err)
 	}
 
-	// Compare the two trees if any function are in the generated code and not
-	// in the existing code add the new function to the existing code. If any
-	// function are in the existing code and not in the generated code, and has
-	// a doc comment prefixed with '// +vectorsigma' remove them from the
-	// existing code. If any functions are in both trees, replace the existing
-	// code with the generated code if the existing code still contains a `//
-	// TODO: Impment me!` comment in the function body. If not leave it alone.
-	for _, genDecl := range generatedNode.Decls {
+	if changed := addOrReplace(exisitingNode, generatedNode); changed {
+		containsChanges = true
+	}
+
+	if changed := removeNotInGenerated(exisitingNode, generatedNode); changed {
+		containsChanges = true
+	}
+
+	var buf bytes.Buffer
+	if err := decorator.Fprint(&buf, exisitingNode); err != nil {
+		return nil, containsChanges, fmt.Errorf("failed to print modified code: %w", err)
+	}
+
+	return buf.Bytes(), containsChanges, nil
+}
+
+// addOrReplace compares the two files and if any of the functions in the
+// generated code and not in the existing code add the new function to the
+// existing code.  If any functions are in both trees, replace the existing code
+// with the generated code if the existing code still contains a `// TODO:
+// Impment me!` comment in the function body.
+func addOrReplace(existingFile, generatedFile *dst.File) bool {
+	containsChanges := false
+
+	for _, genDecl := range generatedFile.Decls {
 		if genDecl, ok := genDecl.(*dst.FuncDecl); ok {
 			found := false
-			for i, exDecl := range exisitingNode.Decls {
+			for i, exDecl := range existingFile.Decls {
 				exDecl, ok := exDecl.(*dst.FuncDecl)
 				if !ok {
 					continue
@@ -140,7 +163,6 @@ func (g *Generator) IncrementalUpdate(fullpath string, data []byte) ([]byte, boo
 						d := line.Decorations()
 						for _, x := range d.Start.All() {
 							if x == "// TODO: Implement me!" {
-								fmt.Println("FOUND TODO:")
 								hasTODO = true
 
 								break
@@ -151,7 +173,7 @@ func (g *Generator) IncrementalUpdate(fullpath string, data []byte) ([]byte, boo
 					if hasTODO {
 						// Replace the existing function with the generated one
 						containsChanges = true
-						exisitingNode.Decls[i] = genDecl
+						existingFile.Decls[i] = genDecl
 					}
 
 					break
@@ -161,12 +183,19 @@ func (g *Generator) IncrementalUpdate(fullpath string, data []byte) ([]byte, boo
 			if !found {
 				// Add the new function to the existing code
 				containsChanges = true
-				exisitingNode.Decls = append(exisitingNode.Decls, genDecl)
+				existingFile.Decls = append(existingFile.Decls, genDecl)
 			}
 		}
 	}
 
-	// Remove functions with the // +vectorsigma comment that are not in the generated code
+	return containsChanges
+}
+
+// rempveNotInGenerated removes functions with the // +vectorsigma comment that
+// are not in the generated code.
+func removeNotInGenerated(exisitingNode, generatedNode *dst.File) bool {
+	containsChanges := false
+
 	for i := 0; i < len(exisitingNode.Decls); i++ {
 		exDecl, ok := exisitingNode.Decls[i].(*dst.FuncDecl)
 		if !ok {
@@ -200,10 +229,5 @@ func (g *Generator) IncrementalUpdate(fullpath string, data []byte) ([]byte, boo
 		}
 	}
 
-	var buf bytes.Buffer
-	if err := decorator.Fprint(&buf, exisitingNode); err != nil {
-		return nil, containsChanges, fmt.Errorf("failed to print modified code: %w", err)
-	}
-
-	return buf.Bytes(), containsChanges, nil
+	return containsChanges
 }
