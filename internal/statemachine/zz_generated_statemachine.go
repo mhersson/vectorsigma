@@ -16,7 +16,7 @@ const (
 	CreatingInternalOutputFolder StateName = "CreatingInternalOutputFolder"
 	CreatingOutputFolder         StateName = "CreatingOutputFolder"
 	ExtractingUML                StateName = "ExtractingUML"
-	FilteringExistingFiles       StateName = "FilteringExistingFiles"
+	FilteringGeneratedFiles      StateName = "FilteringGeneratedFiles"
 	FinalState                   StateName = "FinalState"
 	FormattingCode               StateName = "FormattingCode"
 	GeneratingModuleFiles        StateName = "GeneratingModuleFiles"
@@ -31,7 +31,7 @@ const (
 const (
 	CreateOutputFolder     ActionName = "CreateOutputFolder"
 	ExtractUML             ActionName = "ExtractUML"
-	FilterExistingFiles    ActionName = "FilterExistingFiles"
+	FilterGeneratedFiles   ActionName = "FilterGeneratedFiles"
 	FormatCode             ActionName = "FormatCode"
 	GenerateModuleFiles    ActionName = "GenerateModuleFiles"
 	GenerateStateMachine   ActionName = "GenerateStateMachine"
@@ -114,7 +114,7 @@ func New() *VectorSigma {
 		},
 		Transitions: map[int]StateName{
 			0: FinalState,
-			1: FilteringExistingFiles,
+			1: MakingIncrementalUpdates,
 			2: WritingGeneratedFiles,
 		},
 	}
@@ -130,16 +130,16 @@ func New() *VectorSigma {
 			1: ParsingUML,
 		},
 	}
-	fsm.StateConfigs[FilteringExistingFiles] = StateConfig{
+	fsm.StateConfigs[FilteringGeneratedFiles] = StateConfig{
 		Actions: []Action{
-			{Name: FilterExistingFiles, Execute: fsm.FilterExistingFilesAction, Params: []string{}},
+			{Name: FilterGeneratedFiles, Execute: fsm.FilterGeneratedFilesAction, Params: []string{}},
 		},
 		Guards: []Guard{
 			{Name: IsError, Check: fsm.IsErrorGuard},
 		},
 		Transitions: map[int]StateName{
 			0: FinalState,
-			1: MakingIncrementalUpdates,
+			1: WritingGeneratedFiles,
 		},
 	}
 
@@ -216,7 +216,7 @@ func New() *VectorSigma {
 		},
 		Transitions: map[int]StateName{
 			0: FinalState,
-			1: WritingGeneratedFiles,
+			1: FilteringGeneratedFiles,
 		},
 	}
 	fsm.StateConfigs[ParsingUML] = StateConfig{

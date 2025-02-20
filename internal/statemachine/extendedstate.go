@@ -17,13 +17,18 @@ type Context struct {
 // being fetched and read. This should only be modified by actions, while guards
 // should only read the extended state to assess their value.
 type ExtendedState struct {
-	GeneratedData map[string][]byte
-	Init          bool
-	PackageExits  bool
-	Input         string
-	InputData     string
-	Module        string
-	Output        string
-	Package       string
-	Error         error
+	GeneratedFiles map[string]GeneratedFile
+	Init           bool
+	PackageExits   bool
+	Input          string
+	InputData      string
+	Module         string
+	Output         string
+	Package        string
+	Error          error
+}
+
+type GeneratedFile struct {
+	Content           []byte
+	IncrementalChange bool
 }

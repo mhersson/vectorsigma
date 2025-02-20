@@ -42,28 +42,27 @@ CreatingInternalOutputFolder -[bold]-> WritingGeneratedFiles
 
 CreatingOutputFolder: do / CreateOutputFolder
 CreatingOutputFolder -[dotted]-> [*]: IsError
-CreatingOutputFolder --> FilteringExistingFiles: PackageExists
+CreatingOutputFolder --> MakingIncrementalUpdates: PackageExists
 CreatingOutputFolder -[bold]-> WritingGeneratedFiles
-
-FilteringExistingFiles: do / FilterExistingFiles
-FilteringExistingFiles -[dotted]-> [*]: IsError
-FilteringExistingFiles -[bold]-> MakingIncrementalUpdates
-note left of FilteringExistingFiles
-  If main.go, go.mod
-  or extendedstate.go
-  exists remove them
-  from the generated
-  data
-end note
 
 MakingIncrementalUpdates: do / MakeIncrementalUpdates
 MakingIncrementalUpdates -[dotted]-> [*]: IsError
-MakingIncrementalUpdates -[bold]-> WritingGeneratedFiles
+MakingIncrementalUpdates -[bold]-> FilteringGeneratedFiles
 note left of MakingIncrementalUpdates
   If they exists compare
   the functions in actions
   and guards with the new
   generated code
+end note
+
+FilteringGeneratedFiles: do / FilterGeneratedFiles
+FilteringGeneratedFiles -[dotted]-> [*]: IsError
+FilteringGeneratedFiles -[bold]-> WritingGeneratedFiles
+note left of FilteringGeneratedFiles
+  If extendedstate.go exists,
+  or if the actions and guards
+  haven't changed remove them
+  from the generated data
 end note
 
 

@@ -48,7 +48,7 @@ func (fsm *VectorSigma) InitializeAction(_ ...string) error {
 		RelativePath: relativePath,
 	}
 
-	fsm.ExtendedState.GeneratedData = make(map[string][]byte)
+	fsm.ExtendedState.GeneratedFiles = make(map[string]GeneratedFile)
 
 	return nil
 }
@@ -117,7 +117,7 @@ func (fsm *VectorSigma) GenerateStateMachineAction(_ ...string) error {
 			filename = "zz_generated_" + filename
 		}
 
-		fsm.ExtendedState.GeneratedData[filepath.Join(fsm.ExtendedState.Package, filename)] = code
+		fsm.ExtendedState.GeneratedFiles[filepath.Join(fsm.ExtendedState.Package, filename)] = GeneratedFile{Content: code, IncrementalChange: false}
 	}
 
 	return nil
@@ -128,8 +128,8 @@ func (fsm *VectorSigma) GenerateModuleFilesAction(_ ...string) error {
 	files := []string{"main.go", "go.mod"}
 
 	// Change the file path to projectroot/internal/package for new modules
-	generatedFiles := make(map[string][]byte)
-	for f, c := range fsm.ExtendedState.GeneratedData {
+	generatedFiles := make(map[string]GeneratedFile)
+	for f, c := range fsm.ExtendedState.GeneratedFiles {
 		generatedFiles[filepath.Join("internal", f)] = c
 	}
 
@@ -147,10 +147,10 @@ func (fsm *VectorSigma) GenerateModuleFilesAction(_ ...string) error {
 			return fmt.Errorf("code generation failed: %w", err)
 		}
 
-		generatedFiles[filename] = code
+		generatedFiles[filename] = GeneratedFile{Content: code, IncrementalChange: false}
 	}
 
-	fsm.ExtendedState.GeneratedData = generatedFiles
+	fsm.ExtendedState.GeneratedFiles = generatedFiles
 
 	return nil
 }
@@ -175,15 +175,23 @@ func (fsm *VectorSigma) CreateOutputFolderAction(params ...string) error {
 	return nil
 }
 
-// +vectorsigma:action:FilterExistingFiles
-func (fsm *VectorSigma) FilterExistingFilesAction(_ ...string) error {
-	// We should error out before if main.go or go.mod exists, but anyways..
+// +vectorsigma:action:FilterGeneratedFiles
+func (fsm *VectorSigma) FilterGeneratedFilesAction(_ ...string) error {
+	// We should error out before if main.go or go.mod exists, and since package
+	// exists so does probably extendtendstate.go too, but anyways..
 	files := []string{"extendedstate.go", "main.go", "go.mod"}
 
-	for filename := range fsm.ExtendedState.GeneratedData {
+	actionsAndguards := []string{"actions.go", "actions_test.go", "guards.go", "guards_test.go"}
+
+	for filename, gf := range fsm.ExtendedState.GeneratedFiles {
 		if exists, _ := fsm.Context.Generator.Exists(filepath.Join(fsm.ExtendedState.Output, filename)); exists {
-			if exists && slices.Contains(files, filepath.Base(filename)) {
-				delete(fsm.ExtendedState.GeneratedData, filename)
+			if slices.Contains(files, filepath.Base(filename)) {
+				// extendedstate.go should never be overwritten
+				delete(fsm.ExtendedState.GeneratedFiles, filename)
+			}
+			if slices.Contains(actionsAndguards, filepath.Base(filename)) && !gf.IncrementalChange {
+				// don't write actions and guards unless they have changed
+				delete(fsm.ExtendedState.GeneratedFiles, filename)
 			}
 		}
 	}
@@ -195,16 +203,16 @@ func (fsm *VectorSigma) FilterExistingFilesAction(_ ...string) error {
 func (fsm *VectorSigma) MakeIncrementalUpdatesAction(_ ...string) error {
 	files := []string{"actions.go", "actions_test.go", "guards.go", "guards_test.go"}
 
-	for f, c := range fsm.ExtendedState.GeneratedData {
+	for f, c := range fsm.ExtendedState.GeneratedFiles {
 		if slices.Contains(files, filepath.Base(f)) {
 			fullpath := filepath.Join(fsm.ExtendedState.Output, f)
 			if exists, err := fsm.Context.Generator.Exists(fullpath); exists && err == nil {
 				fsm.Context.Logger.Info("Running incremental update", "file", f)
-				code, _, err := fsm.Context.Generator.IncrementalUpdate(fullpath, c)
+				code, changed, err := fsm.Context.Generator.IncrementalUpdate(fullpath, c.Content)
 				if err != nil {
 					return fmt.Errorf("incremental update failed: %w", err)
 				}
-				fsm.ExtendedState.GeneratedData[f] = code
+				fsm.ExtendedState.GeneratedFiles[f] = GeneratedFile{Content: code, IncrementalChange: changed}
 			} else if err != nil {
 				return fmt.Errorf("failed to check if file exists: %w", err)
 			}
@@ -216,8 +224,8 @@ func (fsm *VectorSigma) MakeIncrementalUpdatesAction(_ ...string) error {
 
 // +vectorsigma:action:WriteGeneratedFiles
 func (fsm *VectorSigma) WriteGeneratedFilesAction(_ ...string) error {
-	for filename, code := range fsm.ExtendedState.GeneratedData {
-		if err := fsm.Context.Generator.WriteFile(filepath.Join(fsm.ExtendedState.Output, filename), code); err != nil {
+	for filename, code := range fsm.ExtendedState.GeneratedFiles {
+		if err := fsm.Context.Generator.WriteFile(filepath.Join(fsm.ExtendedState.Output, filename), code.Content); err != nil {
 			return fmt.Errorf("%w", err)
 		}
 	}
@@ -227,7 +235,7 @@ func (fsm *VectorSigma) WriteGeneratedFilesAction(_ ...string) error {
 
 // +vectorsigma:action:FormatCode
 func (fsm *VectorSigma) FormatCodeAction(_ ...string) error {
-	for filename := range fsm.ExtendedState.GeneratedData {
+	for filename := range fsm.ExtendedState.GeneratedFiles {
 		if filename == "go.mod" {
 			continue
 		}

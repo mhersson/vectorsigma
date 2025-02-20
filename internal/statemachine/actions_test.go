@@ -242,8 +242,8 @@ func TestVectorSigma_GenerateStateMachineAction(t *testing.T) {
 			fields: fields{
 				context: &statemachine.Context{Generator: &generator.Generator{FSM: &uml.FSM{}, Package: "unittest"}},
 				ExtendedState: &statemachine.ExtendedState{
-					Package:       "unittest",
-					GeneratedData: make(map[string][]byte),
+					Package:        "unittest",
+					GeneratedFiles: make(map[string]statemachine.GeneratedFile),
 				}},
 			wantErr: false},
 	}
@@ -261,8 +261,8 @@ func TestVectorSigma_GenerateStateMachineAction(t *testing.T) {
 			if err := fsm.GenerateStateMachineAction(tt.args.params...); (err != nil) != tt.wantErr {
 				t.Errorf("VectorSigma.GenerateStateMachineAction() error = %v, wantErr %v", err, tt.wantErr)
 			} else if !tt.wantErr {
-				for k, v := range fsm.ExtendedState.GeneratedData {
-					assert.Contains(t, string(v), "package unittest", k)
+				for k, v := range fsm.ExtendedState.GeneratedFiles {
+					assert.Contains(t, string(v.Content), "package unittest", k)
 				}
 			}
 		})
@@ -332,8 +332,8 @@ func TestVectorSigma_CreateOutputFolderAction(t *testing.T) {
 	}
 }
 
-// +vectorsigma:action:FilterExistingFiles
-func TestVectorSigma_FilterExistingFilesAction(t *testing.T) {
+// +vectorsigma:action:FilterGeneratedFiles
+func TestVectorSigma_FilterGeneratedFilesAction(t *testing.T) {
 	type fields struct {
 		context       *statemachine.Context
 		currentState  statemachine.StateName
@@ -361,9 +361,11 @@ func TestVectorSigma_FilterExistingFilesAction(t *testing.T) {
 			fields: fields{
 				context: &statemachine.Context{Generator: &generator.Generator{FS: fs}},
 				ExtendedState: &statemachine.ExtendedState{
-					GeneratedData: map[string][]byte{"statemachine/extendedstate.go": []byte("1"), "statemachine/action.go": []byte("1")},
-					Output:        "outputfolder",
-					Package:       "statemachine"},
+					GeneratedFiles: map[string]statemachine.GeneratedFile{
+						"statemachine/extendedstate.go": {Content: []byte("1")},
+						"statemachine/action.go":        {Content: []byte("1")}},
+					Output:  "outputfolder",
+					Package: "statemachine"},
 			},
 			wantErr: false},
 	}
@@ -378,11 +380,11 @@ func TestVectorSigma_FilterExistingFilesAction(t *testing.T) {
 				StateConfigs:  tt.fields.stateConfigs,
 				ExtendedState: tt.fields.ExtendedState,
 			}
-			if err := fsm.FilterExistingFilesAction(tt.args.params...); (err != nil) != tt.wantErr {
+			if err := fsm.FilterGeneratedFilesAction(tt.args.params...); (err != nil) != tt.wantErr {
 				t.Errorf("VectorSigma.FilterExistingFilesAction() error = %v, wantErr %v", err, tt.wantErr)
 			} else if !tt.wantErr {
-				assert.NotContains(t, tt.fields.ExtendedState.GeneratedData, "statemachine/extendedstate.go")
-				assert.Contains(t, tt.fields.ExtendedState.GeneratedData, "statemachine/action.go")
+				assert.NotContains(t, tt.fields.ExtendedState.GeneratedFiles, "statemachine/extendedstate.go")
+				assert.Contains(t, tt.fields.ExtendedState.GeneratedFiles, "statemachine/action.go")
 			}
 		})
 	}
@@ -470,9 +472,11 @@ func (fsm *TrafficLight) AddMe(_ ...string) error {
 			fields: fields{
 				context: &statemachine.Context{Generator: &generator.Generator{FS: fs}, Logger: slog.Default()},
 				ExtendedState: &statemachine.ExtendedState{
-					GeneratedData: map[string][]byte{"statemachine/actions.go": []byte(generatedCode)},
-					Output:        "outputfolder",
-					Package:       "statemachine"},
+					GeneratedFiles: map[string]statemachine.GeneratedFile{
+						"statemachine/actions.go": {Content: []byte(generatedCode)},
+					},
+					Output:  "outputfolder",
+					Package: "statemachine"},
 			},
 			wantErr: false},
 	}
@@ -490,7 +494,7 @@ func (fsm *TrafficLight) AddMe(_ ...string) error {
 			if err := fsm.MakeIncrementalUpdatesAction(tt.args.params...); (err != nil) != tt.wantErr {
 				t.Errorf("VectorSigma.MakeIncrementalUpdatesAction() error = %v, wantErr %v", err, tt.wantErr)
 			} else if !tt.wantErr {
-				assert.Equal(t, wantedCode, string(fsm.ExtendedState.GeneratedData["statemachine/actions.go"]))
+				assert.Equal(t, wantedCode, string(fsm.ExtendedState.GeneratedFiles["statemachine/actions.go"].Content))
 			}
 		})
 	}
@@ -521,9 +525,12 @@ func TestVectorSigma_WriteGeneratedFilesAction(t *testing.T) {
 			fields: fields{
 				context: &statemachine.Context{Generator: &generator.Generator{FS: fs}},
 				ExtendedState: &statemachine.ExtendedState{
-					Output:        "outputfolder/statemachine",
-					Package:       "statemachine",
-					GeneratedData: map[string][]byte{"actions.go": []byte("actions"), "guards.go": []byte("guards")},
+					Output:  "outputfolder/statemachine",
+					Package: "statemachine",
+					GeneratedFiles: map[string]statemachine.GeneratedFile{
+						"actions.go": {Content: []byte("actions")},
+						"guards.go":  {Content: []byte("guards")},
+					},
 				}},
 
 			wantErr: false},
@@ -544,7 +551,7 @@ func TestVectorSigma_WriteGeneratedFilesAction(t *testing.T) {
 			} else if !tt.wantErr {
 				assert.NoError(t, fs.MkdirAll(tt.fields.ExtendedState.Output, 0o755))
 
-				for f, c := range tt.fields.ExtendedState.GeneratedData {
+				for f, c := range tt.fields.ExtendedState.GeneratedFiles {
 					filename := filepath.Join(tt.fields.ExtendedState.Output, f)
 
 					exists, err := afero.Exists(fs, filename)
@@ -553,7 +560,7 @@ func TestVectorSigma_WriteGeneratedFilesAction(t *testing.T) {
 
 					d, err := afero.ReadFile(fs, filename)
 					assert.NoError(t, err)
-					assert.Equal(t, c, d)
+					assert.Equal(t, c.Content, d)
 				}
 			}
 		})
@@ -585,9 +592,9 @@ func TestVectorSigma_GenerateModuleFilesAction(t *testing.T) { //nolint:parallel
 			fields: fields{
 				context: &statemachine.Context{Generator: &generator.Generator{FSM: &uml.FSM{}, FS: fs}},
 				ExtendedState: &statemachine.ExtendedState{
-					Output:        "output",
-					Module:        "unittest",
-					GeneratedData: make(map[string][]byte),
+					Output:         "output",
+					Module:         "unittest",
+					GeneratedFiles: make(map[string]statemachine.GeneratedFile),
 				},
 			},
 			wantErr: false,
@@ -596,9 +603,9 @@ func TestVectorSigma_GenerateModuleFilesAction(t *testing.T) { //nolint:parallel
 			fields: fields{
 				context: &statemachine.Context{Generator: &generator.Generator{FSM: &uml.FSM{}, FS: fs}},
 				ExtendedState: &statemachine.ExtendedState{
-					Output:        "output",
-					Module:        "unittest",
-					GeneratedData: make(map[string][]byte),
+					Output:         "output",
+					Module:         "unittest",
+					GeneratedFiles: make(map[string]statemachine.GeneratedFile),
 				},
 			},
 			wantErr: true,
@@ -624,12 +631,12 @@ func TestVectorSigma_GenerateModuleFilesAction(t *testing.T) { //nolint:parallel
 			if err := fsm.GenerateModuleFilesAction(tt.args.params...); (err != nil) != tt.wantErr {
 				t.Errorf("VectorSigma.GenerateModuleFilesAction() error = %v, wantErr %v", err, tt.wantErr)
 			} else if !tt.wantErr {
-				for k, v := range fsm.ExtendedState.GeneratedData {
+				for k, v := range fsm.ExtendedState.GeneratedFiles {
 					if k == "main.go" {
-						assert.Contains(t, string(v), "package main", k)
+						assert.Contains(t, string(v.Content), "package main", k)
 					}
 					if k == "go.mod" {
-						assert.Contains(t, string(v), "module", tt.fields.ExtendedState.Module)
+						assert.Contains(t, string(v.Content), "module", tt.fields.ExtendedState.Module)
 					}
 				}
 			}
@@ -663,8 +670,8 @@ func TestVectorSigma_FormatCodeAction(t *testing.T) {
 			fields: fields{
 				context: &statemachine.Context{Generator: &generator.Generator{Shell: mockShell}},
 				ExtendedState: &statemachine.ExtendedState{
-					GeneratedData: map[string][]byte{"testfile": nil},
-					Output:        "out",
+					GeneratedFiles: map[string]statemachine.GeneratedFile{"testfile": {}},
+					Output:         "out",
 				},
 			},
 			wantErr: false,
