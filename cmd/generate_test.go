@@ -137,7 +137,7 @@ func checkOutput(t *testing.T, goldenPath, outputPath string) error {
 		golden, err := os.ReadFile(path)
 		require.NoError(t, err)
 
-		assert.Equal(t, genstr, string(golden), "%s: %s", outputPath, path)
+		assert.Equal(t, string(golden), genstr, "%s: %s", outputPath, path)
 
 		return nil
 	})

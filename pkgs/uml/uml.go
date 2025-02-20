@@ -112,7 +112,8 @@ func (f *FSM) IsAction(line string) bool {
 		action.Name = m[2]
 
 		if len(m) == 5 && m[4] != "" {
-			action.Params = `"` + strings.ReplaceAll(m[4], ",", `","`) + `"`
+			params := strings.ReplaceAll(m[4], `"`, ``)
+			action.Params = `"` + strings.ReplaceAll(params, ",", `","`) + `"`
 		}
 
 		f.Action(action.Name)
@@ -237,6 +238,9 @@ func Parse(data string) *FSM {
 			continue
 		}
 	}
+
+	slices.Sort(fsm.ActionNames)
+	slices.Sort(fsm.GuardNames)
 
 	return fsm
 }
