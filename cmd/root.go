@@ -24,20 +24,44 @@ package cmd
 import (
 	"os"
 
+	"github.com/mhersson/vectorsigma/internal/statemachine"
 	"github.com/spf13/cobra"
 )
 
 var Version string
 
+const (
+	initFlag    = "init"
+	moduleFlag  = "module"
+	inputFlag   = "input"
+	outputFlag  = "output"
+	packageFlag = "package"
+)
+
+var SM *statemachine.VectorSigma
+
 var RootCmd = &cobra.Command{
 	Use:   "vectorsigma",
 	Short: "VectorSigma is a Finite State Machine generator",
-	Long: `VectorSigma is a Finite State Machine generator.
+	Long: `VectorSigma is a Finite State Machine (FSM) generator.
 
-VectorSigma takes PlantUML as input and generates a runnable state machine. Pass
-in the "--init" flag, and it will generatee a new Go module that includes a
-self-contained FSM application based on your UML diagram.`,
+VectorSigma takes PlantUML as input and generates a FSM.
+`,
 	Version: Version,
+	Run: func(_ *cobra.Command, _ []string) {
+		SM.Run()
+	},
+}
+
+var InitCmd = &cobra.Command{
+	Use:   "init",
+	Short: "Initialize a new module",
+	Long: `Initialize a new a new Go module with a FSM
+application generated from your UML diagram.`,
+	Run: func(_ *cobra.Command, _ []string) {
+		SM.ExtendedState.Init = true
+		SM.Run()
+	},
 }
 
 func Execute() {
@@ -48,4 +72,17 @@ func Execute() {
 }
 
 func init() {
+	SM = statemachine.New()
+
+	RootCmd.AddCommand(InitCmd)
+
+	RootCmd.Flags().StringVarP(&SM.ExtendedState.Output, outputFlag, "o", "",
+		"The output path of the generated FSM (default current working directory)")
+
+	RootCmd.PersistentFlags().StringVarP(&SM.ExtendedState.Module, moduleFlag, "m", "",
+		"Name of new go module (default current directory name)")
+	RootCmd.PersistentFlags().StringVarP(&SM.ExtendedState.Input, inputFlag, "i", "", "The UML input file")
+	_ = RootCmd.MarkPersistentFlagRequired(inputFlag)
+	RootCmd.PersistentFlags().StringVarP(&SM.ExtendedState.Package, packageFlag, "p", "statemachine",
+		"The package name of the generated FSM")
 }

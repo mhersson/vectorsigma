@@ -207,7 +207,7 @@ func (fsm *VectorSigma) MakeIncrementalUpdatesAction(_ ...string) error {
 		if slices.Contains(files, filepath.Base(f)) {
 			fullpath := filepath.Join(fsm.ExtendedState.Output, f)
 			if exists, err := fsm.Context.Generator.Exists(fullpath); exists && err == nil {
-				fsm.Context.Logger.Info("Running incremental update", "file", f)
+				fsm.Context.Logger.Debug("Running incremental update", "file", f)
 				code, changed, err := fsm.Context.Generator.IncrementalUpdate(fullpath, c.Content)
 				if err != nil {
 					return fmt.Errorf("incremental update failed: %w", err)

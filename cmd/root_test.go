@@ -66,7 +66,7 @@ func Test_IntegrationTest(t *testing.T) {
 			require.NoError(t, err)
 
 			vectorsigma = cmd.RootCmd
-			vectorsigma.SetArgs([]string{"generate", "--input", "weoverridethis"})
+			vectorsigma.SetArgs([]string{"--input", "weoverridethis"})
 
 			cmd.SM = statemachine.New()
 			cmd.SM.ExtendedState.Init = tt.init
