@@ -1,0 +1,48 @@
+package {{ .Package }}_test
+
+import (
+	"testing"
+
+	{{- if eq .RelativePath "" }}
+	"{{ .Module }}/{{ .Package }}"
+	{{- else }}
+	"{{ .Module }}/{{ .RelativePath }}/{{ .Package }}"
+	{{- end }}
+)
+
+{{- range $name := .FSM.GuardNames }}
+// +vectorsigma:guard:{{ $name }}
+func Test{{ $.FSM.Title }}_{{ $name }}Guard(t *testing.T) {
+	type fields struct {
+        context       *{{ $.Package }}.Context
+		currentState  {{ $.Package }}.StateName
+		stateConfigs  map[{{ $.Package }}.StateName]{{ $.Package }}.StateConfig
+		ExtendedState *{{ $.Package }}.ExtendedState
+	}
+
+	tests := []struct {
+		name   string
+		fields fields
+		want   bool
+	}{
+		// TODO: Add test cases.
+	}
+
+	t.Parallel()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			fsm := &{{ $.Package }}.{{ $.FSM.Title }}{
+                Context:       tt.fields.context,
+				CurrentState:  tt.fields.currentState,
+				StateConfigs:  tt.fields.stateConfigs,
+				ExtendedState: tt.fields.ExtendedState,
+			}
+			if got := fsm.{{ $name }}Guard(); got != tt.want {
+				t.Errorf("{{ $.FSM.Title }}.{{ $name }}Guard() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+{{ end }}

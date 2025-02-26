@@ -38,13 +38,15 @@ import (
 	"github.com/mhersson/vectorsigma/pkgs/uml"
 )
 
-//go:embed templates/application/*
+//go:embed templates/application/* templates/operator/*
 var templates embed.FS
 
 type Generator struct {
 	FS           afero.Fs
 	Shell        shell.Interface
 	FSM          *uml.FSM
+	APIKind      string
+	APIVersion   string
 	Module       string
 	Package      string
 	RelativePath string
@@ -53,6 +55,8 @@ type Generator struct {
 
 func (g *Generator) ExecuteTemplate(filename string) ([]byte, error) {
 	funcMap := template.FuncMap{
+		"title":   strings.ToTitle,
+		"toLower": strings.ToLower,
 		"toUpper": strings.ToUpper,
 	}
 

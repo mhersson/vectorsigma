@@ -42,6 +42,8 @@ func (fsm *VectorSigma) InitializeAction(_ ...string) error {
 	fsm.Context.Generator = &generator.Generator{
 		FS:           afero.NewOsFs(),
 		Shell:        &shell.Shell{},
+		APIKind:      fsm.ExtendedState.APIKind,
+		APIVersion:   fsm.ExtendedState.APIVersion,
 		Module:       fsm.ExtendedState.Module,
 		Package:      fsm.ExtendedState.Package,
 		Init:         fsm.ExtendedState.Init,
@@ -104,15 +106,21 @@ func (fsm *VectorSigma) GenerateStateMachineAction(_ ...string) error {
 		"guards.go",
 		"guards_test.go",
 		"statemachine.go",
+		"statemachine_test.go",
 		"extendedstate.go"}
 
+	templatePath := "templates/application"
+	if fsm.ExtendedState.Operator {
+		templatePath = "templates/operator"
+	}
+
 	for _, filename := range files {
-		code, err := fsm.Context.Generator.ExecuteTemplate("templates/application/" + filename + ".tmpl")
+		code, err := fsm.Context.Generator.ExecuteTemplate(filepath.Join(templatePath, filename+".tmpl"))
 		if err != nil {
 			return fmt.Errorf("code generation failed: %w", err)
 		}
 
-		if filename == "statemachine.go" {
+		if strings.HasPrefix(filename, "statemachine") {
 			// Make it very clear that this is a generated file that should not be modified
 			filename = "zz_generated_" + filename
 		}
@@ -126,6 +134,11 @@ func (fsm *VectorSigma) GenerateStateMachineAction(_ ...string) error {
 // +vectorsigma:action:GenerateModuleFiles
 func (fsm *VectorSigma) GenerateModuleFilesAction(_ ...string) error {
 	files := []string{"main.go", "go.mod"}
+
+	templatePath := "templates/application"
+	if fsm.ExtendedState.Operator {
+		templatePath = "templates/operator"
+	}
 
 	// Change the file path to projectroot/internal/package for new modules
 	generatedFiles := make(map[string]GeneratedFile)
@@ -142,7 +155,7 @@ func (fsm *VectorSigma) GenerateModuleFilesAction(_ ...string) error {
 				return fmt.Errorf("failed to check if path exists %s - %w", filename, err)
 			}
 		}
-		code, err := fsm.Context.Generator.ExecuteTemplate("templates/application/" + filename + ".tmpl")
+		code, err := fsm.Context.Generator.ExecuteTemplate(filepath.Join(templatePath, filename+".tmpl"))
 		if err != nil {
 			return fmt.Errorf("code generation failed: %w", err)
 		}

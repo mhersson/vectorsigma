@@ -1,0 +1,10 @@
+package {{ .Package }}
+
+{{- range $name := .FSM.GuardNames }}
+// +vectorsigma:guard:{{ $name }}
+func (fsm *{{ $.FSM.Title }}) {{ $name }}Guard() bool {
+	// TODO: Implement me!
+	return false
+}
+
+{{ end }}

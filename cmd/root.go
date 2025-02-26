@@ -48,6 +48,12 @@ var RootCmd = &cobra.Command{
 VectorSigma takes PlantUML as input and generates a FSM.
 `,
 	Version: Version,
+	PreRun: func(cmd *cobra.Command, _ []string) {
+		if operator, _ := cmd.Flags().GetBool("operator"); operator {
+			_ = cmd.MarkFlagRequired("api-kind")
+			_ = cmd.MarkFlagRequired("api-version")
+		}
+	},
 	Run: func(_ *cobra.Command, _ []string) {
 		SM.Run()
 	},
@@ -78,6 +84,9 @@ func init() {
 
 	RootCmd.Flags().StringVarP(&SM.ExtendedState.Output, outputFlag, "o", "",
 		"The output path of the generated FSM (default current working directory)")
+	RootCmd.Flags().BoolVarP(&SM.ExtendedState.Operator, "operator", "", false, "generate fsm for a k8s operator")
+	RootCmd.Flags().StringVarP(&SM.ExtendedState.APIKind, "api-kind", "", "", "API kind (only used if generating a k8s operator)")
+	RootCmd.Flags().StringVarP(&SM.ExtendedState.APIVersion, "api-version", "", "", "API version (only used if generating a k8s operator)")
 
 	RootCmd.PersistentFlags().StringVarP(&SM.ExtendedState.Module, moduleFlag, "m", "",
 		"Name of new go module (default current directory name)")

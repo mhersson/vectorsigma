@@ -20,6 +20,9 @@ type ExtendedState struct {
 	GeneratedFiles map[string]GeneratedFile
 	Init           bool
 	PackageExits   bool
+	Operator       bool
+	APIVersion     string
+	APIKind        string
 	Input          string
 	InputData      string
 	Module         string
