@@ -42,8 +42,8 @@ func (fsm *VectorSigma) InitializeAction(_ ...string) error {
 	fsm.Context.Generator = &generator.Generator{
 		FS:           afero.NewOsFs(),
 		Shell:        &shell.Shell{},
-		APIKind:      fsm.ExtendedState.APIKind,
-		APIVersion:   fsm.ExtendedState.APIVersion,
+		APIKind:      strings.ToLower(fsm.ExtendedState.APIKind),
+		APIVersion:   strings.ToLower(fsm.ExtendedState.APIVersion),
 		Module:       fsm.ExtendedState.Module,
 		Package:      fsm.ExtendedState.Package,
 		Init:         fsm.ExtendedState.Init,
