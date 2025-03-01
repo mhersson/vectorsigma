@@ -32,7 +32,7 @@ const (
 	// FinalState --> StartingConversation.
 	initialStatePattern = `^\[\*\]\s*-->\s*(\w+)$`
 	// StartingConversation: do / StartConversation(param).
-	actionPattern = `^(\w+):\s*do\s*\/\s*(\w+)(\((.*)\))?$`
+	actionPattern = `^(\w+):\s*(do\s*\/\s*)?(\w+)(\((.*)\))?$`
 	// StartingConversation --> FinalState: [ isError ].
 	guardedTransitionPattern = `^(\w+)\s*-->\s*(\w+):\s*\[?\s*(\w+)\s*\]?$`
 	// StartingConversation --> FinalState.
@@ -109,10 +109,10 @@ func (f *FSM) IsAction(line string) bool {
 	if m != nil {
 		state := m[1]
 		action := Action{}
-		action.Name = m[2]
+		action.Name = m[3]
 
-		if len(m) == 5 && m[4] != "" {
-			params := strings.ReplaceAll(m[4], `"`, ``)
+		if len(m) == 6 && m[5] != "" {
+			params := strings.ReplaceAll(m[5], `"`, ``)
 			action.Params = `"` + strings.ReplaceAll(params, ",", `","`) + `"`
 		}
 
