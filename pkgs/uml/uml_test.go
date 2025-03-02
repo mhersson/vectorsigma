@@ -90,14 +90,17 @@ func TestFSM_IsInitialState(t *testing.T) {
 		expect string
 	}{
 		{
-			name: "Ok", args: args{line: "[*] --> InitialState"}, expect: "InitialState", want: true,
+			name: "Ok",
+			args: args{line: "InitialState --> CurrentState"}, expect: "CurrentState", want: true,
 		},
 		{
-			name: "Ok no spaces", args: args{line: "[*]-->InitialState"}, expect: "InitialState", want: true,
+			name: "Ok no spaces",
+			args: args{line: "InitialState-->CurrentState"}, expect: "CurrentState", want: true,
 		},
 		{
 
-			name: "Not Ok", args: args{line: "State --> State2"}, expect: "", want: false,
+			name: "Not Ok",
+			args: args{line: "State --> State2"}, expect: "", want: false,
 		},
 	}
 
@@ -105,11 +108,11 @@ func TestFSM_IsInitialState(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			f := &uml.FSM{}
+			f := &uml.FSM{States: make(map[string]*uml.State)}
 			if got := f.IsInitialState(tt.args.line); got != tt.want {
 				t.Errorf("FSM.IsInitialState() = %v, want %v", got, tt.want)
-			} else {
-				assert.Equal(t, f.InitialState, tt.expect)
+			} else if tt.want {
+				assert.Equal(t, f.States[uml.InitialState].Transitions[0].Target, tt.expect)
 			}
 		})
 	}
@@ -265,7 +268,13 @@ func TestParse(t *testing.T) {
 	}{
 		{
 			want: &uml.FSM{
+				InitialState: uml.InitialState,
 				States: map[string]*uml.State{
+					uml.InitialState: {
+						Name: uml.InitialState,
+						Transitions: []uml.Transition{
+							{Target: "Red", Guard: ""}},
+					},
 					"Red": {
 						Name: "Red",
 						Actions: []uml.Action{{
@@ -320,10 +329,9 @@ func TestParse(t *testing.T) {
 						Name: "FinalState",
 					},
 				},
-				Title:        "TrafficLight",
-				InitialState: "Red",
-				ActionNames:  []string{"SwitchIn"},
-				GuardNames:   []string{"IsError", "NotGonnaHappen"},
+				Title:       "TrafficLight",
+				ActionNames: []string{"SwitchIn"},
+				GuardNames:  []string{"IsError", "NotGonnaHappen"},
 			},
 			args: args{
 				data: `

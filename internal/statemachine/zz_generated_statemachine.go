@@ -21,6 +21,7 @@ const (
 	FormattingCode               StateName = "FormattingCode"
 	GeneratingModuleFiles        StateName = "GeneratingModuleFiles"
 	GeneratingStateMachine       StateName = "GeneratingStateMachine"
+	InitialState                 StateName = "InitialState"
 	Initializing                 StateName = "Initializing"
 	LoadingInput                 StateName = "LoadingInput"
 	MakingIncrementalUpdates     StateName = "MakingIncrementalUpdates"
@@ -88,7 +89,7 @@ func New() *VectorSigma {
 
 	fsm := &VectorSigma{
 		Context:       &Context{Logger: slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel}))},
-		CurrentState:  Initializing,
+		CurrentState:  InitialState,
 		ExtendedState: &ExtendedState{},
 		StateConfigs:  make(map[StateName]StateConfig),
 	}
@@ -181,6 +182,13 @@ func New() *VectorSigma {
 			2: CreatingOutputFolder,
 		},
 	}
+	fsm.StateConfigs[InitialState] = StateConfig{
+		Actions: []Action{},
+		Guards:  []Guard{},
+		Transitions: map[int]StateName{
+			0: Initializing,
+		},
+	}
 	fsm.StateConfigs[Initializing] = StateConfig{
 		Actions: []Action{
 			{Name: Initialize, Execute: fsm.InitializeAction, Params: []string{}},
@@ -254,7 +262,7 @@ transitionsLoop:
 		// If we are in the FinalState, exit the FSM
 		if fsm.CurrentState == FinalState {
 			// Reset to the Initial State in case the FSM is run in a loop
-			fsm.CurrentState = Initializing
+			fsm.CurrentState = InitialState
 			return
 		}
 

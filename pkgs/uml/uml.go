@@ -28,16 +28,17 @@ import (
 )
 
 const (
+	InitialState = "InitialState"
+	FinalState   = "FinalState"
 	titlePattern = `^title\s(.*)$`
-	// FinalState --> StartingConversation.
-	initialStatePattern = `^\[\*\]\s*-->\s*(\w+)$`
+	// InitialState --> StartingConversation.
+	initialStatePattern = `^` + InitialState + `\s*-->\s*(\w+)$`
 	// StartingConversation: do / StartConversation(param).
 	actionPattern = `^(\w+):\s*(do\s*\/\s*)?(\w+)(\((.*)\))?$`
 	// StartingConversation --> FinalState: [ isError ].
 	guardedTransitionPattern = `^(\w+)\s*-->\s*(\w+):\s*\[?\s*(\w+)\s*\]?$`
 	// StartingConversation --> FinalState.
 	defaultTransitionPattern = `^(\w+)\s*-->\s*(\w+)$`
-	FinalState               = "FinalState"
 )
 
 type State struct {
@@ -94,7 +95,19 @@ func (f *FSM) IsInitialState(line string) bool {
 
 	m := re.FindStringSubmatch(line)
 	if m != nil {
-		f.InitialState = m[1]
+		if _, ok := f.States[InitialState]; !ok {
+			f.States[InitialState] = &State{
+				Name: InitialState,
+				Transitions: []Transition{
+					{
+						Target: m[1],
+					},
+				},
+			}
+		} else {
+			newTransition := Transition{Target: m[1]}
+			f.States[InitialState].Transitions = append(f.States[InitialState].Transitions, newTransition)
+		}
 
 		return true
 	}
@@ -209,12 +222,15 @@ func (f *FSM) IsDefaultTransition(line string) bool {
 func Parse(data string) *FSM {
 	fsm := new(FSM)
 	fsm.States = make(map[string]*State)
+	fsm.InitialState = InitialState
 
 	for _, line := range strings.Split(data, "\n") {
 		line = strings.ReplaceAll(line, "[dotted]", "")
 		line = strings.ReplaceAll(line, "[bold]", "")
 
-		if !strings.HasPrefix(line, "[*]") {
+		if strings.HasPrefix(line, "[*]") {
+			line = strings.ReplaceAll(line, "[*]", InitialState)
+		} else {
 			line = strings.ReplaceAll(line, "[*]", FinalState)
 		}
 

@@ -16,6 +16,7 @@ const (
 	FinalState     StateName = "FinalState"
 	FlashingYellow StateName = "FlashingYellow"
 	Green          StateName = "Green"
+	InitialState   StateName = "InitialState"
 	Red            StateName = "Red"
 	Yellow         StateName = "Yellow"
 )
@@ -67,7 +68,7 @@ func New() *TrafficLight {
 
 	fsm := &TrafficLight{
 		Context:       &Context{Logger: slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel}))},
-		CurrentState:  Red,
+		CurrentState:  InitialState,
 		ExtendedState: &ExtendedState{},
 		StateConfigs:  make(map[StateName]StateConfig),
 	}
@@ -94,6 +95,13 @@ func New() *TrafficLight {
 		Transitions: map[int]StateName{
 			0: FinalState,
 			1: FlashingYellow,
+		},
+	}
+	fsm.StateConfigs[InitialState] = StateConfig{
+		Actions: []Action{},
+		Guards:  []Guard{},
+		Transitions: map[int]StateName{
+			0: Red,
 		},
 	}
 	fsm.StateConfigs[Red] = StateConfig{
@@ -131,7 +139,7 @@ transitionsLoop:
 		// If we are in the FinalState, exit the FSM
 		if fsm.CurrentState == FinalState {
 			// Reset to the Initial State in case the FSM is run in a loop
-			fsm.CurrentState = Red
+			fsm.CurrentState = InitialState
 			return
 		}
 
