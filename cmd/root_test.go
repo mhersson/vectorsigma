@@ -28,6 +28,9 @@ func Test_IntegrationTest(t *testing.T) {
 		name           string
 		testdatafolder string
 		init           bool
+		operator       bool
+		apiVersion     string
+		apiKind        string
 		input          string
 		output         string
 		pkg            string
@@ -48,6 +51,17 @@ func Test_IntegrationTest(t *testing.T) {
 			init:           false,
 			input:          "../uml/traffic-lights.plantuml",
 			pkg:            "fsm",
+		},
+		{
+			name:           "k8s operator",
+			testdatafolder: "operator",
+			output:         "output",
+			init:           false,
+			input:          "../uml/operator.md",
+			pkg:            "fsm",
+			operator:       true,
+			apiVersion:     "v1",
+			apiKind:        "testcrd",
 		},
 	}
 
@@ -73,6 +87,9 @@ func Test_IntegrationTest(t *testing.T) {
 			cmd.SM.ExtendedState.Input = tt.input
 			cmd.SM.ExtendedState.Package = tt.pkg
 			cmd.SM.ExtendedState.Output = tt.output
+			cmd.SM.ExtendedState.Operator = tt.operator
+			cmd.SM.ExtendedState.APIVersion = tt.apiVersion
+			cmd.SM.ExtendedState.APIKind = tt.apiKind
 
 			err = vectorsigma.Execute()
 			require.NoError(t, err)

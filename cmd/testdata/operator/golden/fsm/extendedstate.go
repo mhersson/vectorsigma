@@ -1,4 +1,4 @@
-package {{ .Package }}
+package fsm
 
 import (
 	"log/slog"
@@ -6,13 +6,13 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	{{ .APIKind }}{{ .APIVersion}} "{{ .Module }}/api/{{ .APIVersion }}"
+	testcrdv1 "operator/api/v1"
 )
 
 // A struct that holds the items needed for the actions to do their work.
 // Things like client libraries and loggers, go here.
 type Context struct {
-	Logger    *slog.Logger
+	Logger *slog.Logger
 	Client client.Client
 }
 
@@ -20,7 +20,7 @@ type Context struct {
 // being fetched and read. This should only be modified by actions, while guards
 // should only read the extended state to assess their value.
 type ExtendedState struct {
-	Error         error
+	Error        error
 	ResourceName types.NamespacedName
-	Instance     {{ .APIKind }}{{ .APIVersion}}.{{ .APIKind | title }}
+	Instance     testcrdv1.Testcrd
 }

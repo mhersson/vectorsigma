@@ -31,6 +31,8 @@ import (
 
 	"github.com/dave/dst"
 	"github.com/dave/dst/decorator"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 
 	"github.com/spf13/afero"
 
@@ -54,8 +56,10 @@ type Generator struct {
 }
 
 func (g *Generator) ExecuteTemplate(filename string) ([]byte, error) {
+	titleTransformer := cases.Title(language.English)
+
 	funcMap := template.FuncMap{
-		"title":   strings.ToTitle,
+		"title":   titleTransformer.String,
 		"toLower": strings.ToLower,
 		"toUpper": strings.ToUpper,
 	}
