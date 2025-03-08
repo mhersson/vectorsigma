@@ -2,6 +2,7 @@ package statemachine_test
 
 import (
 	"log/slog"
+	"os/exec"
 	"path/filepath"
 	"testing"
 
@@ -689,7 +690,11 @@ func TestVectorSigma_FormatCodeAction(t *testing.T) {
 				ExtendedState: tt.fields.ExtendedState,
 			}
 
-			mockShell.EXPECT().NewCommand("go", "fmt", "out/testfile").Return(mockCmd)
+			if _, err := exec.LookPath("goimports"); err == nil {
+				mockShell.EXPECT().NewCommand("goimports", "-w", "out/testfile").Return(mockCmd)
+			} else {
+				mockShell.EXPECT().NewCommand("go", "fmt", "out/testfile").Return(mockCmd)
+			}
 			mockCmd.EXPECT().Run().Return(nil)
 
 			if err := fsm.FormatCodeAction(tt.args.params...); (err != nil) != tt.wantErr {

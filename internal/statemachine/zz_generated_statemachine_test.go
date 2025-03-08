@@ -2,8 +2,9 @@
 package statemachine_test
 
 import (
-	"github.com/mhersson/vectorsigma/internal/statemachine"
 	"testing"
+
+	"github.com/mhersson/vectorsigma/internal/statemachine"
 )
 
 func TestVectorSigma_Run(t *testing.T) {

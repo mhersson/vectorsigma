@@ -10,6 +10,7 @@ import (
 	"operator/output/fsm"
 	"os"
 	"path/filepath"
+
 	ctrl "sigs.k8s.io/controller-runtime"
 
 	"k8s.io/apimachinery/pkg/types"

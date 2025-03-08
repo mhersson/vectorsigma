@@ -25,6 +25,7 @@ import (
 	"bytes"
 	"embed"
 	"fmt"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"text/template"
@@ -96,9 +97,16 @@ func (g *Generator) WriteFile(path string, data []byte) error {
 
 // Format the generated code.
 func (g *Generator) FormatCode(path string) error {
-	err := g.Shell.NewCommand("go", "fmt", path).Run()
-	if err != nil {
-		return fmt.Errorf("failed to format code: %w", err)
+	const goCmd = "go"
+	const goImportsCmd = "goimports"
+
+	formatCmd := []string{goCmd, "fmt", path}
+	if _, err := exec.LookPath(goImportsCmd); err == nil {
+		formatCmd = []string{goImportsCmd, "-w", path}
+	}
+
+	if err := g.Shell.NewCommand(formatCmd[0], formatCmd[1:]...).Run(); err != nil {
+		return fmt.Errorf("failed to format code at %s: %w", path, err)
 	}
 
 	return nil
