@@ -1,5 +1,7 @@
-# VectorSigma
+# The state chart of VectorSigma
 
+This file contains the actual state chart of VectorSigma, and is used to
+generate the current version of the application itself.
 
 ```plantuml
 @startuml
