@@ -107,7 +107,8 @@ func (fsm *VectorSigma) GenerateStateMachineAction(_ ...string) error {
 		"guards_test.go",
 		"statemachine.go",
 		"statemachine_test.go",
-		"extendedstate.go"}
+		"extendedstate.go",
+	}
 
 	templatePath := "templates/application"
 	if fsm.ExtendedState.Operator {
@@ -181,7 +182,7 @@ func (fsm *VectorSigma) CreateOutputFolderAction(params ...string) error {
 		return nil
 	}
 
-	if err := fsm.Context.Generator.FS.MkdirAll(outputfolder, 0755); err != nil {
+	if err := fsm.Context.Generator.FS.MkdirAll(outputfolder, 0o755); err != nil {
 		return fmt.Errorf("failed to create package directory: %w", err)
 	}
 

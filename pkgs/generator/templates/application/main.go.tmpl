@@ -1,10 +1,15 @@
 package main
 
 import (
+	"fmt"
+
 	"{{ .Module }}/internal/{{ .Package }}"
 )
 
 func main() {
 	SM := {{ .Package }}.New()
-	SM.Run()
+	err := SM.Run()
+	if err != nil {
+		fmt.Printf("State machine run ended with error: %v\n", err)
+	}
 }

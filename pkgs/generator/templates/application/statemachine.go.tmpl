@@ -2,6 +2,7 @@
 package {{ .Package }}
 
 import (
+	"fmt"
 	"log/slog"
 	"os"
 )
@@ -106,22 +107,23 @@ func New() *{{ .FSM.Title }} {
 
 
 // Run handles the state transitions based on the current state.
-func (fsm *{{ .FSM.Title }}) Run() {
-transitionsLoop:
+func (fsm *{{ .FSM.Title }}) Run() error {
+loop:
 	for {
 		// If we are in the FinalState, exit the FSM
 		if fsm.CurrentState == FinalState {
             // Reset to the Initial State in case the FSM is run in a loop
             fsm.CurrentState = {{ .FSM.InitialState }}
-			return
+
+			return fsm.ExtendedState.Error
 		}
 
 		config, exists := fsm.StateConfigs[fsm.CurrentState]
 
 		if !exists {
-			fsm.Context.Logger.Error("missing state config", "state", fsm.CurrentState)
+			fsm.Context.Logger.Error("missing config", "state", fsm.CurrentState)
 
-			return
+			return fmt.Errorf("missing config for state: %s", fsm.CurrentState)
 		}
 
 		// Execute all actions for the current state
@@ -145,7 +147,7 @@ transitionsLoop:
 
 					fsm.CurrentState = nextState
 
-					continue transitionsLoop
+					continue loop
 				}
 			}
 		}
