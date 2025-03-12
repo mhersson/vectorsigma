@@ -2,6 +2,7 @@
 package statemachine
 
 import (
+	"fmt"
 	"log/slog"
 	"os"
 )
@@ -256,22 +257,23 @@ func New() *VectorSigma {
 }
 
 // Run handles the state transitions based on the current state.
-func (fsm *VectorSigma) Run() {
-transitionsLoop:
+func (fsm *VectorSigma) Run() error {
+loop:
 	for {
 		// If we are in the FinalState, exit the FSM
 		if fsm.CurrentState == FinalState {
 			// Reset to the Initial State in case the FSM is run in a loop
 			fsm.CurrentState = InitialState
-			return
+
+			return fsm.ExtendedState.Error
 		}
 
 		config, exists := fsm.StateConfigs[fsm.CurrentState]
 
 		if !exists {
-			fsm.Context.Logger.Error("missing state config", "state", fsm.CurrentState)
+			fsm.Context.Logger.Error("missing config", "state", fsm.CurrentState)
 
-			return
+			return fmt.Errorf("missing config for state: %s", fsm.CurrentState)
 		}
 
 		// Execute all actions for the current state
@@ -295,7 +297,7 @@ transitionsLoop:
 
 					fsm.CurrentState = nextState
 
-					continue transitionsLoop
+					continue loop
 				}
 			}
 		}
