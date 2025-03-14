@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300">
+  <!-- Background with gradient -->
+  <defs>
+    <linearGradient id="bg-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f0f8ff" />
+      <stop offset="100%" stop-color="#e6e6fa" />
+    </linearGradient>
+  </defs>
+
+  <rect width="300" height="300" fill="url(#bg-gradient)" rx="12" ry="12"/>
+
+  <!-- Title -->
+  <text x="150" y="45" font-family="Arial" font-size="22" font-weight="bold" text-anchor="middle" fill="#4B0082">VectorSigma</text>
+
+  <!-- Subtitle -->
+  <text x="150" y="65" font-family="Arial" font-size="13" text-anchor="middle" fill="#555">UML to Go FSM Generator</text>
+
+  <!-- UML Document (40px from left edge) -->
+  <rect x="40" y="95" width="85" height="110" rx="5" ry="5" fill="#f5f5f5" stroke="#4B0082" stroke-width="1"/>
+  <text x="82" y="115" font-family="monospace" font-size="10" text-anchor="middle" fill="#4B0082">@startuml</text>
+  <line x1="50" y1="125" x2="115" y2="125" stroke="#4B0082" stroke-width="0.5"/>
+  <line x1="50" y1="140" x2="115" y2="140" stroke="#4B0082" stroke-width="0.5"/>
+  <line x1="50" y1="155" x2="115" y2="155" stroke="#4B0082" stroke-width="0.5"/>
+  <line x1="50" y1="170" x2="115" y2="170" stroke="#4B0082" stroke-width="0.5"/>
+  <line x1="50" y1="185" x2="115" y2="185" stroke="#4B0082" stroke-width="0.5"/>
+  <text x="82" y="195" font-family="monospace" font-size="10" text-anchor="middle" fill="#4B0082">@enduml</text>
+
+  <!-- Connecting Arrow -->
+  <path d="M125 150 L155 150" stroke="#4B0082" stroke-width="2"/>
+  <polygon points="165,150 155,147 155,153" fill="#4B0082"/>
+
+  <!-- FSM (rightmost element 40px from right edge) -->
+  <!-- Initial state -->
+  <circle cx="180" cy="110" r="5" fill="#4B0082" stroke="#4B0082" stroke-width="0.5"/>
+
+  <!-- States -->
+  <rect x="170" y="130" width="20" height="20" rx="4" ry="4" fill="#1E90FF" stroke="#4B0082" stroke-width="1"/>
+  <rect x="210" y="110" width="20" height="20" rx="4" ry="4" fill="#1E90FF" stroke="#4B0082" stroke-width="1"/>
+  <rect x="210" y="140" width="20" height="20" rx="4" ry="4" fill="#1E90FF" stroke="#4B0082" stroke-width="1"/>
+  <rect x="250" y="110" width="20" height="20" rx="4" ry="4" fill="#1E90FF" stroke="#4B0082" stroke-width="1"/>
+  <rect x="250" y="140" width="20" height="20" rx="4" ry="4" fill="#1E90FF" stroke="#4B0082" stroke-width="1"/>
+  <rect x="210" y="170" width="20" height="20" rx="4" ry="4" fill="#1E90FF" stroke="#4B0082" stroke-width="1"/>
+  <rect x="170" y="170" width="20" height="20" rx="4" ry="4" fill="#1E90FF" stroke="#4B0082" stroke-width="1"/>
+  <rect x="250" y="170" width="20" height="20" rx="4" ry="4" fill="#1E90FF" stroke="#4B0082" stroke-width="1"/>
+
+  <!-- Final state -->
+  <circle cx="260" cy="200" r="5" fill="white" stroke="#4B0082" stroke-width="1"/>
+  <circle cx="260" cy="200" r="2.5" fill="#4B0082" stroke="#4B0082" stroke-width="0.5"/>
+
+  <!-- State Machine Transitions -->
+  <!-- Initial to first state -->
+  <path d="M180 115 L180 130" stroke="#4B0082" stroke-width="1" fill="none"/>
+
+  <!-- Main flow paths -->
+  <path d="M190 140 L210 120" stroke="#4B0082" stroke-width="1" fill="none"/>
+  <path d="M190 140 L210 150" stroke="#4B0082" stroke-width="1" fill="none"/>
+  <path d="M230 120 L250 120" stroke="#4B0082" stroke-width="1" fill="none"/>
+  <path d="M230 150 L250 150" stroke="#4B0082" stroke-width="1" fill="none"/>
+  <path d="M220 160 L220 170" stroke="#4B0082" stroke-width="1" fill="none"/>
+  <path d="M260 160 L260 170" stroke="#4B0082" stroke-width="1" fill="none"/>
+  <path d="M230 180 L250 180" stroke="#4B0082" stroke-width="1" fill="none"/>
+  <path d="M260 130 L260 140" stroke="#4B0082" stroke-width="1" fill="none"/>
+  <path d="M180 150 L180 170" stroke="#4B0082" stroke-width="1" fill="none"/>
+
+  <!-- Final transitions -->
+  <path d="M260 190 L260 195" stroke="#4B0082" stroke-width="1" fill="none"/>
+  <path d="M180 190 L180 200 L255 200" stroke="#4B0082" stroke-width="1" fill="none"/>
+
+  <!-- Copyright -->
+  <text x="150" y="245" font-family="Arial" font-size="7" text-anchor="middle" fill="#555">© 2025 Morten Hersson</text>
+</svg>

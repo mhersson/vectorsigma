@@ -6,7 +6,8 @@ UML syntax, including title, initial state, final state, actions, guards, and
 transitions.
 
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
-**Table of Contents**
+
+## Table of Contents
 
 - [VectorSigma UML Syntax Documentation](#vectorsigma-uml-syntax-documentation)
   - [1. Title](#1-title)
@@ -69,7 +70,7 @@ machine can terminate upon encountering an error during the `StateB` phase.
 ## 4. Actions
 
 Actions are the operations that run in a state. In the UML syntax used by
-VectorSigma, actions can optionally have a `do /` prefix.  This prefix indicates
+VectorSigma, actions can optionally have a `do /` prefix. This prefix indicates
 that the action is performed when entering the state. For example:
 
 ```plantuml
@@ -86,8 +87,8 @@ enters the `StateA`.
   `Finalizing`.
 
 - **Action Names**: Actions should typically be named using a verb that
-  describes what is being done, often prefixed with `do /`. For example, `do /
-  LoadData`, `do / ProcessInput`, or `do / FinalizeOutput`.
+  describes what is being done, often prefixed with `do /`. For example,
+  `do / LoadData`, `do / ProcessInput`, or `do / FinalizeOutput`.
 
 - **Guard Names**: Guards should be prefixed with `Is` or `Has` to clearly
   indicate a condition. For example, `IsError`, `HasData`, or `IsComplete`.
@@ -95,8 +96,8 @@ enters the `StateA`.
 ## 5. Guards
 
 Guards are conditions that must be satisfied for a transition to occur. In
-VectorSigma's UML syntax, guards can be wrapped in square brackets `[ ]`.
-For example:
+VectorSigma's UML syntax, guards can be wrapped in square brackets `[ ]`. For
+example:
 
 ```plantuml
 StateA --> StateB: IsConditionMet      // Guard without brackets
@@ -137,18 +138,18 @@ preference.
 Consider the following transitions from `StateA`:
 
 ```plantuml
-StateA --> StateB: IsDataValid
-StateA --> StateC: IsUserAuthenticated
+StateA --> StateB: IsInvalid
+StateA --> StateC: IsNotAuthenticated
 StateA --> StateD
 ```
 
 In this example:
 
-- The transition to `StateB` will occur if `IsDataValid` is true.
-- The transition to `StateC` will occur if `IsUserAuthenticated` is true.
+- The transition to `StateB` will occur if `IsInvalid` is true.
+- The transition to `StateC` will occur if `IsNotAuthenticated` is true.
 - The transition to `StateD` is unguarded and will occur only if neither of the
-  previous conditions is met. If both `IsDataValid` and `IsUserAuthenticated`
-  are false, the state machine will transition to `StateD`.
+  previous conditions are met. If both `IsInvalid` and `IsNotAuthenticated` are
+  false, the state machine will transition to `StateD`.
 
 ## 6. Transitions
 
