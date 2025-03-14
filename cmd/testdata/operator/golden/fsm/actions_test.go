@@ -8,12 +8,12 @@ import (
 	"github.com/stretchr/testify/require"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	testcrdv1 "operator/api/v1"
+	unitv1 "operator/api/v1"
 )
 
-const kind = "Testcrd"
+const kind = "TestCRD"
 
-var resource = &testcrdv1.Testcrd{
+var resource = &unitv1.TestCRD{
 	TypeMeta: metav1.TypeMeta{
 		Kind: kind,
 	},
@@ -32,7 +32,7 @@ func teardown(t *testing.T) {
 	err := k8sClient.Delete(context.TODO(), resource)
 	require.NoError(t, err)
 
-	resource = &testcrdv1.Testcrd{
+	resource = &unitv1.TestCRD{
 		TypeMeta: metav1.TypeMeta{
 			Kind: kind,
 		},

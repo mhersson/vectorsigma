@@ -4,9 +4,10 @@ import (
 	"log/slog"
 
 	"k8s.io/apimachinery/pkg/types"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	testcrdv1 "operator/api/v1"
+	unitv1 "operator/api/v1"
 )
 
 // A struct that holds the items needed for the actions to do their work.
@@ -21,6 +22,7 @@ type Context struct {
 // should only read the extended state to assess their value.
 type ExtendedState struct {
 	Error        error
+	Result       ctrl.Result
 	ResourceName types.NamespacedName
-	Instance     testcrdv1.Testcrd
+	Instance     unitv1.TestCRD
 }

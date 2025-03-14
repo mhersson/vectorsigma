@@ -31,6 +31,7 @@ func Test_IntegrationTest(t *testing.T) {
 		operator       bool
 		apiVersion     string
 		apiKind        string
+		group          string
 		input          string
 		output         string
 		pkg            string
@@ -61,7 +62,8 @@ func Test_IntegrationTest(t *testing.T) {
 			pkg:            "fsm",
 			operator:       true,
 			apiVersion:     "v1",
-			apiKind:        "testcrd",
+			group:          "unit",
+			apiKind:        "TestCRD",
 		},
 	}
 
@@ -90,6 +92,7 @@ func Test_IntegrationTest(t *testing.T) {
 			cmd.SM.ExtendedState.Operator = tt.operator
 			cmd.SM.ExtendedState.APIVersion = tt.apiVersion
 			cmd.SM.ExtendedState.APIKind = tt.apiKind
+			cmd.SM.ExtendedState.Group = tt.group
 
 			err = vectorsigma.Execute()
 			require.NoError(t, err)

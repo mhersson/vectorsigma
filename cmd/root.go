@@ -31,11 +31,15 @@ import (
 var Version string
 
 const (
-	initFlag    = "init"
-	moduleFlag  = "module"
-	inputFlag   = "input"
-	outputFlag  = "output"
-	packageFlag = "package"
+	apiKindFlag    = "api-kind"
+	apiVersionFlag = "api-version"
+	groupFlag      = "group"
+	initFlag       = "init"
+	inputFlag      = "input"
+	moduleFlag     = "module"
+	operatorFlag   = "operator"
+	outputFlag     = "output"
+	packageFlag    = "package"
 )
 
 var SM *statemachine.VectorSigma
@@ -54,8 +58,8 @@ VectorSigma takes PlantUML as input and generates a FSM.
 			_ = cmd.MarkFlagRequired("api-version")
 		}
 	},
-	Run: func(_ *cobra.Command, _ []string) {
-		SM.Run()
+	RunE: func(_ *cobra.Command, _ []string) error {
+		return SM.Run()
 	},
 }
 
@@ -64,9 +68,10 @@ var InitCmd = &cobra.Command{
 	Short: "Initialize a new module",
 	Long: `Initialize a new a new Go module with a FSM
 application generated from your UML diagram.`,
-	Run: func(_ *cobra.Command, _ []string) {
+	RunE: func(_ *cobra.Command, _ []string) error {
 		SM.ExtendedState.Init = true
-		SM.Run()
+
+		return SM.Run()
 	},
 }
 
@@ -80,13 +85,16 @@ func Execute() {
 func init() {
 	SM = statemachine.New()
 
+	RootCmd.SetHelpCommand(&cobra.Command{Hidden: true})
+
 	RootCmd.AddCommand(InitCmd)
 
+	RootCmd.Flags().StringVarP(&SM.ExtendedState.APIKind, apiKindFlag, "k", "", "API kind (only used if generating a k8s operator)")
+	RootCmd.Flags().StringVarP(&SM.ExtendedState.APIVersion, apiVersionFlag, "v", "", "API version (only used if generating a k8s operator)")
+	RootCmd.Flags().StringVarP(&SM.ExtendedState.Group, groupFlag, "g", "", "Group (only used if generating a k8s operator)")
+	RootCmd.Flags().BoolVarP(&SM.ExtendedState.Operator, operatorFlag, "O", false, "generate fsm for a k8s operator")
 	RootCmd.Flags().StringVarP(&SM.ExtendedState.Output, outputFlag, "o", "",
 		"The output path of the generated FSM (default current working directory)")
-	RootCmd.Flags().BoolVarP(&SM.ExtendedState.Operator, "operator", "", false, "generate fsm for a k8s operator")
-	RootCmd.Flags().StringVarP(&SM.ExtendedState.APIKind, "api-kind", "", "", "API kind (only used if generating a k8s operator)")
-	RootCmd.Flags().StringVarP(&SM.ExtendedState.APIVersion, "api-version", "", "", "API version (only used if generating a k8s operator)")
 
 	RootCmd.PersistentFlags().StringVarP(&SM.ExtendedState.Module, moduleFlag, "m", "",
 		"Name of new go module (default current directory name)")

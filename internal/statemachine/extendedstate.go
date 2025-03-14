@@ -23,6 +23,7 @@ type ExtendedState struct {
 	Operator       bool
 	APIVersion     string
 	APIKind        string
+	Group          string
 	Input          string
 	InputData      string
 	Module         string

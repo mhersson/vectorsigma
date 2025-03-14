@@ -18,7 +18,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 
-	{{ .APIKind }}{{ .APIVersion}} "{{ .Module }}/api/{{ .APIVersion }}"
+	{{ .Group }}{{ .APIVersion}} "{{ .Module }}/api/{{ .APIVersion }}"
 )
 
 var (
@@ -89,7 +89,7 @@ func setupTestEnv() error {
 
 	var err error
 	// TODO(user): Add your API to the runtime scheme
-	err = {{ .APIKind }}{{ .APIVersion}}.AddToScheme(scheme.Scheme)
+	err = {{ .Group }}{{ .APIVersion}}.AddToScheme(scheme.Scheme)
 	if err != nil {
 		return fmt.Errorf("failed to add schema: %v\n", err)
 	}

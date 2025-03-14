@@ -141,7 +141,7 @@ transitionsLoop:
 	for {
 		// If we are in the FinalState, exit the FSM
 		if fsm.CurrentState == FinalState {
-			return ctrl.Result{}, fsm.ExtendedState.Error
+			return fsm.ExtendedState.Result, fsm.ExtendedState.Error
 		}
 
 		config, exists := fsm.StateConfigs[fsm.CurrentState]

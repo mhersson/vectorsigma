@@ -39,11 +39,16 @@ func (fsm *VectorSigma) InitializeAction(_ ...string) error {
 		}
 	}
 
+	if fsm.ExtendedState.Group == "" {
+		fsm.ExtendedState.Group = fsm.ExtendedState.APIKind
+	}
+
 	fsm.Context.Generator = &generator.Generator{
 		FS:           afero.NewOsFs(),
 		Shell:        &shell.Shell{},
-		APIKind:      strings.ToLower(fsm.ExtendedState.APIKind),
+		APIKind:      fsm.ExtendedState.APIKind,
 		APIVersion:   strings.ToLower(fsm.ExtendedState.APIVersion),
+		Group:        strings.ToLower(fsm.ExtendedState.Group),
 		Module:       fsm.ExtendedState.Module,
 		Package:      fsm.ExtendedState.Package,
 		Init:         fsm.ExtendedState.Init,

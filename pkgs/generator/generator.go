@@ -50,6 +50,7 @@ type Generator struct {
 	FSM          *uml.FSM
 	APIKind      string
 	APIVersion   string
+	Group        string
 	Module       string
 	Package      string
 	RelativePath string
@@ -87,7 +88,7 @@ func (g *Generator) Exists(path string) (bool, error) {
 
 // Write file to disk.
 func (g *Generator) WriteFile(path string, data []byte) error {
-	err := afero.WriteFile(g.FS, path, data, 0644)
+	err := afero.WriteFile(g.FS, path, data, 0o644)
 	if err != nil {
 		return fmt.Errorf("failed to write file: %w", err)
 	}
