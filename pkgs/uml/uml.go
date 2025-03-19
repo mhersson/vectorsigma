@@ -39,12 +39,22 @@ const (
 	guardedTransitionPattern = `^(\w+)\s*-->\s*(\w+):\s*\[?\s*(\w+)\s*\]?$`
 	// StartingConversation --> FinalState.
 	defaultTransitionPattern = `^(\w+)\s*-->\s*(\w+)$`
+	// CompositeState: state compositestate {.
+	compositeStateStartPattern = `^state\s*(\w+)\s*{$`
+
+	compositeStateEndPattern = `^}$`
 )
 
 type State struct {
 	Name        string
 	Actions     []Action
 	Transitions []Transition
+	Composite   Composite
+}
+
+type Composite struct {
+	InitialState string
+	States       map[string]*State
 }
 
 type Transition struct {
@@ -63,6 +73,7 @@ type FSM struct {
 	InitialState string
 	ActionNames  []string
 	GuardNames   []string
+	AllStates    []string
 }
 
 func (f *FSM) Action(action string) {
@@ -219,42 +230,123 @@ func (f *FSM) IsDefaultTransition(line string) bool {
 	return false
 }
 
+func (f *FSM) IsCompositeStateStart(ind int, line, data string) (int, bool) {
+	re := regexp.MustCompile(compositeStateStartPattern)
+
+	m := re.FindStringSubmatch(line)
+	if m != nil {
+		state := m[1]
+		lines := strings.Split(data, "\n")
+		start := ind + 1
+		end := 0
+		for i := ind + 1; i < len(lines); i++ {
+			if f.IsCompositeStateEnd(lines[i]) {
+				end = i
+
+				break
+			}
+		}
+
+		if end == 0 {
+			return end, false
+		}
+
+		compState := Parse(strings.Join(lines[start:end], "\n"))
+
+		f.States[state] = &State{
+			Name: state,
+			Composite: Composite{
+				InitialState: compState.InitialState,
+				States:       compState.States,
+			},
+		}
+
+		for k := range compState.States {
+			if !slices.Contains(f.AllStates, k) {
+				f.AllStates = append(f.AllStates, k)
+			}
+		}
+
+		slices.Sort(f.AllStates)
+
+		for _, v := range compState.ActionNames {
+			if !slices.Contains(f.ActionNames, v) {
+				f.ActionNames = append(f.ActionNames, v)
+			}
+		}
+
+		for _, v := range compState.GuardNames {
+			if !slices.Contains(f.GuardNames, v) {
+				f.GuardNames = append(f.GuardNames, v)
+			}
+		}
+
+		return end - start, true
+	}
+
+	return 0, false
+}
+
+func (f *FSM) IsCompositeStateEnd(line string) bool {
+	re := regexp.MustCompile(compositeStateEndPattern)
+
+	m := re.FindStringSubmatch(line)
+
+	return m != nil
+}
+
 func Parse(data string) *FSM {
 	fsm := new(FSM)
 	fsm.States = make(map[string]*State)
 	fsm.InitialState = InitialState
+	fsm.AllStates = []string{}
 
-	for _, line := range strings.Split(data, "\n") {
-		line = strings.ReplaceAll(line, "[dotted]", "")
-		line = strings.ReplaceAll(line, "[bold]", "")
+	lines := strings.Split(data, "\n")
 
-		if strings.HasPrefix(line, "[*]") {
-			line = strings.ReplaceAll(line, "[*]", InitialState)
+	for ind := 0; ind < len(lines); ind++ {
+		lines[ind] = strings.ReplaceAll(lines[ind], "[dotted]", "")
+		lines[ind] = strings.ReplaceAll(lines[ind], "[bold]", "")
+
+		if strings.HasPrefix(lines[ind], "[*]") {
+			lines[ind] = strings.ReplaceAll(lines[ind], "[*]", InitialState)
 		} else {
-			line = strings.ReplaceAll(line, "[*]", FinalState)
+			lines[ind] = strings.ReplaceAll(lines[ind], "[*]", FinalState)
 		}
 
-		if fsm.IsTitle(line) {
+		if fsm.IsTitle(lines[ind]) {
 			continue
 		}
 
-		if fsm.IsInitialState(line) {
+		if fsm.IsInitialState(lines[ind]) {
 			continue
 		}
 
-		if fsm.IsAction(line) {
+		if fsm.IsAction(lines[ind]) {
 			continue
 		}
 
-		if fsm.IsGuardedTransition(line) {
+		if fsm.IsGuardedTransition(lines[ind]) {
 			continue
 		}
 
-		if fsm.IsDefaultTransition(line) {
+		if fsm.IsDefaultTransition(lines[ind]) {
+			continue
+		}
+
+		if i, ok := fsm.IsCompositeStateStart(ind, lines[ind], data); ok {
+			ind += i
+
 			continue
 		}
 	}
 
+	for k := range fsm.States {
+		if !slices.Contains(fsm.AllStates, k) {
+			fsm.AllStates = append(fsm.AllStates, k)
+		}
+	}
+
+	slices.Sort(fsm.AllStates)
 	slices.Sort(fsm.ActionNames)
 	slices.Sort(fsm.GuardNames)
 

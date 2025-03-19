@@ -37,6 +37,8 @@ const (
 	NotFound GuardName = "NotFound"
 )
 
+const maxStateDepth = 5
+
 // Action represents a function that can be executed in a state and may return an error.
 type Action struct {
 	Name    ActionName
@@ -55,6 +57,12 @@ type StateConfig struct {
 	Actions     []Action
 	Guards      []Guard
 	Transitions map[int]StateName // Maps guard index to the next state
+	Composite   CompositeState
+}
+
+type CompositeState struct {
+	InitialState StateName
+	StateConfigs map[StateName]StateConfig
 }
 
 // VectorSigma represents the Finite State Machine (fsm) for VectorSigma.
@@ -138,55 +146,6 @@ func New() *Testreconcileloop {
 
 // Run handles the state transitions based on the current state.
 func (fsm *Testreconcileloop) Run() (ctrl.Result, error) {
-transitionsLoop:
-	for {
-		// If we are in the FinalState, exit the FSM
-		if fsm.CurrentState == FinalState {
-			return fsm.ExtendedState.Result, fsm.ExtendedState.Error
-		}
-
-		config, exists := fsm.StateConfigs[fsm.CurrentState]
-
-		if !exists {
-			fsm.Context.Logger.Error("missing state config", "state", fsm.CurrentState)
-
-			return ctrl.Result{}, errors.New("missing state config for " + string(fsm.CurrentState))
-		}
-
-		// Execute all actions for the current state
-		for _, action := range config.Actions {
-			fsm.Context.Logger.Debug("executing", "action", action.Name, "state", fsm.CurrentState)
-
-			if err := action.Execute(action.Params...); err != nil {
-				fsm.Context.Logger.Error("action failed", "action", action.Name, "state", fsm.CurrentState, "error", err)
-				fsm.ExtendedState.Error = err
-
-				break
-			}
-		}
-
-		// Check guards and determine the next state
-		for guardIndex, guard := range config.Guards {
-			if guard.Check() {
-				// Transition to the state mapped to this guard index
-				if nextState, exists := config.Transitions[guardIndex]; exists {
-					fsm.Context.Logger.Debug("guarded transition", "guard", guard.Name, "current", fsm.CurrentState, "next", nextState)
-
-					fsm.CurrentState = nextState
-
-					continue transitionsLoop
-				}
-			}
-		}
-		// Check for unguarded transition
-		if nextState, exists := config.Transitions[len(config.Guards)]; exists {
-			fsm.Context.Logger.Debug("unguarded transition", "current", fsm.CurrentState, "next", nextState)
-			fsm.CurrentState = nextState
-		}
-	}
-}
-
-func (fsm *Testreconcileloop) Run() (ctrl.Result, error) {
 	return run(fsm, fsm.StateConfigs, 0)
 }
 
@@ -214,9 +173,9 @@ func run(fsm *Testreconcileloop, stateConfigs map[StateName]StateConfig, depth i
 
 		if config.Composite.StateConfigs != nil {
 			parentState := fsm.CurrentState
-			// Recursively run the compound state machine
+			// Recursively run the composite state machine
 			fsm.CurrentState = config.Composite.InitialState
-			fsm.Context.Logger.Debug("entering compound state", "state", parentState, "initial", fsm.CurrentState)
+			fsm.Context.Logger.Debug("entering composite state", "state", parentState, "initial", fsm.CurrentState)
 			err := run(fsm, config.Composite.StateConfigs, depth+1)
 			if err != nil {
 				fsm.Context.Logger.Error("composite state machine failed", "state", fsm.CurrentState, "error", err)

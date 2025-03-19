@@ -14,7 +14,7 @@ type (
 )
 
 const (
-{{- range $state, $val := .FSM.States }}
+{{- range $state := .FSM.AllStates }}
 	{{ $state }} StateName = "{{ $state }}"
 {{- end }}
 )
@@ -30,6 +30,8 @@ const (
 	{{ . }} GuardName = "{{ . }}"
 {{- end }}
 )
+
+const maxStateDepth = 5
 
 // Action represents a function that can be executed in a state and may return an error.
 type Action struct {
@@ -49,6 +51,12 @@ type StateConfig struct {
 	Actions     []Action
 	Guards      []Guard
 	Transitions map[int]StateName // Maps guard index to the next state
+	Composite   CompositeState
+}
+
+type CompositeState struct {
+	InitialState StateName
+	StateConfigs map[StateName]StateConfig
 }
 
 // VectorSigma represents the Finite State Machine (fsm) for VectorSigma.
@@ -76,30 +84,47 @@ func New() *{{ .FSM.Title }} {
 		StateConfigs:  make(map[StateName]StateConfig),
 	}
 
+{{- define "stateConfigStructure" -}}
+{
+	Actions: []Action{
+{{- range $action := .Actions }}
+		{Name: {{ $action.Name }}, Execute: fsm.{{ $action.Name }}Action, Params: []string{ {{- $action.Params }}}},
+{{- end }}
+	},
+	Guards: []Guard{
+{{- range  $trans := .Transitions }}
+   {{- if eq $trans.Guard "" }}
+	},
+   {{- else }}
+		{Name: {{ $trans.Guard }}, Check: fsm.{{ $trans.Guard }}Guard},
+   {{- end }}
+{{- end }}
+	Transitions: map[int]StateName{
+{{- range $ind, $trans := .Transitions }}
+		{{ $ind }}: {{ $trans.Target }},
+{{- end }}
+	},
+	{{- if ne .Composite.InitialState "" }}
+	Composite: CompositeState{
+		InitialState: {{ .Composite.InitialState }},
+		StateConfigs: map[StateName]StateConfig{
+		{{- range $subState, $subVal := .Composite.States }}
+			{{- if eq $subState "FinalState" }}
+				{{ continue }}
+			{{- end }}
+			{{ $subState }}: {{ template "stateConfigStructure" $subVal }},
+		{{- end }}
+		},
+	},
+	{{- end }}
+}
+{{- end -}}
+
 {{- range $state, $val := .FSM.States }}
-    {{- if eq $state "FinalState" }}
-       {{ continue }}
-    {{- end }}
-	fsm.StateConfigs[{{ $state }}] = StateConfig{
-		Actions: []Action{
-    {{- range $action := $val.Actions }}
-			{Name: {{ $action.Name }}, Execute: fsm.{{ $action.Name }}Action, Params: []string{ {{- $action.Params }}}},
-    {{- end }}
-		},
-		Guards: []Guard{
-    {{- range  $trans := $val.Transitions }}
-	   {{- if eq $trans.Guard "" }}
-		},
-       {{- else }}
-			{Name: {{ $trans.Guard }}, Check: fsm.{{ $trans.Guard }}Guard},
-       {{- end }}
-     {{- end }}
-		Transitions: map[int]StateName{
-    {{- range $ind, $trans := $val.Transitions }}
-			{{ $ind }}: {{ $trans.Target }},
-    {{- end }}
-		},
-	}
+	{{- if eq $state "FinalState" }}
+	   {{ continue }}
+	{{- end }}
+	fsm.StateConfigs[{{ $state }}] = StateConfig{{ template "stateConfigStructure" $val }}
 {{- end }}
 
 	return fsm
@@ -111,7 +136,7 @@ func (fsm *{{ .FSM.Title }}) Run() error {
 }
 
 func run(fsm  *{{ .FSM.Title }}, stateConfigs map[StateName]StateConfig, depth int) error {
-	if depth > MaxStateDepth {
+	if depth > maxStateDepth {
 		return fmt.Errorf("max state depth exceeded")
 	}
 
@@ -134,9 +159,9 @@ func run(fsm  *{{ .FSM.Title }}, stateConfigs map[StateName]StateConfig, depth i
 
 		if config.Composite.StateConfigs != nil {
 			parentState := fsm.CurrentState
-			// Recursively run the compound state machine
+			// Recursively run the composite state machine
 			fsm.CurrentState = config.Composite.InitialState
-			fsm.Context.Logger.Debug("entering compound state", "state", parentState, "initial", fsm.CurrentState)
+			fsm.Context.Logger.Debug("entering composite state", "state", parentState, "initial", fsm.CurrentState)
 			err := run(fsm, config.Composite.StateConfigs, depth+1)
 			if err != nil {
 				fsm.Context.Logger.Error("composite state machine failed", "state", fsm.CurrentState, "error", err)

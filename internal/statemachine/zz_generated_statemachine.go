@@ -51,7 +51,7 @@ const (
 	PackageExists        GuardName = "PackageExists"
 )
 
-const MaxStateDepth = 5
+const maxStateDepth = 5
 
 // Action represents a function that can be executed in a state and may return an error.
 type Action struct {
@@ -71,10 +71,10 @@ type StateConfig struct {
 	Actions     []Action
 	Guards      []Guard
 	Transitions map[int]StateName // Maps guard index to the next state
-	Composite   CompoundState
+	Composite   CompositeState
 }
 
-type CompoundState struct {
+type CompositeState struct {
 	InitialState StateName
 	StateConfigs map[StateName]StateConfig
 }
@@ -266,11 +266,11 @@ func New() *VectorSigma {
 
 // Run handles the state transitions based on the current state.
 func (fsm *VectorSigma) Run() error {
-	return run(fsm, fsm.StateConfigs,0)
+	return run(fsm, fsm.StateConfigs, 0)
 }
 
-func run(fsm  *VectorSigma, stateConfigs map[StateName]StateConfig, depth int) error {
-	if depth > MaxStateDepth {
+func run(fsm *VectorSigma, stateConfigs map[StateName]StateConfig, depth int) error {
+	if depth > maxStateDepth {
 		return fmt.Errorf("max state depth exceeded")
 	}
 
@@ -293,16 +293,16 @@ func run(fsm  *VectorSigma, stateConfigs map[StateName]StateConfig, depth int) e
 
 		if config.Composite.StateConfigs != nil {
 			parentState := fsm.CurrentState
-			// Recursively run the compound state machine
+			// Recursively run the composite state machine
 			fsm.CurrentState = config.Composite.InitialState
-			fsm.Context.Logger.Debug("entering compound state", "state", parentState, "initial", fsm.CurrentState)
+			fsm.Context.Logger.Debug("entering composite state", "state", parentState, "initial", fsm.CurrentState)
 			err := run(fsm, config.Composite.StateConfigs, depth+1)
 			if err != nil {
 				fsm.Context.Logger.Error("composite state machine failed", "state", fsm.CurrentState, "error", err)
 				fsm.ExtendedState.Error = err
 			}
 
-			fsm.Context.Logger.Debug("exiting composite state", "state", parentState )
+			fsm.Context.Logger.Debug("exiting composite state", "state", parentState)
 			fsm.CurrentState = parentState
 		} else {
 			// Execute all actions for the current state
