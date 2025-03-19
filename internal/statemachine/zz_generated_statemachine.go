@@ -51,6 +51,8 @@ const (
 	PackageExists        GuardName = "PackageExists"
 )
 
+const MaxStateDepth = 5
+
 // Action represents a function that can be executed in a state and may return an error.
 type Action struct {
 	Name    ActionName
@@ -69,6 +71,12 @@ type StateConfig struct {
 	Actions     []Action
 	Guards      []Guard
 	Transitions map[int]StateName // Maps guard index to the next state
+	Composite   CompoundState
+}
+
+type CompoundState struct {
+	InitialState StateName
+	StateConfigs map[StateName]StateConfig
 }
 
 // VectorSigma represents the Finite State Machine (fsm) for VectorSigma.
@@ -258,7 +266,14 @@ func New() *VectorSigma {
 
 // Run handles the state transitions based on the current state.
 func (fsm *VectorSigma) Run() error {
-loop:
+	return run(fsm, fsm.StateConfigs,0)
+}
+
+func run(fsm  *VectorSigma, stateConfigs map[StateName]StateConfig, depth int) error {
+	if depth > MaxStateDepth {
+		return fmt.Errorf("max state depth exceeded")
+	}
+
 	for {
 		// If we are in the FinalState, exit the FSM
 		if fsm.CurrentState == FinalState {
@@ -268,7 +283,7 @@ loop:
 			return fsm.ExtendedState.Error
 		}
 
-		config, exists := fsm.StateConfigs[fsm.CurrentState]
+		config, exists := stateConfigs[fsm.CurrentState]
 
 		if !exists {
 			fsm.Context.Logger.Error("missing config", "state", fsm.CurrentState)
@@ -276,35 +291,68 @@ loop:
 			return fmt.Errorf("missing config for state: %s", fsm.CurrentState)
 		}
 
-		// Execute all actions for the current state
-		for _, action := range config.Actions {
-			fsm.Context.Logger.Debug("executing", "action", action.Name, "state", fsm.CurrentState)
-
-			if err := action.Execute(action.Params...); err != nil {
-				fsm.Context.Logger.Error("action failed", "action", action.Name, "state", fsm.CurrentState, "error", err)
+		if config.Composite.StateConfigs != nil {
+			parentState := fsm.CurrentState
+			// Recursively run the compound state machine
+			fsm.CurrentState = config.Composite.InitialState
+			fsm.Context.Logger.Debug("entering compound state", "state", parentState, "initial", fsm.CurrentState)
+			err := run(fsm, config.Composite.StateConfigs, depth+1)
+			if err != nil {
+				fsm.Context.Logger.Error("composite state machine failed", "state", fsm.CurrentState, "error", err)
 				fsm.ExtendedState.Error = err
+			}
 
-				break
+			fsm.Context.Logger.Debug("exiting composite state", "state", parentState )
+			fsm.CurrentState = parentState
+		} else {
+			// Execute all actions for the current state
+			err := runAllActions(fsm.Context, fsm.CurrentState, config.Actions)
+			if err != nil {
+				fsm.Context.Logger.Error("action failed", "state", fsm.CurrentState, "error", err)
+				fsm.ExtendedState.Error = err
 			}
 		}
 
 		// Check guards and determine the next state
-		for guardIndex, guard := range config.Guards {
-			if guard.Check() {
-				// Transition to the state mapped to this guard index
-				if nextState, exists := config.Transitions[guardIndex]; exists {
-					fsm.Context.Logger.Debug("guarded transition", "guard", guard.Name, "current", fsm.CurrentState, "next", nextState)
+		nextState := runAllGuards(fsm.Context, fsm.CurrentState, config)
+		if nextState != "" {
+			fsm.CurrentState = nextState
 
-					fsm.CurrentState = nextState
-
-					continue loop
-				}
-			}
+			continue
 		}
+
 		// Check for unguarded transition
 		if nextState, exists := config.Transitions[len(config.Guards)]; exists {
 			fsm.Context.Logger.Debug("unguarded transition", "current", fsm.CurrentState, "next", nextState)
 			fsm.CurrentState = nextState
 		}
 	}
+
+}
+
+func runAllActions(context *Context, currentState StateName, actions []Action) error {
+	for _, action := range actions {
+		context.Logger.Debug("executing", "action", action.Name, "state", currentState)
+
+		if err := action.Execute(action.Params...); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func runAllGuards(context *Context, currentState StateName, config StateConfig) StateName {
+	for guardIndex, guard := range config.Guards {
+		if guard.Check() {
+			// Transition to the state mapped to this guard index
+			if nextState, exists := config.Transitions[guardIndex]; exists {
+				context.Logger.Debug("guarded transition", "guard", guard.Name, "current", currentState, "next", nextState)
+
+				return nextState
+			}
+		}
+	}
+
+	return ""
 }

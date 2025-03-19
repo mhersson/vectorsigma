@@ -3,6 +3,7 @@ package fsm
 
 import (
 	"errors"
+	"fmt"
 	"log/slog"
 	"os"
 
@@ -183,4 +184,96 @@ transitionsLoop:
 			fsm.CurrentState = nextState
 		}
 	}
+}
+
+func (fsm *Testreconcileloop) Run() (ctrl.Result, error) {
+	return run(fsm, fsm.StateConfigs, 0)
+}
+
+func run(fsm *Testreconcileloop, stateConfigs map[StateName]StateConfig, depth int) (ctrl.Result, error) {
+	if depth > MaxStateDepth {
+		return ctrl.Result{}, fmt.Errorf("max state depth exceeded")
+	}
+
+	for {
+		// If we are in the FinalState, exit the FSM
+		if fsm.CurrentState == FinalState {
+			// Reset to the Initial State in case the FSM is run in a loop
+			fsm.CurrentState = InitialState
+
+			return fsm.ExtendedState.Result, fsm.ExtendedState.Error
+		}
+
+		config, exists := stateConfigs[fsm.CurrentState]
+
+		if !exists {
+			fsm.Context.Logger.Error("missing config", "state", fsm.CurrentState)
+
+			return ctrl.Result{}, errors.New("missing state config for " + string(fsm.CurrentState))
+		}
+
+		if config.Composite.StateConfigs != nil {
+			parentState := fsm.CurrentState
+			// Recursively run the compound state machine
+			fsm.CurrentState = config.Composite.InitialState
+			fsm.Context.Logger.Debug("entering compound state", "state", parentState, "initial", fsm.CurrentState)
+			err := run(fsm, config.Composite.StateConfigs, depth+1)
+			if err != nil {
+				fsm.Context.Logger.Error("composite state machine failed", "state", fsm.CurrentState, "error", err)
+				fsm.ExtendedState.Error = err
+			}
+
+			fsm.Context.Logger.Debug("exiting composite state", "state", parentState)
+			fsm.CurrentState = parentState
+		} else {
+			// Execute all actions for the current state
+			err := runAllActions(fsm.Context, fsm.CurrentState, config.Actions)
+			if err != nil {
+				fsm.Context.Logger.Error("action failed", "state", fsm.CurrentState, "error", err)
+				fsm.ExtendedState.Error = err
+			}
+		}
+
+		// Check guards and determine the next state
+		nextState := runAllGuards(fsm.Context, fsm.CurrentState, config)
+		if nextState != "" {
+			fsm.CurrentState = nextState
+
+			continue
+		}
+
+		// Check for unguarded transition
+		if nextState, exists := config.Transitions[len(config.Guards)]; exists {
+			fsm.Context.Logger.Debug("unguarded transition", "current", fsm.CurrentState, "next", nextState)
+			fsm.CurrentState = nextState
+		}
+	}
+
+}
+
+func runAllActions(context *Context, currentState StateName, actions []Action) error {
+	for _, action := range actions {
+		context.Logger.Debug("executing", "action", action.Name, "state", currentState)
+
+		if err := action.Execute(action.Params...); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func runAllGuards(context *Context, currentState StateName, config StateConfig) StateName {
+	for guardIndex, guard := range config.Guards {
+		if guard.Check() {
+			// Transition to the state mapped to this guard index
+			if nextState, exists := config.Transitions[guardIndex]; exists {
+				context.Logger.Debug("guarded transition", "guard", guard.Name, "current", currentState, "next", nextState)
+
+				return nextState
+			}
+		}
+	}
+
+	return ""
 }
