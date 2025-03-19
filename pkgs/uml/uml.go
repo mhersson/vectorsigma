@@ -30,19 +30,21 @@ import (
 const (
 	InitialState = "InitialState"
 	FinalState   = "FinalState"
-	titlePattern = `^title\s(.*)$`
+	// [*] --> InitialState. Before we replace the [*] with InitialState.
+	firstInitialStatePattern = `^\s*\[\*\].*$`
+	titlePattern             = `^title\s(.*)$`
 	// InitialState --> StartingConversation.
-	initialStatePattern = `^` + InitialState + `\s*-->\s*(\w+)$`
+	initialStatePattern = `^\s*` + InitialState + `\s*-->\s*(\w+)$`
 	// StartingConversation: do / StartConversation(param).
-	actionPattern = `^(\w+):\s*(do\s*\/\s*)?(\w+)(\((.*)\))?$`
+	actionPattern = `^\s*(\w+):\s*(do\s*\/\s*)?(\w+)(\((.*)\))?$`
 	// StartingConversation --> FinalState: [ isError ].
-	guardedTransitionPattern = `^(\w+)\s*-->\s*(\w+):\s*\[?\s*(\w+)\s*\]?$`
+	guardedTransitionPattern = `^\s*(\w+)\s*-->\s*(\w+):\s*\[?\s*(\w+)\s*\]?$`
 	// StartingConversation --> FinalState.
-	defaultTransitionPattern = `^(\w+)\s*-->\s*(\w+)$`
+	defaultTransitionPattern = `^\s*(\w+)\s*-->\s*(\w+)$`
 	// CompositeState: state compositestate {.
-	compositeStateStartPattern = `^state\s*(\w+)\s*{$`
+	compositeStateStartPattern = `^\s*state\s*(\w+)\s*{$`
 
-	compositeStateEndPattern = `^}$`
+	compositeStateEndPattern = `^\s*}$`
 )
 
 type State struct {
@@ -307,10 +309,14 @@ func Parse(data string) *FSM {
 		lines[ind] = strings.ReplaceAll(lines[ind], "[dotted]", "")
 		lines[ind] = strings.ReplaceAll(lines[ind], "[bold]", "")
 
-		if strings.HasPrefix(lines[ind], "[*]") {
-			lines[ind] = strings.ReplaceAll(lines[ind], "[*]", InitialState)
-		} else {
-			lines[ind] = strings.ReplaceAll(lines[ind], "[*]", FinalState)
+		if strings.Contains(lines[ind], "[*]") {
+			re := regexp.MustCompile(firstInitialStatePattern)
+			m := re.FindStringSubmatch(lines[ind])
+			if m != nil {
+				lines[ind] = strings.ReplaceAll(lines[ind], "[*]", InitialState)
+			} else {
+				lines[ind] = strings.ReplaceAll(lines[ind], "[*]", FinalState)
+			}
 		}
 
 		if fsm.IsTitle(lines[ind]) {

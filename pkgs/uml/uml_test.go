@@ -285,11 +285,11 @@ func TestFSM_IsCompositeStateStart(t *testing.T) {
 [*] --> CompositeState
 
 state CompositeState {
-[*] --> SubState1
-SubState1: do / action1
-SubState1 --> SubState2
+	[*] --> SubState1
+	SubState1: do / action1
+	SubState1 --> SubState2
 
-SubState2 --> [*]
+	SubState2 --> [*]
 }
 CompositeState --> [*]
 `,
@@ -594,9 +594,9 @@ title Traffic Light
 [*] --> Red
 
 state Red {
-[*] --> InRed
-InRed: do / SwitchIn(5)
-InRed --> [*]
+	[*] --> InRed
+	InRed: do / SwitchIn(5)
+	InRed --> [*]
 }
 Red -[dotted]-> [*]: [ IsError ]
 Red --> Yellow
