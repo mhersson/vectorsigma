@@ -19,7 +19,9 @@ transitions.
     - [Guarded vs. Unguarded Transitions](#guarded-vs-unguarded-transitions)
       - [Example of Guarded and Unguarded Transitions](#example-of-guarded-and-unguarded-transitions)
   - [6. Transitions](#6-transitions)
-  - [7. Notes](#7-notes)
+  - [7. Composite States](#7-composite-states)
+    - [7.1 Defining Composite States](#71-defining-composite-states)
+  - [8. Notes](#8-notes)
 
 <!-- markdown-toc end -->
 
@@ -176,7 +178,36 @@ optional (dotted).
 during the FSM generation process. They serve only as visual indicators in the
 UML diagram.
 
-## 7. Notes
+## 7. Composite States
+
+Composite states (also known as hierarchical or nested states) allow you to
+organize states into hierarchies, which can simplify complex state machines by
+grouping related states together. VectorSigma supports the definition and
+processing of composite states in UML diagrams.
+
+### 7.1 Defining Composite States
+
+To define a composite state in the UML syntax, you use the `state` keyword
+followed by the state name and curly braces to enclose the nested states:
+
+```plantuml
+state CompositeState {
+  [*] --> NestedState1
+
+  NestedState1: do / PerformNestedAction1
+  NestedState1 --> NestedState2: IsNestedConditionMet
+
+  NestedState2: do / PerformNestedAction2
+  NestedState2 --> [*]
+}
+CompositeState -[dotted]-> [*]: IsError
+CompositeState -[bold]-> StateA
+```
+
+In this example, `CompositeState` contains two nested states: `NestedState1` and
+`NestedState2`.
+
+## 8. Notes
 
 The UML diagram may contain notes that provide additional context or
 explanations. In the provided UML, notes are included as follows:
