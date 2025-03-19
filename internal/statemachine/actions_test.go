@@ -34,9 +34,11 @@ func TestVectorSigma_InitializeAction(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		{name: "OK", fields: fields{
-			context:       &statemachine.Context{},
-			ExtendedState: &statemachine.ExtendedState{}},
+		{
+			name: "OK", fields: fields{
+				context:       &statemachine.Context{},
+				ExtendedState: &statemachine.ExtendedState{},
+			},
 			wantErr: false,
 		},
 	}
@@ -76,8 +78,8 @@ func TestVectorSigma_LoadInputAction(t *testing.T) {
 		params []string
 	}
 
-	var fs = afero.NewMemMapFs()
-	_ = afero.WriteFile(fs, "input.md", []byte("# Markdown"), 0664)
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "input.md", []byte("# Markdown"), 0o664)
 
 	tests := []struct {
 		name    string
@@ -85,17 +87,22 @@ func TestVectorSigma_LoadInputAction(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		{name: "OK",
+		{
+			name: "OK",
 			fields: fields{
 				context:       &statemachine.Context{Generator: &generator.Generator{FS: fs}},
-				ExtendedState: &statemachine.ExtendedState{Input: "input.md"}},
+				ExtendedState: &statemachine.ExtendedState{Input: "input.md"},
+			},
 			wantErr: false,
 		},
-		{name: "NOT OK",
+		{
+			name: "NOT OK",
 			fields: fields{
 				context:       &statemachine.Context{Generator: &generator.Generator{FS: fs}},
-				ExtendedState: &statemachine.ExtendedState{Input: "invalid.md"}},
-			wantErr: true},
+				ExtendedState: &statemachine.ExtendedState{Input: "invalid.md"},
+			},
+			wantErr: true,
+		},
 	}
 
 	t.Parallel()
@@ -134,24 +141,33 @@ func TestVectorSigma_ExtractUMLAction(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		{name: "OK",
+		{
+			name: "OK",
 			fields: fields{
 				ExtendedState: &statemachine.ExtendedState{
 					InputData: "# Markdown ```plantuml\n@startuml```",
-				}},
-			wantErr: false},
-		{name: "Not OK - typo in markdown",
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Not OK - typo in markdown",
 			fields: fields{
 				ExtendedState: &statemachine.ExtendedState{
 					InputData: "# Markdown ``plantuml\n@startuml```",
-				}},
-			wantErr: true},
-		{name: "Not OK - missisng end of block",
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Not OK - missisng end of block",
 			fields: fields{
 				ExtendedState: &statemachine.ExtendedState{
 					InputData: "# Markdown ``plantuml\n@startuml",
-				}},
-			wantErr: true},
+				},
+			},
+			wantErr: true,
+		},
 	}
 
 	t.Parallel()
@@ -192,13 +208,16 @@ func TestVectorSigma_ParseUMLAction(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		{name: "OK",
+		{
+			name: "OK",
 			fields: fields{
 				context: &statemachine.Context{Generator: &generator.Generator{}},
 				ExtendedState: &statemachine.ExtendedState{
 					InputData: "# Markdown ```plantuml\n@startuml\ntitle test title\n\nskin rose```",
-				}},
-			wantErr: false},
+				},
+			},
+			wantErr: false,
+		},
 	}
 
 	t.Parallel()
@@ -239,14 +258,17 @@ func TestVectorSigma_GenerateStateMachineAction(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		{name: "OK",
+		{
+			name: "OK",
 			fields: fields{
 				context: &statemachine.Context{Generator: &generator.Generator{FSM: &uml.FSM{}, Package: "unittest"}},
 				ExtendedState: &statemachine.ExtendedState{
 					Package:        "unittest",
 					GeneratedFiles: make(map[string]statemachine.GeneratedFile),
-				}},
-			wantErr: false},
+				},
+			},
+			wantErr: false,
+		},
 	}
 
 	t.Parallel()
@@ -283,7 +305,7 @@ func TestVectorSigma_CreateOutputFolderAction(t *testing.T) {
 		params []string
 	}
 
-	var fs = afero.NewMemMapFs()
+	fs := afero.NewMemMapFs()
 
 	tests := []struct {
 		name    string
@@ -291,21 +313,29 @@ func TestVectorSigma_CreateOutputFolderAction(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		{name: "OK",
+		{
+			name: "OK",
 			fields: fields{
 				context: &statemachine.Context{Generator: &generator.Generator{FS: fs}},
 				ExtendedState: &statemachine.ExtendedState{
 					Output:  "outputfolder",
-					Package: "statemachine"}},
-			wantErr: false},
-		{name: "OK in internal",
+					Package: "statemachine",
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "OK in internal",
 			fields: fields{
 				context: &statemachine.Context{Generator: &generator.Generator{FS: fs}},
 				ExtendedState: &statemachine.ExtendedState{
 					Output:  "outputfolder",
-					Package: "statemachine"}},
+					Package: "statemachine",
+				},
+			},
 			args:    args{[]string{"internal"}},
-			wantErr: false},
+			wantErr: false,
+		},
 	}
 
 	t.Parallel()
@@ -346,7 +376,7 @@ func TestVectorSigma_FilterGeneratedFilesAction(t *testing.T) {
 		params []string
 	}
 
-	var fs = afero.NewMemMapFs()
+	fs := afero.NewMemMapFs()
 
 	_ = fs.Mkdir("outputfolder/statemachine", 0o755)
 	_ = afero.WriteFile(fs, "outputfolder/statemachine/extendedstate.go", []byte("1"), 0o644)
@@ -358,17 +388,21 @@ func TestVectorSigma_FilterGeneratedFilesAction(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		{name: "File exists",
+		{
+			name: "File exists",
 			fields: fields{
 				context: &statemachine.Context{Generator: &generator.Generator{FS: fs}},
 				ExtendedState: &statemachine.ExtendedState{
 					GeneratedFiles: map[string]statemachine.GeneratedFile{
 						"statemachine/extendedstate.go": {Content: []byte("1")},
-						"statemachine/action.go":        {Content: []byte("1")}},
+						"statemachine/action.go":        {Content: []byte("1")},
+					},
 					Output:  "outputfolder",
-					Package: "statemachine"},
+					Package: "statemachine",
+				},
 			},
-			wantErr: false},
+			wantErr: false,
+		},
 	}
 
 	t.Parallel()
@@ -458,7 +492,7 @@ func (fsm *TrafficLight) AddMe(_ ...string) error {
 }
 `
 
-	var fs = afero.NewMemMapFs()
+	fs := afero.NewMemMapFs()
 
 	_ = fs.Mkdir("outputfolder/statemachine", 0o755)
 	_ = afero.WriteFile(fs, "outputfolder/statemachine/actions.go", []byte(existingCode), 0o644)
@@ -469,7 +503,8 @@ func (fsm *TrafficLight) AddMe(_ ...string) error {
 		args    args
 		wantErr bool
 	}{
-		{name: "OK",
+		{
+			name: "OK",
 			fields: fields{
 				context: &statemachine.Context{Generator: &generator.Generator{FS: fs}, Logger: slog.Default()},
 				ExtendedState: &statemachine.ExtendedState{
@@ -477,9 +512,11 @@ func (fsm *TrafficLight) AddMe(_ ...string) error {
 						"statemachine/actions.go": {Content: []byte(generatedCode)},
 					},
 					Output:  "outputfolder",
-					Package: "statemachine"},
+					Package: "statemachine",
+				},
 			},
-			wantErr: false},
+			wantErr: false,
+		},
 	}
 
 	t.Parallel()
@@ -514,7 +551,7 @@ func TestVectorSigma_WriteGeneratedFilesAction(t *testing.T) {
 		params []string
 	}
 
-	var fs = afero.NewMemMapFs()
+	fs := afero.NewMemMapFs()
 
 	tests := []struct {
 		name    string
@@ -522,7 +559,8 @@ func TestVectorSigma_WriteGeneratedFilesAction(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		{name: "OK",
+		{
+			name: "OK",
 			fields: fields{
 				context: &statemachine.Context{Generator: &generator.Generator{FS: fs}},
 				ExtendedState: &statemachine.ExtendedState{
@@ -532,9 +570,11 @@ func TestVectorSigma_WriteGeneratedFilesAction(t *testing.T) {
 						"actions.go": {Content: []byte("actions")},
 						"guards.go":  {Content: []byte("guards")},
 					},
-				}},
+				},
+			},
 
-			wantErr: false},
+			wantErr: false,
+		},
 	}
 
 	t.Parallel()
@@ -589,7 +629,8 @@ func TestVectorSigma_GenerateModuleFilesAction(t *testing.T) { //nolint:parallel
 		args    args
 		wantErr bool
 	}{
-		{name: "OK",
+		{
+			name: "OK",
 			fields: fields{
 				context: &statemachine.Context{Generator: &generator.Generator{FSM: &uml.FSM{}, FS: fs}},
 				ExtendedState: &statemachine.ExtendedState{
@@ -600,7 +641,8 @@ func TestVectorSigma_GenerateModuleFilesAction(t *testing.T) { //nolint:parallel
 			},
 			wantErr: false,
 		},
-		{name: "Module exist",
+		{
+			name: "Module exist",
 			fields: fields{
 				context: &statemachine.Context{Generator: &generator.Generator{FSM: &uml.FSM{}, FS: fs}},
 				ExtendedState: &statemachine.ExtendedState{
@@ -667,7 +709,8 @@ func TestVectorSigma_FormatCodeAction(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		{name: "OK",
+		{
+			name: "OK",
 			fields: fields{
 				context: &statemachine.Context{Generator: &generator.Generator{Shell: mockShell}},
 				ExtendedState: &statemachine.ExtendedState{
