@@ -62,8 +62,9 @@ type Action struct {
 
 // Guard represents a function that returns a boolean indicating if a transition should occur.
 type Guard struct {
-	Name  GuardName
-	Check func() bool
+	Name   GuardName
+	Check  func() bool
+	Action *Action
 }
 
 // StateConfig holds the actions and guards for a state.
@@ -314,7 +315,12 @@ func run(fsm *VectorSigma, stateConfigs map[StateName]StateConfig, depth int) er
 		}
 
 		// Check guards and determine the next state
-		nextState := runAllGuards(fsm.Context, fsm.CurrentState, config)
+		nextState, err := runAllGuards(fsm.Context, fsm.CurrentState, config)
+		if err != nil {
+			// Guarded actions will always transition to the FinalState
+			fsm.ExtendedState.Error = err
+			fsm.CurrentState = FinalState
+		}
 		if nextState != "" {
 			fsm.CurrentState = nextState
 
@@ -342,17 +348,27 @@ func runAllActions(context *Context, currentState StateName, actions []Action) e
 	return nil
 }
 
-func runAllGuards(context *Context, currentState StateName, config StateConfig) StateName {
+func runAllGuards(context *Context, currentState StateName, config StateConfig) (StateName, error) {
 	for guardIndex, guard := range config.Guards {
 		if guard.Check() {
+			if guard.Action != nil {
+				action := guard.Action
+				if err := action.Execute(action.Params...); err != nil {
+					context.Logger.Debug("guarded action failed", "state", currentState,
+						"guard", guard.Name, "action", action.Name, "error", err)
+
+					return "", err
+				}
+			}
+
 			// Transition to the state mapped to this guard index
 			if nextState, exists := config.Transitions[guardIndex]; exists {
 				context.Logger.Debug("guarded transition", "guard", guard.Name, "current", currentState, "next", nextState)
 
-				return nextState
+				return nextState, nil
 			}
 		}
 	}
 
-	return ""
+	return "", nil
 }

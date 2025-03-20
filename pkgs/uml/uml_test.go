@@ -192,6 +192,14 @@ func TestFSM_IsGuardedTransition(t *testing.T) {
 			name: "Not Ok", args: args{line: "State: do / action"}, expect: "",
 			want: false,
 		},
+		{
+			name: "Ok guarded action", args: args{line: "state --> state2: [ guard ] :: myaction"}, expect: "guard",
+			want: true,
+		},
+		{
+			name: "Ok guarded action with params", args: args{line: "state --> state2: [ guard ] :: myaction(param,param1)"}, expect: "guard",
+			want: true,
+		},
 	}
 
 	t.Parallel()
@@ -615,6 +623,117 @@ Green --> FlashingYellow
 
 @enduml
 `,
+			},
+		},
+	}
+
+	t.Parallel()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := uml.Parse(tt.args.data); !cmp.Equal(got, tt.want) {
+				fmt.Println(cmp.Diff(got, tt.want))
+				t.Errorf("Parse() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestParseGuardedAction(t *testing.T) {
+	type args struct {
+		data string
+	}
+	tests := []struct {
+		name string
+		args args
+		want *uml.FSM
+	}{
+		{
+			name: "Simple",
+			want: &uml.FSM{
+				InitialState: uml.InitialState,
+				States: map[string]*uml.State{
+					uml.InitialState: {
+						Name: uml.InitialState,
+						Transitions: []uml.Transition{
+							{Target: "Red", Guard: ""},
+						},
+					},
+					"Red": {
+						Name: "Red",
+						Actions: []uml.Action{{
+							Name:   "SwitchIn",
+							Params: `"5"`,
+						}},
+						Transitions: []uml.Transition{
+							{
+								Target: "FinalState",
+								Guard:  "IsError",
+							},
+							{
+								Target: "Green",
+								Guard:  "NotGonnaHappen",
+								Action: &uml.Action{
+									Name:   "AlwaysGreen",
+									Params: `"force1","force2"`,
+								},
+							},
+							{Target: "Yellow", Guard: ""},
+						},
+					},
+					"Yellow": {
+						Name: "Yellow",
+						Actions: []uml.Action{{
+							Name:   "SwitchIn",
+							Params: `"1"`,
+						}},
+						Transitions: []uml.Transition{{
+							Target: "FinalState",
+							Guard:  "IsError",
+						}, {Target: "FinalState", Guard: ""}},
+					},
+					"Green": {
+						Name: "Green",
+						Actions: []uml.Action{{
+							Name:   "SwitchIn",
+							Params: `"5"`,
+						}},
+						Transitions: []uml.Transition{
+							{Target: "FinalState", Guard: ""},
+						},
+					},
+					uml.FinalState: {
+						Name: uml.FinalState,
+					},
+				},
+				Title:       "TrafficLight",
+				ActionNames: []string{"AlwaysGreen", "SwitchIn"},
+				GuardNames:  []string{"IsError", "NotGonnaHappen"},
+				AllStates: []string{
+					"FinalState", "Green", "InitialState", "Red", "Yellow",
+				},
+			},
+			args: args{
+				data: `
+@startuml
+
+title Traffic Light
+[*] --> Red
+Red: do / SwitchIn(5)
+Red -[dotted]-> [*]: [ IsError ]
+Red --> Green: NotGonnaHappen::AlwaysGreen(force1,force2)
+Red --> Yellow
+
+Yellow: do / SwitchIn(1)
+Yellow -[dotted]-> [*]: [ IsError]
+Yellow --> [*]
+
+Green: do / SwitchIn(5)
+Green --> [*]
+
+@enduml
+		`,
 			},
 		},
 	}

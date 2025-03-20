@@ -6,7 +6,6 @@ UML syntax, including title, initial state, final state, actions, guards, and
 transitions.
 
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
-
 ## Table of Contents
 
 - [VectorSigma UML Syntax Documentation](#vectorsigma-uml-syntax-documentation)
@@ -14,10 +13,15 @@ transitions.
   - [2. Initial State](#2-initial-state)
   - [3. Final State](#3-final-state)
   - [4. Actions](#4-actions)
-    - [Good Practices for Naming](#good-practices-for-naming)
+    - [4.1 Good Practices for Naming](#41-good-practices-for-naming)
   - [5. Guards](#5-guards)
-    - [Guarded vs. Unguarded Transitions](#guarded-vs-unguarded-transitions)
+    - [5.1 Guarded vs. Unguarded Transitions](#51-guarded-vs-unguarded-transitions)
       - [Example of Guarded and Unguarded Transitions](#example-of-guarded-and-unguarded-transitions)
+    - [5.2 Guarded Action Transitions](#52-guarded-action-transitions)
+      - [Action Parameters](#action-parameters)
+      - [Execution Flow](#execution-flow)
+      - [Important Caveats](#important-caveats)
+      - [Syntax](#syntax)
   - [6. Transitions](#6-transitions)
   - [7. Composite States](#7-composite-states)
     - [7.1 Defining Composite States](#71-defining-composite-states)
@@ -82,7 +86,7 @@ StateA: do / PerformActionA
 In this case, the action `PerformActionA` is executed when the state machine
 enters the `StateA`.
 
-### Good Practices for Naming
+### 4.1 Good Practices for Naming
 
 - **State Names**: It is a good practice to name states using the `-ing` suffix
   to indicate an ongoing process. For example, `Loading`, `Processing`, or
@@ -111,7 +115,7 @@ Both transitions from `StateA` to `StateB` occur only if the guard condition
 does not change the meaning of the guard; it is simply a matter of visual
 preference.
 
-### Guarded vs. Unguarded Transitions
+### 5.1 Guarded vs. Unguarded Transitions
 
 - **Guarded Transitions**: These transitions have a guard condition that must be
   satisfied for the transition to take place. For example:
@@ -152,6 +156,63 @@ In this example:
 - The transition to `StateD` is unguarded and will occur only if neither of the
   previous conditions are met. If both `IsInvalid` and `IsNotAuthenticated` are
   false, the state machine will transition to `StateD`.
+
+### 5.2 Guarded Action Transitions
+
+VectorSigma supports a special type of transition called "guarded action
+transitions" that combine both a guard condition and an action to be executed
+when that guard condition is true. These transitions use the double colon (`::`)
+as a separator between the guard and the action.
+
+#### Syntax
+
+```plantuml
+StateA --> StateB: IsConditionMet::PerformAction
+```
+
+In this example, the transition from `StateA` to `StateB` will occur if the
+guard condition `IsConditionMet` evaluates to true. Additionally, the action
+`PerformAction` will execute as part of the transition.
+
+#### Execution Flow
+
+The execution flow for a guarded action transition is as follows:
+
+1. The guard condition is evaluated.
+2. If the guard condition is false, the transition is not taken, and the next
+   guard condition is evaluated.
+3. If the guard condition is true, the associated action is executed.
+4. If the action executes successfully, the transition to the target state
+   occurs.
+5. If the action fails (returns an error), the state machine will immediately
+   transition to the final state with an error status.
+
+#### Important Caveats
+
+**WARNING**: A critical caveat with guarded action transitions is that if the
+action fails, the state machine will ALWAYS transition directly to the final
+state. This is different from regular actions within states, which can be
+handled with error transitions.
+
+Due to this behavior, guarded action transitions should be used with caution and
+are best suited for:
+
+- Extended state status updates that cannot have system failures
+- Simple operations with minimal failure risk
+- Cases where immediate termination is an acceptable response to a failure
+
+#### Action Parameters
+
+Guarded actions can include parameters just like normal actions. These
+parameters are passed to the action function when it is executed:
+
+```plantuml
+StateA --> StateB: IsConditionMet::PerformAction(param1, param2)
+```
+
+In this example, if `IsConditionMet` is true, the `PerformAction` will be called
+with the parameters "param1" and "param2". This allows for more flexible and
+context-specific actions to be executed as part of guarded transitions.
 
 ## 6. Transitions
 

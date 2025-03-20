@@ -38,7 +38,7 @@ const (
 	// StartingConversation: do / StartConversation(param).
 	actionPattern = `^\s*(\w+):\s*(do\s*\/\s*)?(\w+)(\((.*)\))?$`
 	// StartingConversation --> FinalState: [ isError ].
-	guardedTransitionPattern = `^\s*(\w+)\s*-->\s*(\w+):\s*\[?\s*(\w+)\s*\]?$`
+	guardedTransitionPattern = `^\s*(\w+)\s*-->\s*(\w+):\s*\[?\s*(\w+)\s*\]?\s*?(::\s*(\w+)(\((.*)\))?)?$`
 	// StartingConversation --> FinalState.
 	defaultTransitionPattern = `^\s*(\w+)\s*-->\s*(\w+)$`
 	// CompositeState: state compositestate {.
@@ -62,6 +62,7 @@ type Composite struct {
 type Transition struct {
 	Target string
 	Guard  string
+	Action *Action
 }
 
 type Action struct {
@@ -169,6 +170,17 @@ func (f *FSM) IsGuardedTransition(line string) bool {
 		guard := m[3]
 		f.Guard(guard)
 
+		var action *Action
+		// Check if there is an action behind the guard.
+		if len(m) >= 6 && m[5] != "" {
+			action = &Action{}
+			action.Name = m[5]
+			if len(m) == 8 && m[7] != "" {
+				action.Params = `"` + strings.ReplaceAll(m[7], ",", `","`) + `"`
+				f.Action(action.Name)
+			}
+		}
+
 		if _, ok := f.States[state]; !ok {
 			f.States[state] = &State{
 				Name: state,
@@ -176,11 +188,12 @@ func (f *FSM) IsGuardedTransition(line string) bool {
 					{
 						Target: transition,
 						Guard:  guard,
+						Action: action,
 					},
 				},
 			}
 		} else {
-			newTransition := Transition{Target: transition, Guard: guard}
+			newTransition := Transition{Target: transition, Guard: guard, Action: action}
 			f.States[state].Transitions = append(f.States[state].Transitions, newTransition)
 		}
 
