@@ -6,6 +6,7 @@ UML syntax, including title, initial state, final state, actions, guards, and
 transitions.
 
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
+
 ## Table of Contents
 
 - [VectorSigma UML Syntax Documentation](#vectorsigma-uml-syntax-documentation)
@@ -85,6 +86,19 @@ StateA: do / PerformActionA
 
 In this case, the action `PerformActionA` is executed when the state machine
 enters the `StateA`.
+
+A state can have multiple actions by adding multiple lines with the action
+syntax:
+
+```plantuml
+StateB: do / PrepareData
+StateB: do / ValidateData
+StateB: do / TransformData
+```
+
+In this example, when the state machine enters `StateB`, it will execute
+`PrepareData`, `ValidateData`, and `TransformData` in the order they are
+defined.
 
 ### 4.1 Good Practices for Naming
 
