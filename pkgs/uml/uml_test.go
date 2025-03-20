@@ -541,6 +541,10 @@ func TestParseComposite(t *testing.T) {
 										Params: `"5"`,
 									}},
 									Transitions: []uml.Transition{
+										{
+											Target: "FinalState",
+											Guard:  "IsError",
+										},
 										{Target: uml.FinalState, Guard: ""},
 									},
 								},
@@ -604,6 +608,7 @@ title Traffic Light
 state Red {
 	[*] --> InRed
 	InRed: do / SwitchIn(5)
+	InRed --> [*]: [ IsError ]
 	InRed --> [*]
 }
 Red -[dotted]-> [*]: [ IsError ]
