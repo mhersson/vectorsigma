@@ -1,6 +1,7 @@
 package generator_test
 
 import (
+	"os/exec"
 	"testing"
 
 	"github.com/spf13/afero"
@@ -158,8 +159,13 @@ func TestGenerator_FormatCode(t *testing.T) {
 					Shell: mockShell,
 				}
 
-				mockShell.On("NewCommand", "goimports", "-w", "/path/to/file").Return(mockCmd)
-				mockCmd.EXPECT().Run().Return(nil)
+				if _, err := exec.LookPath("goimports"); err == nil {
+					mockShell.On("NewCommand", "goimports", "-w", "/path/to/file").Return(mockCmd)
+					mockCmd.EXPECT().Run().Return(nil)
+				} else {
+					mockShell.On("NewCommand", "go", "fmt", "/path/to/file").Return(mockCmd)
+					mockCmd.EXPECT().Run().Return(nil)
+				}
 
 				return g
 			},
