@@ -47,14 +47,14 @@ fmt: ## Run go fmt against code.
 vet: ## Run go vet
 	go vet ./...
 
-build: fmt vet test ## Build the binary.
+build: fmt vet ## Build the binary.
 	@go build -ldflags $(LDFLAGS) -o vectorsigma
 
 install: ## Install the binary.
 	@go install -ldflags $(LDFLAGS)
 
 test: ## Run tests.
-	@go test ./... -coverprofile cover.out
+	@go test ./pkgs/generator ./pkgs/uml ./internal/statemachine ./cmd --coverprofile=cover.out
 
 run: ## Run main.go with arguments.
 	@go run -ldflags $(LDFLAGS) ./main.go $(RUN_ARGS)

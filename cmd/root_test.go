@@ -21,7 +21,6 @@ var (
 	vectorsigma *cobra.Command
 )
 
-// Just use the standard go test.
 // nolint: paralleltest
 func Test_IntegrationTest(t *testing.T) {
 	tests := []struct {
@@ -115,21 +114,6 @@ func Test_IntegrationTest(t *testing.T) {
 	}
 }
 
-// checkOutput compares the generated output files with the expected golden files.
-//
-// It walks through the expectedPath directory and for each file, it reads the corresponding
-// file from the outputPath directory. It then compares the content of the generated file
-// with the expected content. If the update flag is set, it updates the golden files with
-// the generated content.
-//
-// Parameters:
-// - goldenPath: The directory containing the expected golden files.
-// - outputPath: The directory containing the generated output files.
-//
-// Returns:
-// - An error if any file comparison fails or if there are issues reading the files.
-//
-//nolint:wrapcheck
 func checkOutput(t *testing.T, goldenPath, outputPath string) error {
 	return filepath.WalkDir(goldenPath, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -163,10 +147,6 @@ func checkOutput(t *testing.T, goldenPath, outputPath string) error {
 	})
 }
 
-// cleanup removes any existing files at the outputPath and creates the
-// necessary directories. Returns an error if any operation fails.
-//
-//nolint:wrapcheck
 func cleanup(outputPath string) error {
 	// Remove potential leftovers
 	err := os.RemoveAll(outputPath)
