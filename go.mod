@@ -1,6 +1,6 @@
 module github.com/mhersson/vectorsigma
 
-go 1.23.1
+go 1.23
 
 require (
 	github.com/dave/dst v0.27.3

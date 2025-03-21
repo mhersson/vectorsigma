@@ -8,7 +8,7 @@ various states from creation to completion.
 
 Before starting, make sure you have:
 
-- Go (v1.20+) installed
+- Go (v1.23+) installed
 - VectorSigma installed (follow the
   [Installation Instructions](../README.md#installation-instructions))
 
@@ -288,8 +288,7 @@ Understanding how VectorSigma state machines execute is essential for effective
 implementation:
 
 1. **State Entry**: The state machine enters a state (e.g., ProcessingOrder)
-2. **Action Execution**: The state's action runs first (e.g.,
-   ProcessOrder)
+2. **Action Execution**: The state's action runs first (e.g., ProcessOrder)
 3. **Guard Evaluation**: After the action completes, guards are evaluated in
    order
 4. **Transition Selection**: The first guard that returns true determines the

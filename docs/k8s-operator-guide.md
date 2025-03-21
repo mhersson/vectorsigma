@@ -23,7 +23,7 @@ tracking.
 
 Before starting, make sure you have:
 
-- Go (v1.20+)
+- Go (v1.23+)
 - Docker
 - kubectl
 - kind (for local Kubernetes development)
