@@ -110,6 +110,10 @@ func getVersionInfo() string {
 		}
 	}
 
+	if CommitSHA == "unknown" || BuildTime == "unknown" {
+		return Version
+	}
+
 	return fmt.Sprintf("%s (commit: %s, built at: %s)", Version, CommitSHA, BuildTime)
 }
 

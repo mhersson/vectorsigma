@@ -64,7 +64,14 @@ Check out these guides to help you get started:
 
 ## Installation Instructions
 
-To install VectorSigma you can download the latest build from the
+If you allready have Go installed on your system, you can install VectorSigma
+using the following command:
+
+```bash
+go install github.com/mhersson/vectorsigma@latest
+```
+
+If not, you can install VectorSigma by downloading the latest build from the
 [releases](https://github.com/mhersson/vectorsigma/releases) page:
 
 1. Download the appropriate tar.gz file for your operating system.
@@ -85,7 +92,7 @@ To install VectorSigma you can download the latest build from the
    ```
 
 <details>
-<summary>If you prefer to build from source follow these steps</summary>
+<summary>If you otherwise prefer to build from source follow these steps</summary>
 
 1. **Clone the repository**:
 
