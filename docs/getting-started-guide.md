@@ -189,15 +189,14 @@ works:
    ```go
    // +vectorsigma:action:CancelOrder
    func (fsm *OrderProcessor) CancelOrderAction(params ...string) error {
+       fsm.ExtendedState.CancelReason = "unknown"
+
        if len(params) > 0 {
            switch params[0] {
            case "OutOfStock":
                fsm.ExtendedState.CancelReason = "item is out of stock"
            case "ShippingFailed":
                fsm.ExtendedState.CancelReason = "shipping failed"
-           default:
-               fsm.ExtendedState.CancelReason = "unknown"
-           }
        }
 
        fsm.Context.Logger.Info("Cancelling order",
@@ -368,12 +367,12 @@ func (fsm *OrderProcessor) CompleteOrderAction(_ ...string) error {
 
 // +vectorsigma:action:CancelOrder
 func (fsm *OrderProcessor) CancelOrderAction(params ...string) error {
+    fsm.ExtendedState.CancelReason = "unknown"
+
     if len(params) > 0 {
         switch params[0] {
         case "OutOfStock":
             fsm.ExtendedState.CancelReason = "item is of out stock"
-        default:
-            fsm.ExtendedState.CancelReason = "unknown"
         }
     }
 
@@ -566,8 +565,8 @@ the provided test files, but we've skipped that here for brevity.
 
 ### Handling Recurring and Looping Processes
 
-When designing state machines for recurring processes (like a traffic light
-controller), follow these guidelines:
+When designing state machines for recurring processes (like a traffic light),
+follow these guidelines:
 
 1. **Avoid Infinite Loops in State Machines** Instead of designing state
    machines with internal loops that never terminate, prefer this approach:
@@ -667,7 +666,7 @@ might want to add a "ProcessingPayment" state before shipping the order.
    we set as output here.
 
    ```bash
-   vectorsigma -i order_processor.uml -m github.com/yourusername/order-processor -o internal
+   vectorsigma -i ../order_processor.uml -m github.com/yourusername/order-processor -o internal
    ```
 
 3. VectorSigma will update the generated files without overwriting your custom
