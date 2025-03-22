@@ -54,6 +54,7 @@ type Generator struct {
 	Module       string
 	Package      string
 	RelativePath string
+	Version      string
 	Init         bool
 }
 

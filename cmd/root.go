@@ -22,13 +22,19 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"fmt"
 	"os"
+	"runtime/debug"
 
 	"github.com/mhersson/vectorsigma/internal/statemachine"
 	"github.com/spf13/cobra"
 )
 
-var Version string
+var (
+	Version   = "dev"
+	CommitSHA = "unknown"
+	BuildTime = "unknown"
+)
 
 const (
 	apiKindFlag    = "api-kind"
@@ -51,14 +57,16 @@ var RootCmd = &cobra.Command{
 
 VectorSigma takes PlantUML as input and generates a FSM.
 `,
-	Version: Version,
+	Version: getVersionInfo(),
 	PreRun: func(cmd *cobra.Command, _ []string) {
 		if operator, _ := cmd.Flags().GetBool("operator"); operator {
 			_ = cmd.MarkFlagRequired("api-kind")
 			_ = cmd.MarkFlagRequired("api-version")
 		}
 	},
-	RunE: func(_ *cobra.Command, _ []string) error {
+	RunE: func(cmd *cobra.Command, _ []string) error {
+		SM.ExtendedState.VectorSigmaVersion = cmd.Version
+
 		return SM.Run()
 	},
 }
@@ -68,7 +76,8 @@ var InitCmd = &cobra.Command{
 	Short: "Initialize a new module",
 	Long: `Initialize a new a new Go module with a FSM
 application generated from your UML diagram.`,
-	RunE: func(_ *cobra.Command, _ []string) error {
+	RunE: func(cmd *cobra.Command, _ []string) error {
+		SM.ExtendedState.VectorSigmaVersion = cmd.Version
 		SM.ExtendedState.Init = true
 
 		return SM.Run()
@@ -80,6 +89,28 @@ func Execute() {
 	if err != nil {
 		os.Exit(1)
 	}
+}
+
+func getVersionInfo() string {
+	if Version == "dev" {
+		if info, ok := debug.ReadBuildInfo(); ok {
+			for _, setting := range info.Settings {
+				if setting.Key == "vcs.revision" {
+					CommitSHA = setting.Value[:8]
+				}
+				if setting.Key == "vcs.time" {
+					BuildTime = setting.Value
+				}
+			}
+
+			Version = info.Main.Version
+			if Version == "(devel)" {
+				return Version
+			}
+		}
+	}
+
+	return fmt.Sprintf("%s (commit: %s, built at: %s)", Version, CommitSHA, BuildTime)
 }
 
 func init() {

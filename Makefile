@@ -2,9 +2,11 @@
 # vectorsigma Makefile
 #
 
-SHELL=bash
+shell=bash
 
-VERSION=0.1.0
+VERSION = $(shell git describe --tags --always)
+COMMIT = $(shell git rev-parse --short HEAD)
+BUILDTIME = $(shell date -u '+%Y-%m-%dT%H:%M:%SZ'.1.0)
 
 # make will interpret non-option arguments in the command line as targets.
 # This turns them into do-nothing targets, so make won't complain:
@@ -16,7 +18,10 @@ ifeq (run,$(firstword $(MAKECMDGOALS)))
 	$(eval $(RUN_ARGS):;@:)
 endif
 
-LDFLAGS="-s -w -X github.com/mhersson/vectorsigma/cmd.Version=$(VERSION)"
+LDFLAGS="-s -w \
+	-X github.com/mhersson/vectorsigma/cmd.Version=$(VERSION) \
+	-X github.com/mhersson/vectorsigma/cmd.CommitSHA=$(COMMIT) \
+	-X github.com/mhersson/vectorsigma/cmd.BuildTime=$(BUILDTIME)"
 
 all: build
 

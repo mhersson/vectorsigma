@@ -53,6 +53,7 @@ func (fsm *VectorSigma) InitializeAction(_ ...string) error {
 		Package:      fsm.ExtendedState.Package,
 		Init:         fsm.ExtendedState.Init,
 		RelativePath: relativePath,
+		Version:      fsm.ExtendedState.VectorSigmaVersion,
 	}
 
 	fsm.ExtendedState.GeneratedFiles = make(map[string]GeneratedFile)
