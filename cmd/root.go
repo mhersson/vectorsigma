@@ -76,8 +76,8 @@ var InitCmd = &cobra.Command{
 	Short: "Initialize a new module",
 	Long: `Initialize a new a new Go module with a FSM
 application generated from your UML diagram.`,
-	RunE: func(cmd *cobra.Command, _ []string) error {
-		SM.ExtendedState.VectorSigmaVersion = cmd.Version
+	RunE: func(_ *cobra.Command, _ []string) error {
+		SM.ExtendedState.VectorSigmaVersion = getVersionInfo()
 		SM.ExtendedState.Init = true
 
 		return SM.Run()
