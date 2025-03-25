@@ -1,5 +1,3 @@
-//go:generate mockgen -package mock_shell -destination=mock_shell/mock_shell.go . CmdRunner,Interface
-
 package shell
 
 import (
