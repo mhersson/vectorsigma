@@ -51,10 +51,9 @@ MakingIncrementalUpdates: do / MakeIncrementalUpdates
 MakingIncrementalUpdates -[dotted]-> [*]: IsError
 MakingIncrementalUpdates -[bold]-> FilteringGeneratedFiles
 note left of MakingIncrementalUpdates
-  If they exists compare
-  the functions in actions
-  and guards with the new
-  generated code
+  Compare the functions in
+  actions and guards with
+  the new generated code
 end note
 
 FilteringGeneratedFiles: do / FilterGeneratedFiles
@@ -63,8 +62,7 @@ FilteringGeneratedFiles -[bold]-> WritingGeneratedFiles
 note left of FilteringGeneratedFiles
   If extendedstate.go exists,
   or if the actions and guards
-  haven't changed remove them
-  from the generated data
+  haven't changed filter them out
 end note
 
 
