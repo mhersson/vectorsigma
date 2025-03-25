@@ -2,8 +2,6 @@ package statemachine
 
 import "path/filepath"
 
-// Guards
-
 // +vectorsigma:guard:IsError
 func (fsm *VectorSigma) IsErrorGuard() bool {
 	return fsm.ExtendedState.Error != nil

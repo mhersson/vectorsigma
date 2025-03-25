@@ -14,8 +14,6 @@ import (
 	"github.com/spf13/afero"
 )
 
-// Actions
-
 // +vectorsigma:action:Initialize
 func (fsm *VectorSigma) InitializeAction(_ ...string) error {
 	dir, err := os.Getwd()

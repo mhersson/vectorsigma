@@ -228,12 +228,11 @@ works:
 > transition. This execution order is crucial to understand when implementing
 > your actions and guards.
 >
-> **Note on ExtendedState Design Pattern**: According to the comment in
-> `extendedstate.go`, the ExtendedState should only be modified by actions,
-> while guards should only read it to determine transitions. This separation of
-> concerns, combined with the execution order (actions before guards), creates a
-> clean flow where actions perform operations and update state, then guards use
-> that state to determine the next transition.
+> **Note on ExtendedState Design Pattern**: The ExtendedState should only be
+> modified by actions, while guards should only read it to determine
+> transitions. This separation of concerns, combined with the execution order
+> (actions before guards), creates a clean flow where actions perform operations
+> and update state, then guards use that state to determine the next transition.
 
 First, let's update `internal/statemachine/extendedstate.go` to define what an
 order looks like:

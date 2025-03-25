@@ -221,7 +221,7 @@ Guarded actions can include parameters just like normal actions. These
 parameters are passed to the action function when it is executed:
 
 ```plantuml
-StateA --> StateB: IsConditionMet::PerformAction(param1, param2)
+StateA --> StateB: IsConditionMet::PerformAction(param1,param2)
 ```
 
 In this example, if `IsConditionMet` is true, the `PerformAction` will be called
