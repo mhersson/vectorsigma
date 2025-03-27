@@ -139,8 +139,13 @@ func (f *FSM) IsAction(line string) bool {
 		action.Name = m[3]
 
 		if len(m) == 6 && m[5] != "" {
-			params := strings.ReplaceAll(m[5], `"`, ``)
-			action.Params = `"` + strings.ReplaceAll(params, ",", `","`) + `"`
+			params := strings.TrimSpace(m[5])
+			paramList := strings.Split(params, ",")
+			for i, param := range paramList {
+				paramList[i] = strings.Trim(strings.TrimSpace(param), `"`)
+			}
+
+			action.Params = `"` + strings.Join(paramList, `","`) + `"`
 		}
 
 		f.Action(action.Name)

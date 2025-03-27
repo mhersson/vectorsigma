@@ -132,19 +132,35 @@ func TestFSM_IsAction(t *testing.T) {
 		fields fields
 		args   args
 		want   bool
-		expect string
+		expect uml.Action
 	}{
 		{
-			name: "Ok", args: args{line: "State: do / action"}, expect: "action",
+			name: "Ok", args: args{line: "State: do / action"}, expect: uml.Action{Name: "action", Params: ""},
 			want: true,
 		},
 		{
-			name: "Ok no spaces", args: args{line: "State:do/action"}, expect: "action",
+			name: "Ok no spaces", args: args{line: "State:do/action"}, expect: uml.Action{Name: "action", Params: ""},
 			want: true,
 		},
 		{
-			name: "Not OK", args: args{line: "State --> State2: guard"}, expect: "",
+			name: "Not OK", args: args{line: "State --> State2: guard"}, expect: uml.Action{},
 			want: false,
+		},
+		{
+			name: "Ok params", args: args{line: "State: do / action(param1,param2)"}, expect: uml.Action{Name: "action", Params: `"param1","param2"`},
+			want: true,
+		},
+		{
+			name: "Ok params with spaces", args: args{line: "State: do / action(param1,this is a message)"}, expect: uml.Action{Name: "action", Params: `"param1","this is a message"`},
+			want: true,
+		},
+		{
+			name: "Ok params with spaces and leading space", args: args{line: "State: do / action(param1, this is a message)"}, expect: uml.Action{Name: "action", Params: `"param1","this is a message"`},
+			want: true,
+		},
+		{
+			name: "Ok params with leading spaces", args: args{line: "State: do / action(param1,     param2,param3, param4)"}, expect: uml.Action{Name: "action", Params: `"param1","param2","param3","param4"`},
+			want: true,
 		},
 	}
 
@@ -156,7 +172,10 @@ func TestFSM_IsAction(t *testing.T) {
 			if got := f.IsAction(tt.args.line); got != tt.want {
 				t.Errorf("FSM.IsAction() = %v, want %v", got, tt.want)
 			} else if tt.want {
-				assert.Contains(t, f.ActionNames, tt.expect)
+				assert.Contains(t, f.ActionNames, tt.expect.Name)
+				if len(tt.expect.Params) > 0 {
+					assert.Equal(t, tt.expect.Params, f.States["State"].Actions[0].Params)
+				}
 			}
 		})
 	}
