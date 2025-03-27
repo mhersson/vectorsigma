@@ -94,12 +94,23 @@ func New() *{{ .FSM.Title }} {
 	},
 	Guards: []Guard{
 {{- range  $trans := .Transitions }}
-   {{- if eq $trans.Guard "" }}
-	},
-   {{- else }}
+	{{- if ne $trans.Guard "" }}
+   	{{- if $trans.Action  }}
+		{
+			Name: {{ $trans.Guard }},
+			Check: fsm.{{ $trans.Guard }}Guard,
+			Action: &Action{
+				Name: {{ $trans.Action.Name }},
+				Execute: fsm.{{ $trans.Action.Name }}Action,
+				Params: []string{ {{- $trans.Action.Params }}},
+			},
+		},
+   	{{- else }}
 		{Name: {{ $trans.Guard }}, Check: fsm.{{ $trans.Guard }}Guard},
-   {{- end }}
+   	{{- end }}
+   	{{- end }}
 {{- end }}
+	},
 	Transitions: map[int]StateName{
 {{- range $ind, $trans := .Transitions }}
 		{{ $ind }}: {{ $trans.Target }},

@@ -151,7 +151,7 @@ func (fsm *Testreconcileloop) Run() (ctrl.Result, error) {
 }
 
 func run(fsm *Testreconcileloop, stateConfigs map[StateName]StateConfig, depth int) (ctrl.Result, error) {
-	if depth > MaxStateDepth {
+	if depth > maxStateDepth {
 		return ctrl.Result{}, fmt.Errorf("max state depth exceeded")
 	}
 
@@ -177,7 +177,7 @@ func run(fsm *Testreconcileloop, stateConfigs map[StateName]StateConfig, depth i
 			// Recursively run the composite state machine
 			fsm.CurrentState = config.Composite.InitialState
 			fsm.Context.Logger.Debug("entering composite state", "state", parentState, "initial", fsm.CurrentState)
-			err := run(fsm, config.Composite.StateConfigs, depth+1)
+			_, err := run(fsm, config.Composite.StateConfigs, depth+1)
 			if err != nil {
 				fsm.Context.Logger.Error("composite state machine failed", "state", fsm.CurrentState, "error", err)
 				fsm.ExtendedState.Error = err

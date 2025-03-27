@@ -181,7 +181,13 @@ func (f *FSM) IsGuardedTransition(line string) bool {
 			action = &Action{}
 			action.Name = m[5]
 			if len(m) == 8 && m[7] != "" {
-				action.Params = `"` + strings.ReplaceAll(m[7], ",", `","`) + `"`
+				params := strings.TrimSpace(m[7])
+				paramList := strings.Split(params, ",")
+				for i, param := range paramList {
+					paramList[i] = strings.Trim(strings.TrimSpace(param), `"`)
+				}
+
+				action.Params = `"` + strings.Join(paramList, `","`) + `"`
 				f.Action(action.Name)
 			}
 		}
