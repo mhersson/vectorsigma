@@ -146,34 +146,45 @@ file called `simplejob_reconciler.uml` with the following content:
 ```plantuml
 @startuml
 
+skin rose
+
 title SimpleJobReconciler
 
 [*] --> Initializing
 
-Initializing: do / Initialize
-Initializing -[bold]-> LoadingResource
+state Initializing {
+    [*] --> InitializingContext
 
-note right of Initializing
-  Initialize context and
-  items in the extended state
-end note
+    InitializingContext: do / InitializeContext
+    InitializingContext -[bold]-> LoadingResource
 
-LoadingResource: do / LoadResource
-LoadingResource -[dotted]-> HandlingError: IsError
-LoadingResource --> [*]: IsNotFound
-LoadingResource -[bold]-> CheckingJobStatus
+    note right of InitializingContext
+    Initialize context and
+    items in the extended state
+    end note
 
-note right of LoadingResource
-  Load an instance
-  of our SimpleJob CRD
-end note
+    LoadingResource: do / LoadResource
+    LoadingResource -[dotted]-> [*]: IsError
+    LoadingResource -[bold]-> [*]
+
+    note right of LoadingResource
+    Load an instance
+    of our SimpleJob CRD
+    end note
+}
+Initializing -[dotted]-> [*]: IsNotFound
+Initializing -[dotted]-> HandlingError: IsError
+Initializing -[bold]-> CheckingJobStatus
+
 
 CheckingJobStatus: do / CheckJobStatus
 CheckingJobStatus -[dotted]-> HandlingError: IsError
-CheckingJobStatus --> CreatingJob: IsJobMissing
-CheckingJobStatus --> SettingPhase: IsMaxRetriesExceeded
-CheckingJobStatus --> RetryingJob: IsJobFailed
-CheckingJobStatus -[bold]-> SettingPhase
+CheckingJobStatus --> CreatingJob: IsJobMissing::\nSetPhase(Creating, Job is being created)
+CheckingJobStatus --> UpdatingStatus: IsMaxRetriesExceeded::\nSetPhase(Failed, Max retries exceeded)
+CheckingJobStatus --> RetryingJob: IsJobFailed::\nSetPhase(Retrying, Job failed)
+CheckingJobStatus --> UpdatingStatus: IsJobCompleted::\nSetPhase(Completed, Job completed successfully)
+CheckingJobStatus --> UpdatingStatus: IsJobRunning::\nSetPhase(Running, Job is running)
+CheckingJobStatus -[bold]-> UpdatingStatus: IsJobPending::\nSetPhase(Pending, Job is pending)
 
 note right of CheckingJobStatus
   Fetch the instance of job
@@ -181,22 +192,9 @@ note right of CheckingJobStatus
   instance and check its status
 end note
 
-SettingPhase: do / SetPhase
-SettingPhase -[bold]-> UpdatingStatus
-
-note left of SettingPhase
-  Set the phase and message of
-  our SimpleJob instance based
-  on the job status
-end note
-
 CreatingJob: do / CreateJob
 CreatingJob -[dotted]-> HandlingError: IsError
 CreatingJob --> UpdatingStatus
-
-note left of CreatingJob
-  Create a new job
-end note
 
 RetryingJob: do / RetryJob
 RetryingJob -[dotted]-> HandlingError: IsError
@@ -207,7 +205,6 @@ note right of RetryingJob
   job so we can try
   again
 end note
-
 
 UpdatingStatus: do / UpdateStatus
 UpdatingStatus -[dotted]-> HandlingError: IsError
@@ -388,8 +385,8 @@ func (fsm *SimpleJobReconciler) HandleErrorAction(_ ...string) error {
     return nil
 }
 
-// +vectorsigma:action:Initialize
-func (fsm *SimpleJobReconciler) InitializeAction(_ ...string) error {
+// +vectorsigma:action:InitializeContext
+func (fsm *SimpleJobReconciler) InitializeContextAction(_ ...string) error {
     // Use the this action to initialize the context and extended state
     fsm.ExtendedState.Instance = jobsv1alpha1.SimpleJob{}
 
@@ -404,8 +401,11 @@ func (fsm *SimpleJobReconciler) LoadResourceAction(_ ...string) error {
     err := fsm.Context.Client.Get(context.TODO(), fsm.ExtendedState.ResourceName, &fsm.ExtendedState.Instance)
     if err != nil {
         if errors.IsNotFound(err) {
-            // The resource doesn't exist anymore, nothing to do
             fsm.Context.Logger.Info("SimpleJob resource not found, it may have been deleted")
+            // Deleting the resource is a valid use case, so we don't want to
+            // return an error. Normally we would have the IsNotFound guard on
+            // the state where this is run, but since this is run inside a
+            // composite state we have the guard on the composite state instead.
 
             return nil
         }
@@ -418,28 +418,16 @@ func (fsm *SimpleJobReconciler) LoadResourceAction(_ ...string) error {
 }
 
 // +vectorsigma:action:SetPhase
-func (fsm *SimpleJobReconciler) SetPhaseAction(_ ...string) error {
-    job := fsm.ExtendedState.Job
+func (fsm *SimpleJobReconciler) SetPhaseAction(params ...string) error {
+    if len(params) >= 2 {
+        fsm.ExtendedState.Instance.Status.Phase = params[0]
+        fsm.ExtendedState.Instance.Status.Message = params[1]
 
-    // Set the phase and message based on job status
-    switch {
-    case job.Status.Succeeded > 0:
-        fsm.Context.Logger.Info("Job succeeded", "jobName", job.Name)
-        fsm.ExtendedState.Instance.Status.Phase = "Completed"
-        fsm.ExtendedState.Instance.Status.Message = "Job completed successfully"
-    case job.Status.Failed > 0 || fsm.ExtendedState.Instance.Status.Attempts >= getMaxRetries(&fsm.ExtendedState.Instance):
-        fsm.Context.Logger.Info("Job failed", "jobName", job.Name)
-        fsm.ExtendedState.Instance.Status.Phase = "Failed"
-        fsm.ExtendedState.Instance.Status.Message = "Job failed"
-    case job.Status.Active > 0:
-        fsm.Context.Logger.Info("Job is running", "jobName", job.Name)
-        fsm.ExtendedState.Instance.Status.Phase = "Running"
-        fsm.ExtendedState.Instance.Status.Message = "Job is running"
-    default:
-        fsm.Context.Logger.Info("Job is pending", "jobName", job.Name)
-        fsm.ExtendedState.Instance.Status.Phase = "Pending"
-        fsm.ExtendedState.Instance.Status.Message = "Job is pending or being created"
+        return nil
     }
+
+    fsm.ExtendedState.Instance.Status.Phase = "Unknown"
+    fsm.ExtendedState.Instance.Status.Message = "This should not happen"
 
     return nil
 }
@@ -473,7 +461,7 @@ func (fsm *SimpleJobReconciler) UpdateStatusAction(_ ...string) error {
 
     // For simplicity we are using a fixed requeue time here, and 3 seconds is a
     // fitting value in this case to show the different phases. We will turn it
-    // off after successful job completion or max retries exceeded.
+    // off after successful job completion or if the job has failed.
     fsm.ExtendedState.Result = ctrl.Result{Requeue: true, RequeueAfter: 3 * time.Second}
 
     if fsm.ExtendedState.Instance.Status.Phase == "Completed" || fsm.ExtendedState.Instance.Status.Phase == "Failed" {
@@ -532,14 +520,6 @@ func (fsm *SimpleJobReconciler) createJob() *batchv1.Job {
     }
 }
 
-// Helper function to get max retries with default
-func getMaxRetries(instance *jobsv1alpha1.SimpleJob) int32 {
-    if instance.Spec.MaxRetries > 0 {
-        return instance.Spec.MaxRetries
-    }
-
-    return 3 // Default to 3 retries
-}
 ```
 
 ## Step 8: Implement the Guards
@@ -555,18 +535,34 @@ func (fsm *SimpleJobReconciler) IsErrorGuard() bool {
     return fsm.ExtendedState.Error != nil
 }
 
+// +vectorsigma:guard:IsJobCompleted
+func (fsm *SimpleJobReconciler) IsJobCompletedGuard() bool {
+    return fsm.ExtendedState.Job.Status.Succeeded > 0
+}
+
 // +vectorsigma:guard:IsJobFailed
 func (fsm *SimpleJobReconciler) IsJobFailedGuard() bool {
-    if fsm.ExtendedState.Job == nil {
-        return false
-    }
-
     return fsm.ExtendedState.Job.Status.Failed > 0
 }
 
 // +vectorsigma:guard:IsJobMissing
 func (fsm *SimpleJobReconciler) IsJobMissingGuard() bool {
     return fsm.ExtendedState.Job == nil
+}
+
+// +vectorsigma:guard:IsJobPending
+func (fsm *SimpleJobReconciler) IsJobPendingGuard() bool {
+    // If the job is not active, failed, or succeeded, it is pending. This guard
+    // is checked last, and will always return true. This could have been an
+    // unguarded transition, and pending could then have been the default phase
+    // for the SetPhase action, but we want to be explicit and set the phase by
+    // using the SetPhase action with parameters, and for that we need a guard.
+    return true
+}
+
+// +vectorsigma:guard:IsJobRunning
+func (fsm *SimpleJobReconciler) IsJobRunningGuard() bool {
+    return fsm.ExtendedState.Job.Status.Active > 0
 }
 
 // +vectorsigma:guard:IsMaxRetriesExceeded
@@ -696,7 +692,7 @@ You can monitor the status of the SimpleJob:
 
 ```bash
 # This will say No resources found until we apply the yaml in the next step
-watch kubectl get simplejob -sample -o wide
+watch kubectl get simplejob -o wide
 ```
 
 Apply the YAML:
