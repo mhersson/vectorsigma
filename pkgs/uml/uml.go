@@ -188,8 +188,8 @@ func (f *FSM) IsGuardedTransition(line string) bool {
 				}
 
 				action.Params = `"` + strings.Join(paramList, `","`) + `"`
-				f.Action(action.Name)
 			}
+			f.Action(action.Name)
 		}
 
 		if _, ok := f.States[state]; !ok {
