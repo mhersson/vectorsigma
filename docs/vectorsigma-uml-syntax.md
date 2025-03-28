@@ -231,27 +231,75 @@ context-specific actions to be executed as part of guarded transitions.
 ## 6. Transitions
 
 Transitions define the movement from one state to another. In the UML syntax,
-transitions are represented by arrows. VectorSigma supports two types of arrow
-decorations:
+transitions are represented by arrows. VectorSigma supports various arrow
+decorations and directional indicators to help with diagram clarity and
+organization.
 
-- `-[dotted]->`: Represents a transition that may indicate a less significant or
-  optional path.
-- `-[bold]->`: Represents a default or significant transition.
+### Arrow Style Decorators and Directional Indicators
 
-For example:
+VectorSigma supports the following arrow style decorators and directional
+indicators:
+
+Arrow style decorators:
+
+- `-[dotted]->`: Represents transitions that may indicate less significant paths
+  or error handling flows. Using dotted lines helps reduce visual clutter for
+  these secondary paths.
+- `-[bold]->`: Represents primary or significant transitions, usually indicating
+  the main flow or the "happy path" of the state machine.
+
+Directional indicators:
+
+- `-left->`: Forces the arrow to point left in the diagram
+- `-right->`: Forces the arrow to point right in the diagram
+- `-up->`: Forces the arrow to point up in the diagram
+- `-down->`: Forces the arrow to point down in the diagram
+
+### Combined Decorators
+
+VectorSigma supports combining style decorators with directional indicators for
+more expressive diagram layouts:
+
+```plantuml
+StateA -[dotted]right-> [*]: IsError
+StateA -[bold]down-> StateB
+```
+
+In this example:
+
+- The guarded transition from `StateA` to the final state is marked as less
+  significant (dotted) and will be drawn pointing to the right
+- The transition from `StateA` to `StateB` is marked as significant (bold) and
+  will point downward
+
+You can create any combination of style decorators and directional indicators:
+
+- `-[dotted]right->`
+- `-[dotted]left->`
+- `-[dotted]up->`
+- `-[dotted]down->`
+- `-[bold]right->`
+- `-[bold]left->`
+- `-[bold]up->`
+- `-[bold]down->`
+
+### Examples of Transitions
 
 ```plantuml
 StateB -[dotted]-> [*]: IsError
-StateA -[bold]-> StateC
+StateA -[bold]-> StateB
+StateC -right-> StateD
+StateE -down-> StateF
+StateG -[dotted]right-> StateH
+StateI -[bold]left-> StateJ: IsOutOfRange
 ```
 
-In this case, the transition from `StateA` to `StateC` is a default transition,
-while the transition to the final state `[ * ]` from `StateB` is marked as
-optional (dotted).
+### Important Note on Decorations and Directions
 
-**Note:** The arrow decorations (`dotted` and `bold`) are ignored by VectorSigma
-during the FSM generation process. They serve only as visual indicators in the
-UML diagram.
+**Note:** All arrow decorators (`[dotted]`, `[bold]`) and directional indicators
+(`left`, `right`, `up`, `down`), whether used individually or in combination,
+are purely for visual organization of the UML diagram and have no impact on the
+behavior of the generated finite state machine code.
 
 ## 7. Composite States
 

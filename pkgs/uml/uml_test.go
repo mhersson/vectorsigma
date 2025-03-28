@@ -478,15 +478,15 @@ func TestParseSimple(t *testing.T) {
 @startuml
 
 title Traffic Light
-[*] --> Red
+[*] -down-> Red
 Red: do / SwitchIn(5)
 Red -[dotted]-> [*]: [ IsError ]
 Red --> Green: [ NotGonnaHappen ]
-Red --> Yellow
+Red -[bold]-> Yellow
 
 Yellow: do / SwitchIn(1)
-Yellow -[dotted]-> [*]: [ IsError]
-Yellow --> Green
+Yellow -[dotted]left-> [*]: [ IsError]
+Yellow -right-> Green
 
 FlashingYellow: do / SwitchIn(3)
 FlashingYellow -[dotted]-> [*]: [ IsError ]

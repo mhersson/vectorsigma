@@ -324,10 +324,9 @@ func (f *FSM) IsCompositeStateEnd(line string) bool {
 func normalizeData(data string) string {
 	data = strings.ReplaceAll(data, "\\n", "")
 
-	decorators := []string{"[dotted]", "[bold]", "left", "right", "up", "down"}
-	for _, decorator := range decorators {
-		data = strings.ReplaceAll(data, "-"+decorator+"->", "-->")
-	}
+	re := regexp.MustCompile(`-(\[bold\]|\[dotted\])?(left|right|up|down)?->`)
+
+	data = re.ReplaceAllString(data, "-->")
 
 	return data
 }
