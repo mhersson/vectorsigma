@@ -327,6 +327,8 @@ func Parse(data string) *FSM {
 	fsm.InitialState = InitialState
 	fsm.AllStates = []string{}
 
+	data = strings.ReplaceAll(data, "\\n", "")
+
 	lines := strings.Split(data, "\n")
 
 	for ind := 0; ind < len(lines); ind++ {
