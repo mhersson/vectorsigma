@@ -321,20 +321,28 @@ func (f *FSM) IsCompositeStateEnd(line string) bool {
 	return m != nil
 }
 
+func normalizeData(data string) string {
+	data = strings.ReplaceAll(data, "\\n", "")
+
+	decorators := []string{"[dotted]", "[bold]", "left", "right", "up", "down"}
+	for _, decorator := range decorators {
+		data = strings.ReplaceAll(data, "-"+decorator+"->", "-->")
+	}
+
+	return data
+}
+
 func Parse(data string) *FSM {
 	fsm := new(FSM)
 	fsm.States = make(map[string]*State)
 	fsm.InitialState = InitialState
 	fsm.AllStates = []string{}
 
-	data = strings.ReplaceAll(data, "\\n", "")
+	data = normalizeData(data)
 
 	lines := strings.Split(data, "\n")
 
 	for ind := 0; ind < len(lines); ind++ {
-		lines[ind] = strings.ReplaceAll(lines[ind], "[dotted]", "")
-		lines[ind] = strings.ReplaceAll(lines[ind], "[bold]", "")
-
 		if strings.Contains(lines[ind], "[*]") {
 			re := regexp.MustCompile(firstInitialStatePattern)
 			m := re.FindStringSubmatch(lines[ind])
