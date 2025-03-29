@@ -172,8 +172,8 @@ state Initializing {
     of our SimpleJob CRD
     end note
 }
-Initializing -[dotted]-> [*]: IsNotFound
 Initializing -[dotted]-> HandlingError: IsError
+Initializing -[dotted]-> [*]: IsNotFound
 Initializing -[bold]-> CheckingJobStatus
 
 
