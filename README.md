@@ -179,7 +179,7 @@ vectorsigma [command] [flags]
 | `-g, --group string`   | Group (only used if generating a k8s operator)                                                |
 | `-h, --help`           | Show help information for VectorSigma                                                         |
 | `-i, --input string`   | Provide the UML input file. This can also be a markdown file containing a plantuml code block |
-| `-m, --module string`  | Set the name of the new Go module (defaults to the current directory name)                    |
+| `-m, --module string`  | Set the name of the new Go module (defaults to module name from go.mod if it exists)          |
 | `-O --operator`        | Generate FSM for a k8s operator                                                               |
 | `-o, --output string`  | Specify the output path for the generated FSM (defaults to the current working directory)     |
 | `-p, --package string` | Set the package name of the generated FSM (defaults to "statemachine")                        |

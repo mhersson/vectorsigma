@@ -28,6 +28,7 @@ import (
 
 	"github.com/mhersson/vectorsigma/internal/statemachine"
 	"github.com/spf13/cobra"
+	"golang.org/x/mod/modfile"
 )
 
 var (
@@ -66,6 +67,9 @@ VectorSigma takes PlantUML as input and generates a FSM.
 	},
 	RunE: func(cmd *cobra.Command, _ []string) error {
 		SM.ExtendedState.VectorSigmaVersion = cmd.Version
+		if SM.ExtendedState.Module == "" {
+			SM.ExtendedState.Module = getModuleName()
+		}
 
 		return SM.Run()
 	},
@@ -140,4 +144,25 @@ func addCommonFlags(cmd *cobra.Command) {
 	_ = cmd.MarkFlagRequired(inputFlag)
 	cmd.Flags().StringVarP(&SM.ExtendedState.Package, packageFlag, "p", "statemachine",
 		"The package name of the generated FSM")
+}
+
+func getModuleName() string {
+	content, err := os.ReadFile("go.mod")
+	if err != nil {
+		if os.IsNotExist(err) {
+			return ""
+		}
+		fmt.Println("Failed to read go.mod:", err)
+
+		return ""
+	}
+
+	modFile, err := modfile.ParseLax("go.mod", content, nil)
+	if err != nil {
+		fmt.Println("Failed to parse go.mod:", err)
+
+		return ""
+	}
+
+	return modFile.Module.Mod.Path
 }

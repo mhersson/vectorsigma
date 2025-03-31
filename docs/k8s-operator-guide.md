@@ -236,7 +236,7 @@ Be sure to write exactly as you did in
 
 ```bash
 # From the project root directory
-vectorsigma -i simplejob_reconciler.uml -m github.com/example/simplejob-operator -o internal/controller --operator --group jobs --api-version=v1alpha1 --api-kind=SimpleJob
+vectorsigma -i simplejob_reconciler.uml -o internal/controller --operator --group jobs --api-version=v1alpha1 --api-kind=SimpleJob
 ```
 
 VectorSigma will generate the following files:

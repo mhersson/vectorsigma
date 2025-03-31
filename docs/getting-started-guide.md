@@ -662,10 +662,11 @@ might want to add a "ProcessingPayment" state before shipping the order.
    **Note:** Now our application already exists, so we run `vectorsigma` without
    the `init` command, but instead we have to add the output directory. Our
    `statemachine` package resides in the `internal` directory, and that is what
-   we set as output here.
+   we set as output here. Specifying the module name is also no longer necessary
+   as it will be read from the `go.mod` file.
 
    ```bash
-   vectorsigma -i ../order_processor.uml -m github.com/yourusername/order-processor -o internal
+   vectorsigma -i ../order_processor.uml -o internal
    ```
 
 3. VectorSigma will update the generated files without overwriting your custom
