@@ -66,7 +66,9 @@ HandlingError --> [*]
 ```
 
 This UML diagram defines our state machine with proper states, transitions, and
-actions.
+actions, and it looks like this:
+
+![order-processor-1](getting-started-guide-orderprocessor-1.png)
 
 ## Step 2: Generate the State Machine
 
@@ -656,6 +658,9 @@ might want to add a "ProcessingPayment" state before shipping the order.
 
     @enduml
    ```
+
+   This should make our UML diagram look like this:
+   ![order-processor-2](getting-started-guide-orderprocessor-2.png)
 
 2. Regenerate the state machine:
 

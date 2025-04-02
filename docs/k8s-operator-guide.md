@@ -227,6 +227,11 @@ end note
 @enduml
 ```
 
+This UML diagram represents the state machine for the SimpleJob reconciler, and
+it looks like this:
+
+![SimpleJobReconciler State Machine](k8s-operator-guide-simplejob-reconciler.png)
+
 ## Step 5: Generate the State Machine with VectorSigma
 
 Let's use VectorSigma to generate our state machine: Please note that
