@@ -95,6 +95,31 @@ func Execute() {
 	}
 }
 
+func init() {
+	SM = statemachine.New()
+
+	addCommonFlags(RootCmd)
+	addCommonFlags(InitCmd)
+
+	RootCmd.AddCommand(InitCmd)
+	RootCmd.SetHelpCommand(&cobra.Command{Hidden: true})
+	RootCmd.Flags().StringVarP(&SM.ExtendedState.APIKind, apiKindFlag, "k", "", "API kind (only used if generating a k8s operator)")
+	RootCmd.Flags().StringVarP(&SM.ExtendedState.APIVersion, apiVersionFlag, "v", "", "API version (only used if generating a k8s operator)")
+	RootCmd.Flags().StringVarP(&SM.ExtendedState.Group, groupFlag, "g", "", "Group (only used if generating a k8s operator)")
+	RootCmd.Flags().BoolVarP(&SM.ExtendedState.Operator, operatorFlag, "O", false, "generate fsm for a k8s operator")
+	RootCmd.Flags().StringVarP(&SM.ExtendedState.Output, outputFlag, "o", "",
+		"The output path of the generated FSM (default current working directory)")
+}
+
+func addCommonFlags(cmd *cobra.Command) {
+	cmd.Flags().StringVarP(&SM.ExtendedState.Module, moduleFlag, "m", "",
+		"Name of new go module (default current directory name)")
+	cmd.Flags().StringVarP(&SM.ExtendedState.Input, inputFlag, "i", "", "The UML input file")
+	_ = cmd.MarkFlagRequired(inputFlag)
+	cmd.Flags().StringVarP(&SM.ExtendedState.Package, packageFlag, "p", "statemachine",
+		"The package name of the generated FSM")
+}
+
 func getVersionInfo() string {
 	if Version == "dev" {
 		if info, ok := debug.ReadBuildInfo(); ok {
@@ -119,31 +144,6 @@ func getVersionInfo() string {
 	}
 
 	return fmt.Sprintf("%s (commit: %s, built at: %s)", Version, CommitSHA, BuildTime)
-}
-
-func init() {
-	SM = statemachine.New()
-
-	addCommonFlags(RootCmd)
-	addCommonFlags(InitCmd)
-
-	RootCmd.AddCommand(InitCmd)
-	RootCmd.SetHelpCommand(&cobra.Command{Hidden: true})
-	RootCmd.Flags().StringVarP(&SM.ExtendedState.APIKind, apiKindFlag, "k", "", "API kind (only used if generating a k8s operator)")
-	RootCmd.Flags().StringVarP(&SM.ExtendedState.APIVersion, apiVersionFlag, "v", "", "API version (only used if generating a k8s operator)")
-	RootCmd.Flags().StringVarP(&SM.ExtendedState.Group, groupFlag, "g", "", "Group (only used if generating a k8s operator)")
-	RootCmd.Flags().BoolVarP(&SM.ExtendedState.Operator, operatorFlag, "O", false, "generate fsm for a k8s operator")
-	RootCmd.Flags().StringVarP(&SM.ExtendedState.Output, outputFlag, "o", "",
-		"The output path of the generated FSM (default current working directory)")
-}
-
-func addCommonFlags(cmd *cobra.Command) {
-	cmd.Flags().StringVarP(&SM.ExtendedState.Module, moduleFlag, "m", "",
-		"Name of new go module (default current directory name)")
-	cmd.Flags().StringVarP(&SM.ExtendedState.Input, inputFlag, "i", "", "The UML input file")
-	_ = cmd.MarkFlagRequired(inputFlag)
-	cmd.Flags().StringVarP(&SM.ExtendedState.Package, packageFlag, "p", "statemachine",
-		"The package name of the generated FSM")
 }
 
 func getModuleName() string {
