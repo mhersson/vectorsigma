@@ -27,6 +27,7 @@ import (
 	"fmt"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 	"text/template"
 
@@ -179,12 +180,10 @@ func addOrReplace(existingFile, generatedFile *dst.File) bool {
 					hasTODO := false
 					for _, line := range exDecl.Body.List {
 						d := line.Decorations()
-						for _, x := range d.Start.All() {
-							if x == "// TODO: Implement me!" {
-								hasTODO = true
+						if slices.Contains(d.Start.All(), "// TODO: Implement me!") {
+							hasTODO = true
 
-								break
-							}
+							break
 						}
 					}
 
@@ -238,7 +237,7 @@ func removeNotInGenerated(exisitingNode, generatedNode *dst.File) bool {
 			for _, line := range exDecl.Decorations().Start {
 				if strings.HasPrefix(line, "// +vectorsigma:") {
 					containsChanges = true
-					exisitingNode.Decls = append(exisitingNode.Decls[:i], exisitingNode.Decls[i+1:]...)
+					exisitingNode.Decls = slices.Delete(exisitingNode.Decls, i, i+1)
 					i--
 
 					break
