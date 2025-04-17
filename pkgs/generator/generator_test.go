@@ -123,9 +123,11 @@ func TestGenerator_Exists(t *testing.T) {
 	}
 
 	t.Parallel()
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			g := tt.setup()
 			exists, err := g.Exists(tt.filepath)
 			require.NoError(t, err)
@@ -150,9 +152,11 @@ func TestGenerator_WriteFile(t *testing.T) {
 	}
 
 	t.Parallel()
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			err := tt.generator.WriteFile(tt.filepath, tt.content)
 			require.NoError(t, err)
 
@@ -195,9 +199,11 @@ func TestGenerator_FormatCode(t *testing.T) {
 	}
 
 	t.Parallel()
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			g := tt.setup()
 			err := g.FormatCode(tt.filepath)
 			require.NoError(t, err)
@@ -278,9 +284,11 @@ func (fsm *TrafficLight) AddMe(_ ...string) error {
 	}
 
 	t.Parallel()
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			_ = afero.WriteFile(tt.generator.FS, tt.filepath, []byte(tt.existingCode), 0o644)
 
 			data, changed, err := tt.generator.IncrementalUpdate(tt.filepath, []byte(tt.generatedCode))

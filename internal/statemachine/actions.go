@@ -26,6 +26,7 @@ func (fsm *VectorSigma) InitializeAction(_ ...string) error {
 	}
 
 	relativePath := ""
+
 	if fsm.ExtendedState.Output == "" {
 		fsm.ExtendedState.Output = dir
 	} else if fsm.ExtendedState.Output != "" && !fsm.ExtendedState.Init {
@@ -156,10 +157,12 @@ func (fsm *VectorSigma) GenerateModuleFilesAction(_ ...string) error {
 			if exists {
 				return errors.New("failed to initialize new module. file exists " + filename)
 			}
+
 			if err != nil {
 				return fmt.Errorf("failed to check if path exists %s - %w", filename, err)
 			}
 		}
+
 		code, err := fsm.Context.Generator.ExecuteTemplate(filepath.Join(templatePath, filename+".tmpl"))
 		if err != nil {
 			return fmt.Errorf("code generation failed: %w", err)
@@ -207,6 +210,7 @@ func (fsm *VectorSigma) FilterGeneratedFilesAction(_ ...string) error {
 				// extendedstate.go should never be overwritten
 				delete(fsm.ExtendedState.GeneratedFiles, filename)
 			}
+
 			if slices.Contains(actionsAndguards, filepath.Base(filename)) && !gf.IncrementalChange {
 				// don't write actions and guards unless they have changed
 				delete(fsm.ExtendedState.GeneratedFiles, filename)
@@ -226,10 +230,12 @@ func (fsm *VectorSigma) MakeIncrementalUpdatesAction(_ ...string) error {
 			fullpath := filepath.Join(fsm.ExtendedState.Output, f)
 			if exists, err := fsm.Context.Generator.Exists(fullpath); exists && err == nil {
 				fsm.Context.Logger.Debug("Running incremental update", "file", f)
+
 				code, changed, err := fsm.Context.Generator.IncrementalUpdate(fullpath, c.Content)
 				if err != nil {
 					return fmt.Errorf("incremental update failed: %w", err)
 				}
+
 				fsm.ExtendedState.GeneratedFiles[f] = GeneratedFile{Content: code, IncrementalChange: changed}
 			} else if err != nil {
 				return fmt.Errorf("failed to check if file exists: %w", err)
@@ -257,6 +263,7 @@ func (fsm *VectorSigma) FormatCodeAction(_ ...string) error {
 		if filename == "go.mod" {
 			continue
 		}
+
 		err := fsm.Context.Generator.FormatCode(filepath.Join(fsm.ExtendedState.Output, filename))
 		if err != nil {
 			return fmt.Errorf("%w", err)

@@ -127,6 +127,7 @@ func getVersionInfo() string {
 				if setting.Key == "vcs.revision" {
 					CommitSHA = setting.Value[:8]
 				}
+
 				if setting.Key == "vcs.time" {
 					BuildTime = setting.Value
 				}
@@ -152,6 +153,7 @@ func getModuleName() string {
 		if os.IsNotExist(err) {
 			return ""
 		}
+
 		fmt.Println("Failed to read go.mod:", err)
 
 		return ""

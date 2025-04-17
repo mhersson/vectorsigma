@@ -101,6 +101,7 @@ func (g *Generator) WriteFile(path string, data []byte) error {
 // Format the generated code.
 func (g *Generator) FormatCode(path string) error {
 	const goCmd = "go"
+
 	const goImportsCmd = "goimports"
 
 	formatCmd := []string{goCmd, "fmt", path}
@@ -168,6 +169,7 @@ func addOrReplace(existingFile, generatedFile *dst.File) bool {
 	for _, genDecl := range generatedFile.Decls {
 		if genDecl, ok := genDecl.(*dst.FuncDecl); ok {
 			found := false
+
 			for i, exDecl := range existingFile.Decls {
 				exDecl, ok := exDecl.(*dst.FuncDecl)
 				if !ok {
@@ -178,6 +180,7 @@ func addOrReplace(existingFile, generatedFile *dst.File) bool {
 					found = true
 					// Check if the existing function has a TODO comment
 					hasTODO := false
+
 					for _, line := range exDecl.Body.List {
 						d := line.Decorations()
 						if slices.Contains(d.Start.All(), "// TODO: Implement me!") {
@@ -200,6 +203,7 @@ func addOrReplace(existingFile, generatedFile *dst.File) bool {
 			if !found {
 				// Add the new function to the existing code
 				containsChanges = true
+
 				existingFile.Decls = append(existingFile.Decls, genDecl)
 			}
 		}
@@ -220,6 +224,7 @@ func removeNotInGenerated(exisitingNode, generatedNode *dst.File) bool {
 		}
 
 		found := false
+
 		for _, genDecl := range generatedNode.Decls {
 			genDecl, ok := genDecl.(*dst.FuncDecl)
 			if !ok {

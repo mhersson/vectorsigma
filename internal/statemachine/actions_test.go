@@ -44,9 +44,11 @@ func TestVectorSigma_InitializeAction(t *testing.T) {
 	}
 
 	t.Parallel()
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			fsm := &statemachine.VectorSigma{
 				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
@@ -56,8 +58,8 @@ func TestVectorSigma_InitializeAction(t *testing.T) {
 			if err := fsm.InitializeAction(tt.args.params...); (err != nil) != tt.wantErr {
 				t.Errorf("VectorSigma.InitializeAction() error = %v, wantErr %v", err, tt.wantErr)
 			} else if !tt.wantErr {
-				assert.NotEqual(t, "", fsm.ExtendedState.Output)
-				assert.NotEqual(t, "", fsm.ExtendedState.Module)
+				assert.NotEmpty(t, fsm.ExtendedState.Output)
+				assert.NotEmpty(t, fsm.ExtendedState.Module)
 				assert.Equal(t, fsm.Context.Generator.Module, fsm.ExtendedState.Module)
 				assert.Equal(t, fsm.Context.Generator.Package, fsm.ExtendedState.Package)
 			}
@@ -106,9 +108,11 @@ func TestVectorSigma_LoadInputAction(t *testing.T) {
 	}
 
 	t.Parallel()
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			fsm := &statemachine.VectorSigma{
 				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
@@ -171,9 +175,11 @@ func TestVectorSigma_ExtractUMLAction(t *testing.T) {
 	}
 
 	t.Parallel()
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			fsm := &statemachine.VectorSigma{
 				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
@@ -221,9 +227,11 @@ func TestVectorSigma_ParseUMLAction(t *testing.T) {
 	}
 
 	t.Parallel()
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			fsm := &statemachine.VectorSigma{
 				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
@@ -272,9 +280,11 @@ func TestVectorSigma_GenerateStateMachineAction(t *testing.T) {
 	}
 
 	t.Parallel()
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			fsm := &statemachine.VectorSigma{
 				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
@@ -339,9 +349,11 @@ func TestVectorSigma_CreateOutputFolderAction(t *testing.T) {
 	}
 
 	t.Parallel()
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			fsm := &statemachine.VectorSigma{
 				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
@@ -406,9 +418,11 @@ func TestVectorSigma_FilterGeneratedFilesAction(t *testing.T) {
 	}
 
 	t.Parallel()
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			fsm := &statemachine.VectorSigma{
 				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
@@ -520,9 +534,11 @@ func (fsm *TrafficLight) AddMe(_ ...string) error {
 	}
 
 	t.Parallel()
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			fsm := &statemachine.VectorSigma{
 				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
@@ -578,9 +594,11 @@ func TestVectorSigma_WriteGeneratedFilesAction(t *testing.T) {
 	}
 
 	t.Parallel()
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			fsm := &statemachine.VectorSigma{
 				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
@@ -678,6 +696,7 @@ func TestVectorSigma_GenerateModuleFilesAction(t *testing.T) { //nolint:parallel
 					if k == "main.go" {
 						assert.Contains(t, string(v.Content), "package main", k)
 					}
+
 					if k == "go.mod" {
 						assert.Contains(t, string(v.Content), "module", tt.fields.ExtendedState.Module)
 					}
@@ -723,9 +742,11 @@ func TestVectorSigma_FormatCodeAction(t *testing.T) {
 	}
 
 	t.Parallel()
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			fsm := &statemachine.VectorSigma{
 				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
@@ -738,6 +759,7 @@ func TestVectorSigma_FormatCodeAction(t *testing.T) {
 			} else {
 				mockShell.EXPECT().NewCommand("go", "fmt", "out/testfile").Return(mockCmd)
 			}
+
 			mockCmd.EXPECT().Run().Return(nil)
 
 			if err := fsm.FormatCodeAction(tt.args.params...); (err != nil) != tt.wantErr {

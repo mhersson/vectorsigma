@@ -38,9 +38,11 @@ func TestFSM_IsTitle(t *testing.T) {
 		ActionNames  []string
 		GuardNames   []string
 	}
+
 	type args struct {
 		line string
 	}
+
 	tests := []struct {
 		name   string
 		fields fields
@@ -57,9 +59,11 @@ func TestFSM_IsTitle(t *testing.T) {
 	}
 
 	t.Parallel()
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			f := &uml.FSM{}
 			if got := f.IsTitle(tt.args.line); got != tt.want {
 				t.Errorf("FSM.IsTitle() = %v, want %v", got, tt.want)
@@ -78,9 +82,11 @@ func TestFSM_IsInitialState(t *testing.T) {
 		ActionNames  []string
 		GuardNames   []string
 	}
+
 	type args struct {
 		line string
 	}
+
 	tests := []struct {
 		name   string
 		fields fields
@@ -103,9 +109,11 @@ func TestFSM_IsInitialState(t *testing.T) {
 	}
 
 	t.Parallel()
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			f := &uml.FSM{States: make(map[string]*uml.State)}
 			if got := f.IsInitialState(tt.args.line); got != tt.want {
 				t.Errorf("FSM.IsInitialState() = %v, want %v", got, tt.want)
@@ -124,9 +132,11 @@ func TestFSM_IsAction(t *testing.T) {
 		ActionNames  []string
 		GuardNames   []string
 	}
+
 	type args struct {
 		line string
 	}
+
 	tests := []struct {
 		name   string
 		fields fields
@@ -165,14 +175,17 @@ func TestFSM_IsAction(t *testing.T) {
 	}
 
 	t.Parallel()
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			f := &uml.FSM{ActionNames: []string{}, States: make(map[string]*uml.State)}
 			if got := f.IsAction(tt.args.line); got != tt.want {
 				t.Errorf("FSM.IsAction() = %v, want %v", got, tt.want)
 			} else if tt.want {
 				assert.Contains(t, f.ActionNames, tt.expect.Name)
+
 				if len(tt.expect.Params) > 0 {
 					assert.Equal(t, tt.expect.Params, f.States["State"].Actions[0].Params)
 				}
@@ -189,9 +202,11 @@ func TestFSM_IsGuardedTransition(t *testing.T) {
 		ActionNames  []string
 		GuardNames   []string
 	}
+
 	type args struct {
 		line string
 	}
+
 	tests := []struct {
 		name   string
 		fields fields
@@ -222,9 +237,11 @@ func TestFSM_IsGuardedTransition(t *testing.T) {
 	}
 
 	t.Parallel()
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			f := &uml.FSM{GuardNames: []string{}, States: make(map[string]*uml.State)}
 
 			if got := f.IsGuardedTransition(tt.args.line); got != tt.want {
@@ -244,9 +261,11 @@ func TestFSM_IsDefaultTransition(t *testing.T) {
 		ActionNames  []string
 		GuardNames   []string
 	}
+
 	type args struct {
 		line string
 	}
+
 	tests := []struct {
 		name   string
 		fields fields
@@ -269,9 +288,11 @@ func TestFSM_IsDefaultTransition(t *testing.T) {
 	}
 
 	t.Parallel()
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			f := &uml.FSM{States: make(map[string]*uml.State)}
 			if got := f.IsDefaultTransition(tt.args.line); got != tt.want {
 				t.Errorf("FSM.IsDefaultTransition() = %v, want %v", got, tt.want)
@@ -290,11 +311,13 @@ func TestFSM_IsCompositeStateStart(t *testing.T) {
 		ActionNames  []string
 		GuardNames   []string
 	}
+
 	type args struct {
 		ind  int
 		line string
 		data string
 	}
+
 	tests := []struct {
 		name   string
 		fields fields
@@ -378,9 +401,11 @@ SubState1 --> SubState2
 	}
 
 	t.Parallel()
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			f := &uml.FSM{States: make(map[string]*uml.State)}
 			if _, got := f.IsCompositeStateStart(tt.args.ind, tt.args.line, tt.args.data); got != tt.want {
 				t.Errorf("FSM.IsCompositeStateStart() = %v, want %v", got, tt.want)
@@ -395,6 +420,7 @@ func TestParseSimple(t *testing.T) {
 	type args struct {
 		data string
 	}
+
 	tests := []struct {
 		name string
 		args args
@@ -503,6 +529,7 @@ Green --> FlashingYellow
 	}
 
 	t.Parallel()
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
@@ -519,6 +546,7 @@ func TestParseComposite(t *testing.T) {
 	type args struct {
 		data string
 	}
+
 	tests := []struct {
 		name string
 		args args
@@ -652,6 +680,7 @@ Green --> FlashingYellow
 	}
 
 	t.Parallel()
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
@@ -668,6 +697,7 @@ func TestParseGuardedAction(t *testing.T) {
 	type args struct {
 		data string
 	}
+
 	tests := []struct {
 		name string
 		args args
@@ -763,6 +793,7 @@ Green --> [*]
 	}
 
 	t.Parallel()
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()

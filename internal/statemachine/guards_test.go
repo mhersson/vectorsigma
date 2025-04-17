@@ -26,9 +26,11 @@ func TestVectorSigma_IsErrorGuard(t *testing.T) {
 	}
 
 	t.Parallel()
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			fsm := &statemachine.VectorSigma{
 				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
@@ -61,9 +63,11 @@ func TestVectorSigma_IsMarkdownGuard(t *testing.T) {
 	}
 
 	t.Parallel()
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			fsm := &statemachine.VectorSigma{
 				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
@@ -96,9 +100,11 @@ func TestVectorSigma_IsInitializingModuleGuard(t *testing.T) {
 	}
 
 	t.Parallel()
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			fsm := &statemachine.VectorSigma{
 				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,
@@ -131,9 +137,11 @@ func TestVectorSigma_PackageExistsGuard(t *testing.T) {
 	}
 
 	t.Parallel()
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			fsm := &statemachine.VectorSigma{
 				Context:       tt.fields.context,
 				CurrentState:  tt.fields.currentState,

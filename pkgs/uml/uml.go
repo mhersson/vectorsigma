@@ -140,6 +140,7 @@ func (f *FSM) IsAction(line string) bool {
 
 		if len(m) == 6 && m[5] != "" {
 			params := strings.TrimSpace(m[5])
+
 			paramList := strings.Split(params, ",")
 			for i, param := range paramList {
 				paramList[i] = strings.Trim(strings.TrimSpace(param), `"`)
@@ -180,8 +181,10 @@ func (f *FSM) IsGuardedTransition(line string) bool {
 		if len(m) >= 6 && m[5] != "" {
 			action = &Action{}
 			action.Name = m[5]
+
 			if len(m) == 8 && m[7] != "" {
 				params := strings.TrimSpace(m[7])
+
 				paramList := strings.Split(params, ",")
 				for i, param := range paramList {
 					paramList[i] = strings.Trim(strings.TrimSpace(param), `"`)
@@ -189,6 +192,7 @@ func (f *FSM) IsGuardedTransition(line string) bool {
 
 				action.Params = `"` + strings.Join(paramList, `","`) + `"`
 			}
+
 			f.Action(action.Name)
 		}
 
@@ -265,6 +269,7 @@ func (f *FSM) IsCompositeStateStart(ind int, line, data string) (int, bool) {
 		lines := strings.Split(data, "\n")
 		start := ind + 1
 		end := 0
+
 		for i := ind + 1; i < len(lines); i++ {
 			if f.IsCompositeStateEnd(lines[i]) {
 				end = i
@@ -344,6 +349,7 @@ func Parse(data string) *FSM {
 	for ind := 0; ind < len(lines); ind++ {
 		if strings.Contains(lines[ind], "[*]") {
 			re := regexp.MustCompile(firstInitialStatePattern)
+
 			m := re.FindStringSubmatch(lines[ind])
 			if m != nil {
 				lines[ind] = strings.ReplaceAll(lines[ind], "[*]", InitialState)
