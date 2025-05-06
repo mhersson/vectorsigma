@@ -109,11 +109,12 @@ func init() {
 	RootCmd.Flags().BoolVarP(&SM.ExtendedState.Operator, operatorFlag, "O", false, "generate fsm for a k8s operator")
 	RootCmd.Flags().StringVarP(&SM.ExtendedState.Output, outputFlag, "o", "",
 		"The output path of the generated FSM (default current working directory)")
+
+	InitCmd.Flags().StringVarP(&SM.ExtendedState.Module, moduleFlag, "m", "",
+		"Name of new go module (default current directory name)")
 }
 
 func addCommonFlags(cmd *cobra.Command) {
-	cmd.Flags().StringVarP(&SM.ExtendedState.Module, moduleFlag, "m", "",
-		"Name of new go module (default current directory name)")
 	cmd.Flags().StringVarP(&SM.ExtendedState.Input, inputFlag, "i", "", "The UML input file")
 	_ = cmd.MarkFlagRequired(inputFlag)
 	cmd.Flags().StringVarP(&SM.ExtendedState.Package, packageFlag, "p", "statemachine",
