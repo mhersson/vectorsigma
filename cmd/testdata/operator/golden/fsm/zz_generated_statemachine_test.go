@@ -2,20 +2,19 @@
 package fsm_test
 
 import (
-	"reflect"
-	"testing"
-
 	"context"
 	"fmt"
 	"operator/output/fsm"
 	"os"
 	"path/filepath"
+	"reflect"
+	"testing"
 
-	ctrl "sigs.k8s.io/controller-runtime"
-
+	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 
@@ -56,6 +55,8 @@ func TestTestreconcileloop_Run(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fsm := fsm.New()
 			fsm.Context.Client = k8sClient
+			fsm.Context.Ctx = context.TODO()
+			fsm.Context.Logger = logr.Discard()
 			fsm.ExtendedState.ResourceName = resourceName
 			got, err := fsm.Run()
 			if (err != nil) != tt.wantErr {

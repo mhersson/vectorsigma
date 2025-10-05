@@ -118,7 +118,6 @@ If not, you can install VectorSigma by downloading the latest build from the
 3. **Install the executable**:
 
    You have two options to install the executable:
-
    - **Option 1: Copy the executable to your PATH**:
 
      After building, you can manually copy the executable to a directory that is
