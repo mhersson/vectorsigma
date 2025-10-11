@@ -24,7 +24,7 @@ linters:
   - unconvert # Remove unnecessary type conversions
   - unparam
   - whitespace
-  - wsl
+  - wsl_v5
   settings:
     nakedret:
       max-func-lines: 5
