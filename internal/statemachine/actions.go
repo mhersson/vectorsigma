@@ -118,6 +118,7 @@ func (fsm *VectorSigma) GenerateStateMachineAction(_ ...string) error {
 	templatePath := "templates/application"
 	if fsm.ExtendedState.Operator {
 		templatePath = "templates/operator"
+
 		files = append(files, "statemachine_integration_test.go")
 	}
 
@@ -185,7 +186,7 @@ func (fsm *VectorSigma) CreateOutputFolderAction(params ...string) error {
 	}
 
 	if exists, _ := fsm.Context.Generator.Exists(outputfolder); exists && !fsm.ExtendedState.Init {
-		fsm.ExtendedState.PackageExits = true
+		fsm.ExtendedState.PackageExists = true
 
 		return nil
 	}

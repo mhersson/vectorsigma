@@ -42,7 +42,7 @@ These files are completely regenerated each time:
 - `statemachine_integration_test.go` - Your integration tests are preserved.
   This file is generated once to provide a starting point for your tests. You
   can add your own test cases here to validate the behavior of your state
-  machine. Initailly, it only conains a basic happy-path test, and scaffoldiing
+  machine. Initailly, it only conains a basic happy-path test, and scaffolding
   for optional setup and teardown hooks.
 
 ## How Incremental Updates Work

@@ -19,7 +19,7 @@ type Context struct {
 type ExtendedState struct {
 	GeneratedFiles     map[string]GeneratedFile
 	Init               bool
-	PackageExits       bool
+	PackageExists      bool
 	Operator           bool
 	APIVersion         string
 	APIKind            string

@@ -19,5 +19,5 @@ func (fsm *VectorSigma) IsInitializingModuleGuard() bool {
 
 // +vectorsigma:guard:PackageExists
 func (fsm *VectorSigma) PackageExistsGuard() bool {
-	return fsm.ExtendedState.PackageExits
+	return fsm.ExtendedState.PackageExists
 }

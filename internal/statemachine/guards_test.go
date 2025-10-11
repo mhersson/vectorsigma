@@ -132,8 +132,8 @@ func TestVectorSigma_PackageExistsGuard(t *testing.T) {
 		fields fields
 		want   bool
 	}{
-		{name: "Package exists", fields: fields{ExtendedState: &statemachine.ExtendedState{PackageExits: true}}, want: true},
-		{name: "Package does not exist", fields: fields{ExtendedState: &statemachine.ExtendedState{PackageExits: false}}, want: false},
+		{name: "Package exists", fields: fields{ExtendedState: &statemachine.ExtendedState{PackageExists: true}}, want: true},
+		{name: "Package does not exist", fields: fields{ExtendedState: &statemachine.ExtendedState{PackageExists: false}}, want: false},
 	}
 
 	t.Parallel()
