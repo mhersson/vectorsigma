@@ -212,7 +212,7 @@ func addOrReplace(existingFile, generatedFile *dst.File) bool {
 	return containsChanges
 }
 
-// rempveNotInGenerated removes functions with the // +vectorsigma comment that
+// removeNotInGenerated removes functions with the // +vectorsigma comment that
 // are not in the generated code.
 func removeNotInGenerated(exisitingNode, generatedNode *dst.File) bool {
 	containsChanges := false
