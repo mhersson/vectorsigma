@@ -266,20 +266,23 @@ First, let's set up the extended state. Edit
 package statemachine
 
 import (
-    "log/slog"
+	"context"
 
-    jobsv1alpha1 "github.com/example/simplejob-operator/api/v1alpha1"
-    batchv1 "k8s.io/api/batch/v1"
-    "k8s.io/apimachinery/pkg/types"
-    ctrl "sigs.k8s.io/controller-runtime"
-    "sigs.k8s.io/controller-runtime/pkg/client"
+	"github.com/go-logr/logr"
+	batchv1 "k8s.io/api/batch/v1"
+	"k8s.io/apimachinery/pkg/types"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	jobsv1alpha1 "github.com/example/simplejob-operator/api/v1alpha1"
 )
 
 // A struct that holds the items needed for the actions to do their work.
 // Things like client libraries and loggers, go here.
 type Context struct {
-    Logger *slog.Logger
+    Logger logr.Logger
     Client client.Client
+    Ctx    context.Context
 }
 
 // A struct that holds the "extended state" of the state machine, including data
@@ -622,13 +625,15 @@ type SimpleJobReconciler struct {
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
 func (r *SimpleJobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-    _ = log.FromContext(ctx)
+    log := log.FromContext(ctx)
 
     // Initialize the state machine
     stateMachine := statemachine.New()
 
     // Configure the state machine context
     stateMachine.Context.Client = r.Client
+    stateMachine.Context.Ctx = ctx
+	stateMachine.Context.Logger = log
 
     // Set the resource name in the extended state
     stateMachine.ExtendedState.ResourceName = req.NamespacedName

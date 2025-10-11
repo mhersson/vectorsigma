@@ -28,7 +28,8 @@ utility functions alongside the generated code.
 These files are completely regenerated each time:
 
 - `zz_generated_statemachine.go` - The core state machine implementation
-- `zz_generated_statemachine_test.go` - Tests for the state machine
+- `zz_generated_statemachine_test.go` - Help functions for integration testing
+  the state machine
 
 ### Files Skipped if They Exist
 
@@ -38,6 +39,11 @@ These files are completely regenerated each time:
   modify and guards read. VectorSigma generates this file once but never
   overwrites it, allowing you to add custom fields for your specific
   application's needs without losing them during regeneration.
+- `statemachine_integration_test.go` - Your integration tests are preserved.
+  This file is generated once to provide a starting point for your tests. You
+  can add your own test cases here to validate the behavior of your state
+  machine. Initailly, it only conains a basic happy-path test, and scaffoldiing
+  for optional setup and teardown hooks.
 
 ## How Incremental Updates Work
 
