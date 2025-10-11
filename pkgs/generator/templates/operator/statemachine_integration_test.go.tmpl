@@ -1,0 +1,63 @@
+//go:build integration
+
+package {{ .Package }}_test
+
+import (
+	"context"
+	"os"
+	"path/filepath"
+	"reflect"
+	"testing"
+
+	"github.com/go-logr/logr"
+	ctrl "sigs.k8s.io/controller-runtime"
+
+	"{{ .Module }}/{{ .RelativePath }}/{{ .Package }}"
+)
+
+func init() {
+	// Register custom setup hook
+	CustomSetupHook = func() error {
+		return nil
+	}
+
+	// Register custom teardown hook
+	CustomTeardownHook = func() error {
+		return nil
+	}
+}
+
+func Test{{ .FSM.Title }}_Run(t *testing.T) {
+	type fields struct {
+		Context       *{{ .Package }}.Context
+		CurrentState  {{ .Package }}.StateName
+		ExtendedState *{{ .Package }}.ExtendedState
+		StateConfigs  map[{{ .Package }}.StateName]{{ .Package }}.StateConfig
+	}
+	tests := []struct {
+		name    string
+		want    ctrl.Result
+		wantErr bool
+	}{
+		{name: "Happy path", want: ctrl.Result{}, wantErr: false},
+	}
+	for _, tt := range tests {
+		setup(t)
+		teardown(t)
+		t.Run(tt.name, func(t *testing.T) {
+			fsm := {{ .Package }}.New()
+			fsm.Context.Client = k8sClient
+			fsm.Context.Ctx = context.TODO()
+			fsm.Context.Logger = logr.Discard()
+			fsm.ExtendedState.ResourceName = resourceName
+			got, err := fsm.Run()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("{{ .FSM.Title }}.Run() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("{{ .FSM.Title }}.Run() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

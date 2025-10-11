@@ -5,41 +5,49 @@ import (
 	"operator/output/fsm"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"github.com/go-logr/logr"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/kubernetes/scheme"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	unitv1 "operator/api/v1"
 )
 
 const kind = "TestCRD"
 
-var resource = &unitv1.TestCRD{
-	TypeMeta: metav1.TypeMeta{
-		Kind: kind,
-	},
-	ObjectMeta: metav1.ObjectMeta{
-		Name:      resourceName.Name,
-		Namespace: resourceName.Namespace,
-	},
+// resourceName is used by both unit and integration tests
+var resourceName = types.NamespacedName{
+	Namespace: "default",
+	Name:      "test-resource",
 }
 
-func setup(t *testing.T) {
-	err := k8sClient.Create(context.TODO(), resource)
-	require.NoError(t, err)
+// fakeK8sClient is a shared variable that can be used by tests
+// Unit tests create their own fake clients per test
+// Integration tests will use the envtest k8sClient
+var fakeK8sClient client.Client
+
+// silentLogger creates a logger that discards all output
+func silentLogger() logr.Logger {
+	return logr.Discard()
 }
 
-func teardown(t *testing.T) {
-	err := k8sClient.Delete(context.TODO(), resource)
-	require.NoError(t, err)
+// testContext returns a fully configured test context
+func testContext() *fsm.Context {
+	// Create a new scheme and register all types we might need in tests
+	testScheme := scheme.Scheme
+	_ = unitv1.AddToScheme(testScheme)
 
-	resource = &unitv1.TestCRD{
-		TypeMeta: metav1.TypeMeta{
-			Kind: kind,
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      resourceName.Name,
-			Namespace: resourceName.Namespace,
-		},
+	// Create a fake client with the comprehensive scheme and status subresource support
+	fakeClient := fake.NewClientBuilder().
+		WithScheme(testScheme).
+		WithStatusSubresource(&unitv1.TestCRD{}).
+		Build()
+
+	return &fsm.Context{
+		Logger: silentLogger(),
+		Client: fakeClient,
+		Ctx:    context.TODO(),
 	}
 }
 

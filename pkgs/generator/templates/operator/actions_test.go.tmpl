@@ -12,39 +12,46 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes/scheme"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	{{ .Group }}{{ .APIVersion}} "{{ .Module }}/api/{{ .APIVersion }}"
 )
 
 const kind = "{{ .APIKind }}"
 
-var resource = &{{ .Group }}{{ .APIVersion}}.{{ .APIKind }}{
-	TypeMeta: metav1.TypeMeta{
-		Kind: kind,
-	},
-	ObjectMeta: metav1.ObjectMeta{
-		Name:      resourceName.Name,
-		Namespace: resourceName.Namespace,
-	},
+// resourceName is used by both unit and integration tests
+var resourceName = types.NamespacedName{
+	Namespace: "default",
+	Name:      "test-resource",
 }
 
-func setup(t *testing.T) {
-	err := k8sClient.Create(context.TODO(), resource)
-	require.NoError(t, err)
+// fakeK8sClient is a shared variable that can be used by tests
+// Unit tests create their own fake clients per test
+// Integration tests will use the envtest k8sClient
+var fakeK8sClient client.Client
+
+// silentLogger creates a logger that discards all output
+func silentLogger() logr.Logger {
+	return logr.Discard()
 }
 
-func teardown(t *testing.T) {
-	err := k8sClient.Delete(context.TODO(), resource)
-	require.NoError(t, err)
+// testContext returns a fully configured test context
+func testContext() *{{ .Package }}.Context {
+	// Create a new scheme and register all types we might need in tests
+	testScheme := scheme.Scheme
+	_ = {{ .Group }}{{ .APIVersion}}.AddToScheme(testScheme)
 
-	resource = &{{ .Group }}{{ .APIVersion}}.{{ .APIKind }}{
-		TypeMeta: metav1.TypeMeta{
-			Kind: kind,
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      resourceName.Name,
-			Namespace: resourceName.Namespace,
-		},
+	// Create a fake client with the comprehensive scheme and status subresource support
+	fakeClient := fake.NewClientBuilder().
+		WithScheme(testScheme).
+		WithStatusSubresource(&{{ .Group }}{{ .APIVersion}}.{{ .APIKind }}{}).
+		Build()
+
+	return &{{ .Package }}.Context{
+		Logger: silentLogger(),
+		Client: fakeClient,
+		Ctx:    context.TODO(),
 	}
 }
 

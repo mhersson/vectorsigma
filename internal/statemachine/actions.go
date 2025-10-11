@@ -118,6 +118,7 @@ func (fsm *VectorSigma) GenerateStateMachineAction(_ ...string) error {
 	templatePath := "templates/application"
 	if fsm.ExtendedState.Operator {
 		templatePath = "templates/operator"
+		files = append(files, "statemachine_integration_test.go")
 	}
 
 	for _, filename := range files {
@@ -126,7 +127,7 @@ func (fsm *VectorSigma) GenerateStateMachineAction(_ ...string) error {
 			return fmt.Errorf("code generation failed: %w", err)
 		}
 
-		if strings.HasPrefix(filename, "statemachine") {
+		if strings.HasPrefix(filename, "statemachine") && filename != "statemachine_integration_test.go" {
 			// Make it very clear that this is a generated file that should not be modified
 			filename = "zz_generated_" + filename
 		}
@@ -200,14 +201,14 @@ func (fsm *VectorSigma) CreateOutputFolderAction(params ...string) error {
 func (fsm *VectorSigma) FilterGeneratedFilesAction(_ ...string) error {
 	// We should error out before if main.go or go.mod exists, and since package
 	// exists so does probably extendtendstate.go too, but anyways..
-	files := []string{"extendedstate.go", "main.go", "go.mod"}
+	files := []string{"extendedstate.go", "statemachine_integration_test.go", "main.go", "go.mod"}
 
 	actionsAndguards := []string{"actions.go", "actions_test.go", "guards.go", "guards_test.go"}
 
 	for filename, gf := range fsm.ExtendedState.GeneratedFiles {
 		if exists, _ := fsm.Context.Generator.Exists(filepath.Join(fsm.ExtendedState.Output, filename)); exists {
 			if slices.Contains(files, filepath.Base(filename)) {
-				// extendedstate.go should never be overwritten
+				// extendedstate.go and statemachine_integration_test.go should never be overwritten
 				delete(fsm.ExtendedState.GeneratedFiles, filename)
 			}
 
