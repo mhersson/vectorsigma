@@ -639,12 +639,7 @@ func (r *SimpleJobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
     stateMachine.ExtendedState.ResourceName = req.NamespacedName
 
     // Run the state machine
-    result, err := stateMachine.Run()
-    if err != nil {
-        return result, err
-    }
-
-    return result, nil
+    return stateMachine.Run()
 }
 
 // SetupWithManager sets up the controller with the Manager.
