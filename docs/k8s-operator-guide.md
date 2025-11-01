@@ -271,6 +271,7 @@ import (
 	"github.com/go-logr/logr"
 	batchv1 "k8s.io/api/batch/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -280,9 +281,10 @@ import (
 // A struct that holds the items needed for the actions to do their work.
 // Things like client libraries and loggers, go here.
 type Context struct {
-    Logger logr.Logger
-    Client client.Client
-    Ctx    context.Context
+    Logger   logr.Logger
+    Client   client.Client
+    Ctx      context.Context
+    Recorder record.EventRecorder
 }
 
 // A struct that holds the "extended state" of the state machine, including data
@@ -602,6 +604,7 @@ import (
     "context"
 
     "k8s.io/apimachinery/pkg/runtime"
+    "k8s.io/client-go/tools/record"
     ctrl "sigs.k8s.io/controller-runtime"
     "sigs.k8s.io/controller-runtime/pkg/client"
     "sigs.k8s.io/controller-runtime/pkg/log"
@@ -613,7 +616,8 @@ import (
 // SimpleJobReconciler reconciles a SimpleJob object
 type SimpleJobReconciler struct {
     client.Client
-    Scheme *runtime.Scheme
+    Scheme   *runtime.Scheme
+    Recorder record.EventRecorder
 }
 
 // +kubebuilder:rbac:groups=jobs.example.com,resources=simplejobs,verbs=get;list;watch;create;update;patch;delete
@@ -633,7 +637,8 @@ func (r *SimpleJobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
     // Configure the state machine context
     stateMachine.Context.Client = r.Client
     stateMachine.Context.Ctx = ctx
-	stateMachine.Context.Logger = log
+    stateMachine.Context.Logger = log
+    stateMachine.Context.Recorder = r.Recorder
 
     // Set the resource name in the extended state
     stateMachine.ExtendedState.ResourceName = req.NamespacedName
@@ -769,6 +774,248 @@ kind delete cluster --name vectorsigma-demo
    reconciliation.
 7. **Testing**: Write thorough tests for actions and guards to ensure correct
    behavior.
+
+## Advanced Pattern: Implementing Finalizers
+
+### What are Finalizers?
+
+Finalizers are a Kubernetes mechanism that allows your operator to perform
+cleanup operations before a resource is deleted from the cluster. When a
+resource with finalizers is deleted, Kubernetes:
+
+1. Sets the `deletionTimestamp` on the resource
+2. Waits for all finalizers to be removed
+3. Only then actually deletes the resource from etcd
+
+This is critical for operators that create external resources (cloud
+infrastructure, database entries, external API objects) that need cleanup when
+the Kubernetes resource is deleted.
+
+### When to Use Finalizers
+
+Use finalizers when your operator:
+
+- Creates external resources outside the cluster (AWS resources, databases,
+  etc.)
+- Manages resources in other namespaces that aren't covered by owner references
+- Needs to perform cleanup operations that must complete before deletion
+- Needs to ensure graceful shutdown of dependent resources
+
+**Note:** If your operator only creates child resources with proper owner
+references (like we did with the Job in our SimpleJob example), finalizers may
+not be necessary. Owner references automatically trigger cascading deletion.
+
+### UML Pattern for Finalizers
+
+Here's a recommended state machine pattern for handling finalizers:
+
+**Note:** This is a simplified pattern focused on the finalizer flow. Error
+handling would usually transition to a dedicated `HandlingError` state that sets
+appropriate requeue behavior, rather than going directly to the final state.
+This example isolates the finalizer pattern for clarity.
+
+```plantuml
+@startuml
+
+title Reconcile loop with Finalizer Support
+
+skin rose
+
+[*] --> LoadingResource
+LoadingResource: do / LoadResource
+LoadingResource --> [*]: [IsError]
+LoadingResource --> [*]: [IsNotFound]
+
+LoadingResource --> ProcessingDeletion: [IsBeingDeleted]
+LoadingResource --> EnsureFinalizer: [HasNoFinalizer]
+LoadingResource --> ReconcileNormal
+
+state ProcessingDeletion {
+    [*] --> CheckingFinalizer
+
+    CheckingFinalizer --> CleaningUpResources: [HasFinalizer]
+    CheckingFinalizer --> [*]
+
+    CleaningUpResources: do / CleanupExternalResources
+    CleaningUpResources --> [*]: [IsError]
+    CleaningUpResources --> RemovingFinalizer
+
+    RemovingFinalizer: do / RemoveFinalizer
+    RemovingFinalizer --> [*]: [IsError]
+    RemovingFinalizer --> [*]
+}
+
+ProcessingDeletion --> [*]
+
+EnsureFinalizer: do / AddFinalizer
+EnsureFinalizer --> [*]: [IsError]
+EnsureFinalizer --> ReconcileNormal
+
+ReconcileNormal: do / ReconcileResources
+ReconcileNormal --> [*]: [IsError]
+ReconcileNormal --> UpdatingStatus
+
+UpdatingStatus: do / UpdateStatus
+UpdatingStatus --> [*]
+
+@enduml
+```
+
+### Implementing Finalizer Guards
+
+When you include the guards in your UML diagram (e.g., `IsBeingDeleted`,
+`HasFinalizer`, `HasNoFinalizer`), VectorSigma will generate skeleton guard
+functions in `guards.go` with `// TODO: Implement me!` comments. Here's how to
+implement them:
+
+```go
+import (
+    "sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+)
+
+const FinalizerName = "jobs.example.com/simplejob-finalizer"
+
+// +vectorsigma:guard:IsBeingDeleted
+func (fsm *YourReconciler) IsBeingDeletedGuard() bool {
+    return !fsm.ExtendedState.Instance.GetDeletionTimestamp().IsZero()
+}
+
+// +vectorsigma:guard:HasFinalizer
+func (fsm *YourReconciler) HasFinalizerGuard() bool {
+    return controllerutil.ContainsFinalizer(&fsm.ExtendedState.Instance, FinalizerName)
+}
+
+// +vectorsigma:guard:HasNoFinalizer
+func (fsm *YourReconciler) HasNoFinalizerGuard() bool {
+    return !controllerutil.ContainsFinalizer(&fsm.ExtendedState.Instance, FinalizerName)
+}
+```
+
+### Implementing Finalizer Actions
+
+When you include the actions in your UML diagram (e.g., `AddFinalizer`,
+`RemoveFinalizer`, `CleanupExternalResources`), VectorSigma will generate
+skeleton action functions in `actions.go` with `// TODO: Implement me!`
+comments. Here's example implementations for these finalizer-related actions:
+
+```go
+import (
+    "fmt"
+    "sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+)
+
+// +vectorsigma:action:AddFinalizer
+func (fsm *YourReconciler) AddFinalizerAction(_ ...string) error {
+    fsm.Context.Logger.Info("Adding finalizer", "finalizer", FinalizerName)
+
+    controllerutil.AddFinalizer(&fsm.ExtendedState.Instance, FinalizerName)
+
+    err := fsm.Context.Client.Update(fsm.Context.Ctx, &fsm.ExtendedState.Instance)
+    if err != nil {
+        fsm.Context.Recorder.Event(&fsm.ExtendedState.Instance,
+            "Warning", "FinalizerAddFailed",
+            fmt.Sprintf("Failed to add finalizer: %v", err))
+        return fmt.Errorf("failed to add finalizer: %w", err)
+    }
+
+    fsm.Context.Recorder.Event(&fsm.ExtendedState.Instance,
+        "Normal", "FinalizerAdded",
+        "Successfully added finalizer")
+
+    return nil
+}
+
+// +vectorsigma:action:RemoveFinalizer
+func (fsm *YourReconciler) RemoveFinalizerAction(_ ...string) error {
+    fsm.Context.Logger.Info("Removing finalizer", "finalizer", FinalizerName)
+
+    controllerutil.RemoveFinalizer(&fsm.ExtendedState.Instance, FinalizerName)
+
+    err := fsm.Context.Client.Update(fsm.Context.Ctx, &fsm.ExtendedState.Instance)
+    if err != nil {
+        fsm.Context.Recorder.Event(&fsm.ExtendedState.Instance,
+            "Warning", "FinalizerRemoveFailed",
+            fmt.Sprintf("Failed to remove finalizer: %v", err))
+        return fmt.Errorf("failed to remove finalizer: %w", err)
+    }
+
+    fsm.Context.Recorder.Event(&fsm.ExtendedState.Instance,
+        "Normal", "FinalizerRemoved",
+        "Successfully removed finalizer")
+
+    return nil
+}
+
+// +vectorsigma:action:CleanupExternalResources
+func (fsm *YourReconciler) CleanupExternalResourcesAction(_ ...string) error {
+    fsm.Context.Logger.Info("Cleaning up external resources",
+        "name", fsm.ExtendedState.ResourceName)
+
+    // Example: Delete external resources
+    // This is where you would clean up:
+    // - Cloud provider resources (AWS S3 buckets, EC2 instances, etc.)
+    // - External database entries
+    // - Resources in other namespaces
+    // - External API objects
+
+    // Example cleanup code:
+    // if err := fsm.deleteExternalDatabase(); err != nil {
+    //     fsm.Context.Recorder.Event(&fsm.ExtendedState.Instance,
+    //         "Warning", "CleanupFailed",
+    //         fmt.Sprintf("Failed to cleanup external database: %v", err))
+    //     return fmt.Errorf("cleanup failed: %w", err)
+    // }
+
+    fsm.Context.Recorder.Event(&fsm.ExtendedState.Instance,
+        "Normal", "CleanupComplete",
+        "Successfully cleaned up all external resources")
+
+    fsm.Context.Logger.Info("External resources cleaned up successfully")
+    return nil
+}
+```
+
+### Important Considerations
+
+1. **Idempotency**: Cleanup actions must be idempotent - they should handle the
+   case where resources have already been deleted.
+
+2. **Error Handling**: If cleanup fails, return an error. The finalizer will
+   remain, and reconciliation will retry. Consider implementing exponential
+   backoff for transient errors.
+
+3. **Timeouts**: External cleanup operations should have reasonable timeouts to
+   prevent finalizers from blocking deletion indefinitely.
+
+4. **Observability**: Use events and logging extensively during finalizer
+   operations for debugging.
+
+5. **Testing**: Test deletion scenarios thoroughly, including:
+   - Successful cleanup
+   - Cleanup failures and retries
+   - Resources already deleted externally
+   - Timeout scenarios
+
+### Testing Finalizers
+
+To test your finalizer implementation:
+
+```bash
+# Create a resource
+kubectl apply -f your-resource.yaml
+
+# Verify finalizer is added
+kubectl get yourresource your-resource-name -o yaml | grep finalizers
+
+# Delete the resource
+kubectl delete yourresource your-resource-name
+
+# Watch the resource being cleaned up (it should stay in Terminating until cleanup completes)
+kubectl get yourresource your-resource-name -w
+
+# Check events for cleanup progress
+kubectl describe yourresource your-resource-name
+```
 
 ## Conclusion
 
