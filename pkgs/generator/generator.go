@@ -162,7 +162,7 @@ func (g *Generator) IncrementalUpdate(fullpath string, data []byte) ([]byte, boo
 // generated code and not in the existing code add the new function to the
 // existing code.  If any functions are in both trees, replace the existing code
 // with the generated code if the existing code still contains a `// TODO:
-// Impment me!` comment in the function body.
+// Implement me!` comment in the function body.
 func addOrReplace(existingFile, generatedFile *dst.File) bool {
 	containsChanges := false
 
