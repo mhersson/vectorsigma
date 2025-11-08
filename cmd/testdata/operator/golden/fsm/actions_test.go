@@ -6,26 +6,11 @@ import (
 	"testing"
 
 	"github.com/go-logr/logr"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	unitv1 "operator/api/v1"
 )
-
-const kind = "TestCRD"
-
-// resourceName is used by both unit and integration tests
-var resourceName = types.NamespacedName{
-	Namespace: "default",
-	Name:      "test-resource",
-}
-
-// fakeK8sClient is a shared variable that can be used by tests
-// Unit tests create their own fake clients per test
-// Integration tests will use the envtest k8sClient
-var fakeK8sClient client.Client
 
 // silentLogger creates a logger that discards all output
 func silentLogger() logr.Logger {

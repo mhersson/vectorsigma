@@ -18,19 +18,6 @@ import (
 	{{ .Group }}{{ .APIVersion}} "{{ .Module }}/api/{{ .APIVersion }}"
 )
 
-const kind = "{{ .APIKind }}"
-
-// resourceName is used by both unit and integration tests
-var resourceName = types.NamespacedName{
-	Namespace: "default",
-	Name:      "test-resource",
-}
-
-// fakeK8sClient is a shared variable that can be used by tests
-// Unit tests create their own fake clients per test
-// Integration tests will use the envtest k8sClient
-var fakeK8sClient client.Client
-
 // silentLogger creates a logger that discards all output
 func silentLogger() logr.Logger {
 	return logr.Discard()
