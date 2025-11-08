@@ -39,6 +39,10 @@ These files are completely regenerated each time:
   modify and guards read. VectorSigma generates this file once but never
   overwrites it, allowing you to add custom fields for your specific
   application's needs without losing them during regeneration.
+- `common_test.go` - Common variables and setup code for your tests are
+  preserved. This file is generated once to provide a starting point for your
+  tests, and can be used by both unit and integration tests. You can add your
+  own shared test setup logic here.
 - `statemachine_integration_test.go` - Your integration tests are preserved.
   This file is generated once to provide a starting point for your tests. You
   can add your own test cases here to validate the behavior of your state

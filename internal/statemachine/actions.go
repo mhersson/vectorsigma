@@ -119,7 +119,7 @@ func (fsm *VectorSigma) GenerateStateMachineAction(_ ...string) error {
 	if fsm.ExtendedState.Operator {
 		templatePath = "templates/operator"
 
-		files = append(files, "statemachine_integration_test.go")
+		files = append(files, "statemachine_integration_test.go", "common_test.go")
 	}
 
 	for _, filename := range files {
@@ -202,7 +202,7 @@ func (fsm *VectorSigma) CreateOutputFolderAction(params ...string) error {
 func (fsm *VectorSigma) FilterGeneratedFilesAction(_ ...string) error {
 	// We should error out before if main.go or go.mod exists, and since package
 	// exists so does probably extendtendstate.go too, but anyways..
-	files := []string{"extendedstate.go", "statemachine_integration_test.go", "main.go", "go.mod"}
+	files := []string{"extendedstate.go", "statemachine_integration_test.go", "common_test.go", "main.go", "go.mod"}
 
 	actionsAndguards := []string{"actions.go", "actions_test.go", "guards.go", "guards_test.go"}
 
