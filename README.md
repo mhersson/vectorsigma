@@ -68,6 +68,23 @@ Check out these guides to help you get started:
 
 ## Installation Instructions
 
+### Homebrew (macOS and Linux)
+
+The easiest way to install and keep `VectorSigma` updated:
+
+```bash
+brew tap mhersson/formulas
+brew install vectorsigma
+```
+
+To update to the latest version:
+
+```bash
+brew upgrade vectorsigma
+```
+
+### Go Install
+
 If you allready have Go installed on your system, you can install VectorSigma
 using the following command:
 
