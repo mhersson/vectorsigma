@@ -13,10 +13,14 @@ func TestTestreconcileloop_IsErrorGuard(t *testing.T) {
 		stateConfigs  map[fsm.StateName]fsm.StateConfig
 		ExtendedState *fsm.ExtendedState
 	}
+	type args struct {
+		params []string
+	}
 
 	tests := []struct {
 		name   string
 		fields fields
+		args   args
 		want   bool
 	}{
 		// TODO: Add test cases.
@@ -32,7 +36,7 @@ func TestTestreconcileloop_IsErrorGuard(t *testing.T) {
 				StateConfigs:  tt.fields.stateConfigs,
 				ExtendedState: tt.fields.ExtendedState,
 			}
-			if got := fsm.IsErrorGuard(); got != tt.want {
+			if got := fsm.IsErrorGuard(tt.args.params...); got != tt.want {
 				t.Errorf("Testreconcileloop.IsErrorGuard() = %v, want %v", got, tt.want)
 			}
 		})
@@ -47,10 +51,14 @@ func TestTestreconcileloop_NotFoundGuard(t *testing.T) {
 		stateConfigs  map[fsm.StateName]fsm.StateConfig
 		ExtendedState *fsm.ExtendedState
 	}
+	type args struct {
+		params []string
+	}
 
 	tests := []struct {
 		name   string
 		fields fields
+		args   args
 		want   bool
 	}{
 		// TODO: Add test cases.
@@ -66,7 +74,7 @@ func TestTestreconcileloop_NotFoundGuard(t *testing.T) {
 				StateConfigs:  tt.fields.stateConfigs,
 				ExtendedState: tt.fields.ExtendedState,
 			}
-			if got := fsm.NotFoundGuard(); got != tt.want {
+			if got := fsm.NotFoundGuard(tt.args.params...); got != tt.want {
 				t.Errorf("Testreconcileloop.NotFoundGuard() = %v, want %v", got, tt.want)
 			}
 		})

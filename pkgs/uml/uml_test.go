@@ -234,6 +234,22 @@ func TestFSM_IsGuardedTransition(t *testing.T) {
 			name: "Ok guarded action with params", args: args{line: "state --> state2: [ guard ] :: myaction(param,param1)"}, expect: "guard",
 			want: true,
 		},
+		{
+			name: "Ok guard with params", args: args{line: "state --> state2: [ guard(param) ]"}, expect: "guard",
+			want: true,
+		},
+		{
+			name: "Ok guard with multiple params", args: args{line: "state --> state2: guard(param1, param2)"}, expect: "guard",
+			want: true,
+		},
+		{
+			name: "Ok guard with params and action", args: args{line: "state --> state2: guard(timeout) :: myaction"}, expect: "guard",
+			want: true,
+		},
+		{
+			name: "Ok guard with params and action with params", args: args{line: "state --> state2: guard(flag) :: myaction(value1, value2)"}, expect: "guard",
+			want: true,
+		},
 	}
 
 	t.Parallel()
@@ -567,8 +583,9 @@ func TestParseComposite(t *testing.T) {
 						Name: "Red",
 						Transitions: []uml.Transition{
 							{
-								Target: "FinalState",
-								Guard:  "IsError",
+								Target:      "FinalState",
+								Guard:       "IsError",
+								GuardParams: "",
 							},
 							{Target: "Yellow", Guard: ""},
 						},
@@ -589,8 +606,9 @@ func TestParseComposite(t *testing.T) {
 									}},
 									Transitions: []uml.Transition{
 										{
-											Target: "FinalState",
-											Guard:  "IsError",
+											Target:      "FinalState",
+											Guard:       "IsError",
+											GuardParams: "",
 										},
 										{Target: uml.FinalState, Guard: ""},
 									},
@@ -608,8 +626,9 @@ func TestParseComposite(t *testing.T) {
 							Params: `"1"`,
 						}},
 						Transitions: []uml.Transition{{
-							Target: "FinalState",
-							Guard:  "IsError",
+							Target:      "FinalState",
+							Guard:       "IsError",
+							GuardParams: "",
 						}, {Target: "Green", Guard: ""}},
 					},
 					"FlashingYellow": {
@@ -619,8 +638,9 @@ func TestParseComposite(t *testing.T) {
 							Params: `"3"`,
 						}},
 						Transitions: []uml.Transition{{
-							Target: "FinalState",
-							Guard:  "IsError",
+							Target:      "FinalState",
+							Guard:       "IsError",
+							GuardParams: "",
 						}, {Target: "Red", Guard: ""}},
 					},
 					"Green": {
@@ -630,8 +650,9 @@ func TestParseComposite(t *testing.T) {
 							Params: `"5"`,
 						}},
 						Transitions: []uml.Transition{{
-							Target: "FinalState",
-							Guard:  "IsError",
+							Target:      "FinalState",
+							Guard:       "IsError",
+							GuardParams: "",
 						}, {Target: "FlashingYellow", Guard: ""}},
 					},
 					uml.FinalState: {
@@ -722,12 +743,14 @@ func TestParseGuardedAction(t *testing.T) {
 						}},
 						Transitions: []uml.Transition{
 							{
-								Target: "FinalState",
-								Guard:  "IsError",
+								Target:      "FinalState",
+								Guard:       "IsError",
+								GuardParams: "",
 							},
 							{
-								Target: "Green",
-								Guard:  "NotGonnaHappen",
+								Target:      "Green",
+								Guard:       "NotGonnaHappen",
+								GuardParams: "",
 								Action: &uml.Action{
 									Name:   "AlwaysGreen",
 									Params: `"force1","force2"`,
@@ -743,8 +766,9 @@ func TestParseGuardedAction(t *testing.T) {
 							Params: `"1"`,
 						}},
 						Transitions: []uml.Transition{{
-							Target: "FinalState",
-							Guard:  "IsError",
+							Target:      "FinalState",
+							Guard:       "IsError",
+							GuardParams: "",
 						}, {Target: "FinalState", Guard: ""}},
 					},
 					"Green": {
@@ -788,6 +812,137 @@ Green --> [*]
 
 @enduml
 		`,
+			},
+		},
+	}
+
+	t.Parallel()
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := uml.Parse(tt.args.data); !cmp.Equal(got, tt.want) {
+				fmt.Println(cmp.Diff(got, tt.want))
+				t.Errorf("Parse() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestParseGuardWithParams(t *testing.T) {
+	type args struct {
+		data string
+	}
+
+	tests := []struct {
+		name string
+		args args
+		want *uml.FSM
+	}{
+		{
+			name: "Guard with parameters",
+			want: &uml.FSM{
+				InitialState: uml.InitialState,
+				States: map[string]*uml.State{
+					uml.InitialState: {
+						Name: uml.InitialState,
+						Transitions: []uml.Transition{
+							{Target: "Starting", Guard: ""},
+						},
+					},
+					"Starting": {
+						Name: "Starting",
+						Actions: []uml.Action{{
+							Name:   "Initialize",
+							Params: "",
+						}},
+						Transitions: []uml.Transition{
+							{
+								Target:      "FinalState",
+								Guard:       "IsError",
+								GuardParams: "",
+							},
+							{
+								Target:      "Checking",
+								Guard:       "HasFlag",
+								GuardParams: `"SubjectLoaded"`,
+							},
+							{Target: "Waiting", Guard: ""},
+						},
+					},
+					"Checking": {
+						Name: "Checking",
+						Transitions: []uml.Transition{
+							{
+								Target:      "FinalState",
+								Guard:       "IsTimeout",
+								GuardParams: `"5m"`,
+							},
+							{
+								Target:      "Processing",
+								Guard:       "IsReady",
+								GuardParams: `"resource1","resource2"`,
+							},
+							{Target: "FinalState", Guard: ""},
+						},
+					},
+					"Processing": {
+						Name: "Processing",
+						Transitions: []uml.Transition{
+							{
+								Target:      "FinalState",
+								Guard:       "HasError",
+								GuardParams: `"critical"`,
+								Action: &uml.Action{
+									Name:   "LogError",
+									Params: `"failed"`,
+								},
+							},
+							{Target: "FinalState", Guard: ""},
+						},
+					},
+					"Waiting": {
+						Name: "Waiting",
+						Transitions: []uml.Transition{
+							{Target: "FinalState", Guard: ""},
+						},
+					},
+					uml.FinalState: {
+						Name: uml.FinalState,
+					},
+				},
+				Title:       "TestOperator",
+				ActionNames: []string{"Initialize", "LogError"},
+				GuardNames:  []string{"HasError", "HasFlag", "IsError", "IsReady", "IsTimeout"},
+				AllStates: []string{
+					"Checking", "FinalState", "InitialState", "Processing", "Starting", "Waiting",
+				},
+			},
+			args: args{
+				data: `
+@startuml
+
+title Test Operator
+
+[*] --> Starting
+
+Starting: do / Initialize
+Starting --> [*] : IsError
+Starting --> Checking : HasFlag(SubjectLoaded)
+Starting --> Waiting
+
+Checking --> [*] : IsTimeout(5m)
+Checking --> Processing : IsReady(resource1, resource2)
+Checking --> [*]
+
+Processing --> [*] : HasError(critical) :: LogError(failed)
+Processing --> [*]
+
+Waiting --> [*]
+
+@enduml
+`,
 			},
 		},
 	}

@@ -13,10 +13,14 @@ func TestTrafficLight_IsErrorGuard(t *testing.T) {
 		stateConfigs  map[fsm.StateName]fsm.StateConfig
 		ExtendedState *fsm.ExtendedState
 	}
+	type args struct {
+		params []string
+	}
 
 	tests := []struct {
 		name   string
 		fields fields
+		args   args
 		want   bool
 	}{
 		// TODO: Add test cases.
@@ -32,7 +36,7 @@ func TestTrafficLight_IsErrorGuard(t *testing.T) {
 				StateConfigs:  tt.fields.stateConfigs,
 				ExtendedState: tt.fields.ExtendedState,
 			}
-			if got := fsm.IsErrorGuard(); got != tt.want {
+			if got := fsm.IsErrorGuard(tt.args.params...); got != tt.want {
 				t.Errorf("TrafficLight.IsErrorGuard() = %v, want %v", got, tt.want)
 			}
 		})

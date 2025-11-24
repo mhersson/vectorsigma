@@ -47,7 +47,8 @@ type Action struct {
 // Guard represents a function that returns a boolean indicating if a transition should occur.
 type Guard struct {
 	Name   GuardName
-	Check  func() bool
+	Params []string
+	Check  func(...string) bool
 	Action *Action
 }
 
@@ -93,7 +94,7 @@ func New() *Testreconcileloop {
 			{Name: InitializeContext, Execute: fsm.InitializeContextAction, Params: []string{}},
 		},
 		Guards: []Guard{
-			{Name: IsError, Check: fsm.IsErrorGuard},
+			{Name: IsError, Params: []string{}, Check: fsm.IsErrorGuard},
 		},
 		Transitions: map[int]StateName{
 			0: FinalState,
@@ -105,8 +106,8 @@ func New() *Testreconcileloop {
 			{Name: LoadObjects, Execute: fsm.LoadObjectsAction, Params: []string{}},
 		},
 		Guards: []Guard{
-			{Name: IsError, Check: fsm.IsErrorGuard},
-			{Name: NotFound, Check: fsm.NotFoundGuard},
+			{Name: IsError, Params: []string{}, Check: fsm.IsErrorGuard},
+			{Name: NotFound, Params: []string{}, Check: fsm.NotFoundGuard},
 		},
 		Transitions: map[int]StateName{
 			0: FinalState,
@@ -221,7 +222,7 @@ func runAllActions(context *Context, currentState StateName, actions []Action) e
 
 func runAllGuards(context *Context, currentState StateName, config StateConfig) (StateName, error) {
 	for guardIndex, guard := range config.Guards {
-		if guard.Check() {
+		if guard.Check(guard.Params...) {
 			if guard.Action != nil {
 				action := guard.Action
 				if err := action.Execute(action.Params...); err != nil {

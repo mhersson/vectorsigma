@@ -56,12 +56,10 @@ func TestGenerator_ExecuteTemplate(t *testing.T) {
 			wantErr:  false,
 			want: `package statemachine
 // +vectorsigma:guard:IsError
-func (fsm *UnitTest) IsErrorGuard() bool {
+func (fsm *UnitTest) IsErrorGuard(_ ...string) bool {
 	// TODO: Implement me!
 	return false
 }
-
-
 `,
 		},
 		{
