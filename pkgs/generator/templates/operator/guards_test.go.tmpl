@@ -19,10 +19,14 @@ func Test{{ $.FSM.Title }}_{{ $name }}Guard(t *testing.T) {
 		stateConfigs  map[{{ $.Package }}.StateName]{{ $.Package }}.StateConfig
 		ExtendedState *{{ $.Package }}.ExtendedState
 	}
+	type args struct {
+		params []string
+	}
 
 	tests := []struct {
 		name   string
 		fields fields
+		args   args
 		want   bool
 	}{
 		// TODO: Add test cases.
@@ -38,11 +42,10 @@ func Test{{ $.FSM.Title }}_{{ $name }}Guard(t *testing.T) {
 				StateConfigs:  tt.fields.stateConfigs,
 				ExtendedState: tt.fields.ExtendedState,
 			}
-			if got := fsm.{{ $name }}Guard(); got != tt.want {
+			if got := fsm.{{ $name }}Guard(tt.args.params...); got != tt.want {
 				t.Errorf("{{ $.FSM.Title }}.{{ $name }}Guard() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
-
-{{ end }}
+{{- end }}

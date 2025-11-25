@@ -43,7 +43,8 @@ type Action struct {
 // Guard represents a function that returns a boolean indicating if a transition should occur.
 type Guard struct {
 	Name   GuardName
-	Check  func() bool
+	Params []string
+	Check  func(...string) bool
 	Action *Action
 }
 
@@ -98,6 +99,7 @@ func New() *{{ .FSM.Title }} {
    	{{- if $trans.Action  }}
 		{
 			Name: {{ $trans.Guard }},
+			Params: []string{ {{- $trans.GuardParams }}},
 			Check: fsm.{{ $trans.Guard }}Guard,
 			Action: &Action{
 				Name: {{ $trans.Action.Name }},
@@ -106,7 +108,7 @@ func New() *{{ .FSM.Title }} {
 			},
 		},
    	{{- else }}
-		{Name: {{ $trans.Guard }}, Check: fsm.{{ $trans.Guard }}Guard},
+		{Name: {{ $trans.Guard }}, Params: []string{ {{- $trans.GuardParams }}}, Check: fsm.{{ $trans.Guard }}Guard},
    	{{- end }}
    	{{- end }}
 {{- end }}
@@ -227,7 +229,7 @@ func runAllActions(context *Context, currentState StateName, actions []Action) e
 
 func runAllGuards(context *Context, currentState StateName, config StateConfig) (StateName, error) {
 	for guardIndex, guard := range config.Guards {
-		if guard.Check() {
+		if guard.Check(guard.Params...) {
 			if guard.Action != nil {
 				action := guard.Action
 				if err := action.Execute(action.Params...); err != nil {

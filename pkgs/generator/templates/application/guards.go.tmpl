@@ -2,9 +2,8 @@ package {{ .Package }}
 
 {{- range $name := .FSM.GuardNames }}
 // +vectorsigma:guard:{{ $name }}
-func (fsm *{{ $.FSM.Title }}) {{ $name }}Guard() bool {
+func (fsm *{{ $.FSM.Title }}) {{ $name }}Guard(_ ...string) bool {
 	// TODO: Implement me!
 	return false
 }
-
-{{ end }}
+{{- end }}

@@ -35,10 +35,10 @@ const (
 	titlePattern             = `^title\s(.*)$`
 	// InitialState --> StartingConversation.
 	initialStatePattern = `^\s*` + InitialState + `\s*-->\s*(\w+)$`
-	// StartingConversation: do / StartConversation(param).
-	actionPattern = `^\s*(\w+):\s*(do\s*\/\s*)?(\w+)(\((.*)\))?$`
-	// StartingConversation --> FinalState: [ isError ].
-	guardedTransitionPattern = `^\s*(\w+)\s*-->\s*(\w+):\s*\[?\s*(\w+)\s*\]?\s*?(::\s*(\w+)(\((.*)\))?)?$`
+	// StartingConversation: do / StartConversation(param) or StartingConversation : do / StartConversation(param).
+	actionPattern = `^\s*(\w+)\s*:\s*(do\s*\/\s*)?(\w+)(\((.*)\))?$`
+	// StartingConversation --> FinalState : [ isError ] or StartingConversation --> FinalState: [ isError(param) ].
+	guardedTransitionPattern = `^\s*(\w+)\s*-->\s*(\w+)\s*:\s*\[?\s*(\w+)(\((.*?)\))?\s*\]?\s*?(::\s*(\w+)(\((.*)\))?)?$`
 	// StartingConversation --> FinalState.
 	defaultTransitionPattern = `^\s*(\w+)\s*-->\s*(\w+)$`
 	// CompositeState: state compositestate {.
@@ -60,9 +60,10 @@ type Composite struct {
 }
 
 type Transition struct {
-	Target string
-	Guard  string
-	Action *Action
+	Target      string
+	Guard       string
+	GuardParams string
+	Action      *Action
 }
 
 type Action struct {
@@ -174,16 +175,31 @@ func (f *FSM) IsGuardedTransition(line string) bool {
 		state := m[1]
 		transition := m[2]
 		guard := m[3]
+
+		// Check if the guard has parameters (m[4] would be the full match including parens, m[5] is the content)
+		guardParams := ""
+
+		if len(m) >= 6 && m[5] != "" {
+			params := strings.TrimSpace(m[5])
+
+			paramList := strings.Split(params, ",")
+			for i, param := range paramList {
+				paramList[i] = strings.Trim(strings.TrimSpace(param), `"`)
+			}
+
+			guardParams = `"` + strings.Join(paramList, `","`) + `"`
+		}
+
 		f.Guard(guard)
 
 		var action *Action
-		// Check if there is an action behind the guard.
-		if len(m) >= 6 && m[5] != "" {
+		// Check if there is an action behind the guard (after ::)
+		if len(m) >= 8 && m[7] != "" {
 			action = &Action{}
-			action.Name = m[5]
+			action.Name = m[7]
 
-			if len(m) == 8 && m[7] != "" {
-				params := strings.TrimSpace(m[7])
+			if len(m) == 10 && m[9] != "" {
+				params := strings.TrimSpace(m[9])
 
 				paramList := strings.Split(params, ",")
 				for i, param := range paramList {
@@ -201,14 +217,15 @@ func (f *FSM) IsGuardedTransition(line string) bool {
 				Name: state,
 				Transitions: []Transition{
 					{
-						Target: transition,
-						Guard:  guard,
-						Action: action,
+						Target:      transition,
+						Guard:       guard,
+						GuardParams: guardParams,
+						Action:      action,
 					},
 				},
 			}
 		} else {
-			newTransition := Transition{Target: transition, Guard: guard, Action: action}
+			newTransition := Transition{Target: transition, Guard: guard, GuardParams: guardParams, Action: action}
 			f.States[state].Transitions = append(f.States[state].Transitions, newTransition)
 		}
 
