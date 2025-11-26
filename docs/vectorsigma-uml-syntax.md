@@ -129,6 +129,24 @@ Both transitions from `StateA` to `StateB` occur only if the guard condition
 does not change the meaning of the guard; it is simply a matter of visual
 preference.
 
+Guards can also accept parameters, similar to actions. Parameters are specified
+in parentheses after the guard name:
+
+```plantuml
+StateA --> StateB: IsConditionMet(param1,param2)
+StateA --> StateB: [ IsConditionMet(param1,param2) ]
+```
+
+In the generated code, all guard methods receive parameters as variadic strings:
+
+```go
+// +vectorsigma:guard:IsConditionMet
+func (fsm *StateMachine) IsConditionMetGuard(params ...string) bool {
+    // Access parameters via params[0], params[1], etc.
+    return false
+}
+```
+
 ### 5.1 Guarded vs. Unguarded Transitions
 
 - **Guarded Transitions**: These transitions have a guard condition that must be

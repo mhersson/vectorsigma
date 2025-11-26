@@ -132,14 +132,12 @@ VectorSigma implements error handling through a specific pattern that separates
 system errors from normal application flow:
 
 1. **System Errors vs. Normal Flow**
-
    - System errors refer to unexpected conditions like database failures,
      network errors, or runtime exceptions
    - Normal flow conditions are expected decision points that direct your state
      machine based on domain logic
 
 2. **The IsError Guard Pattern**
-
    - Notice in our UML that every state has an
      `-[dotted]-> HandlingError: IsError` transition
    - This is a best practice that provides a consistent escape hatch for system
@@ -150,7 +148,7 @@ system errors from normal application flow:
 
    ```go
    // +vectorsigma:guard:IsError
-   func (fsm *OrderProcessor) IsErrorGuard() bool {
+   func (fsm *OrderProcessor) IsErrorGuard(_ ...string) bool {
        return fsm.ExtendedState.Error != nil
    }
    ```
@@ -161,7 +159,6 @@ system errors from normal application flow:
 4. **Why Our Example Won't Have Errors** In our order processor example, we're
    simply simulating the processing flow, so actions won't encounter real system
    errors. In a production system, actions might:
-
    - Fail to contact external services (payment gateways, shipping APIs)
    - Encounter database transaction failures
    - Hit rate limits or timeouts
@@ -213,13 +210,40 @@ works:
    ```
 
 3. **Benefits**:
-
    - Reduces code duplication
    - Centralizes related logic
    - Makes state machines more maintainable
 
 4. **Best Practice**: Use parameters when multiple states need to perform
    similar actions with slight variations or contextual information.
+
+## Parameterized Guards
+
+Guards can also accept parameters, similar to actions. This allows guards to
+evaluate conditions based on context-specific information:
+
+```plaintext
+StateA --> StateB: IsValueInRange(0,100)
+```
+
+In the generated code, guard methods receive parameters as variadic strings:
+
+```go
+// +vectorsigma:guard:IsValueInRange
+func (fsm *StateMachine) IsValueInRangeGuard(params ...string) bool {
+    if len(params) < 2 {
+        return false
+    }
+
+    min, _ := strconv.Atoi(params[0])
+    max, _ := strconv.Atoi(params[1])
+
+    return fsm.ExtendedState.Value >= min && fsm.ExtendedState.Value <= max
+}
+```
+
+Note that all guards must accept the variadic parameter signature
+`(_ ...string)`, even if they don't use parameters.
 
 ## Step 4: Implement the Extended State
 
@@ -409,21 +433,21 @@ Next, implement the guards in `internal/statemachine/guards.go`:
 package statemachine
 
 // +vectorsigma:guard:HasShippingFailed
-func (fsm *OrderProcessor) HasShippingFailedGuard() bool {
+func (fsm *OrderProcessor) HasShippingFailedGuard(_ ...string) bool {
     // In a real application, this would check if the ShipOrderAction
     // encountered an error during shipping
     return false
 }
 
 // +vectorsigma:guard:IsError
-func (fsm *OrderProcessor) IsErrorGuard() bool {
+func (fsm *OrderProcessor) IsErrorGuard(_ ...string) bool {
     // In a real application, this could happen, but no system errors
     // will occur in this application
     return fsm.ExtendedState.Error != nil
 }
 
 // +vectorsigma:guard:IsOutOfStock
-func (fsm *OrderProcessor) IsOutOfStockGuard() bool {
+func (fsm *OrderProcessor) IsOutOfStockGuard(_ ...string) bool {
     // Check if any items are out of stock
     for _, item := range fsm.ExtendedState.Order.Items {
         if !item.IsInStock {
@@ -597,7 +621,6 @@ follow these guidelines:
    ```
 
 2. **Design for Testability**
-
    - Make each run of the state machine complete to a final state
    - For cyclic processes, handle the looping logic in Go code, not in the state
      machine
@@ -676,13 +699,11 @@ might want to add a "ProcessingPayment" state before shipping the order.
 
 3. VectorSigma will update the generated files without overwriting your custom
    implementations. It will:
-
    - Update the state machine definition
    - Generate stubs for the new actions and guards
    - Preserve your existing code for actions and guards
 
 4. Now you can implement the new action and guard:
-
    - Complete the `ProcessPaymentAction` method in `actions.go`
    - Complete the `HasPaymentFailedGuard` method in `guards.go`
    - Add a new case to the switch statement in `CancelOrderAction`

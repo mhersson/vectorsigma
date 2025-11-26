@@ -250,9 +250,11 @@ VectorSigma will generate the following files:
 internal/controller/statemachine/
 ├── actions.go
 ├── actions_test.go
+├── common_test.go
 ├── extendedstate.go
 ├── guards.go
 ├── guards_test.go
+├── statemachine_integration_test.go
 ├── zz_generated_statemachine.go
 └── zz_generated_statemachine_test.go
 ```
@@ -541,27 +543,27 @@ Now, let's implement the guards for our state machine. Edit
 package statemachine
 
 // +vectorsigma:guard:IsError
-func (fsm *SimpleJobReconciler) IsErrorGuard() bool {
+func (fsm *SimpleJobReconciler) IsErrorGuard(_ ...string) bool {
     return fsm.ExtendedState.Error != nil
 }
 
 // +vectorsigma:guard:IsJobCompleted
-func (fsm *SimpleJobReconciler) IsJobCompletedGuard() bool {
+func (fsm *SimpleJobReconciler) IsJobCompletedGuard(_ ...string) bool {
     return fsm.ExtendedState.Job.Status.Succeeded > 0
 }
 
 // +vectorsigma:guard:IsJobFailed
-func (fsm *SimpleJobReconciler) IsJobFailedGuard() bool {
+func (fsm *SimpleJobReconciler) IsJobFailedGuard(_ ...string) bool {
     return fsm.ExtendedState.Job.Status.Failed > 0
 }
 
 // +vectorsigma:guard:IsJobMissing
-func (fsm *SimpleJobReconciler) IsJobMissingGuard() bool {
+func (fsm *SimpleJobReconciler) IsJobMissingGuard(_ ...string) bool {
     return fsm.ExtendedState.Job == nil
 }
 
 // +vectorsigma:guard:IsJobPending
-func (fsm *SimpleJobReconciler) IsJobPendingGuard() bool {
+func (fsm *SimpleJobReconciler) IsJobPendingGuard(_ ...string) bool {
     // If the job is not active, failed, or succeeded, it is pending. This guard
     // is checked last, and will always return true. This could have been an
     // unguarded transition, and pending could then have been the default phase
@@ -571,12 +573,12 @@ func (fsm *SimpleJobReconciler) IsJobPendingGuard() bool {
 }
 
 // +vectorsigma:guard:IsJobRunning
-func (fsm *SimpleJobReconciler) IsJobRunningGuard() bool {
+func (fsm *SimpleJobReconciler) IsJobRunningGuard(_ ...string) bool {
     return fsm.ExtendedState.Job.Status.Active > 0
 }
 
 // +vectorsigma:guard:IsMaxRetriesExceeded
-func (fsm *SimpleJobReconciler) IsMaxRetriesExceededGuard() bool {
+func (fsm *SimpleJobReconciler) IsMaxRetriesExceededGuard(_ ...string) bool {
     maxRetries := int32(3) // Default to 3 retries
 
     if fsm.ExtendedState.Instance.Spec.MaxRetries > 0 {
@@ -587,7 +589,7 @@ func (fsm *SimpleJobReconciler) IsMaxRetriesExceededGuard() bool {
 }
 
 // +vectorsigma:guard:IsNotFound
-func (fsm *SimpleJobReconciler) IsNotFoundGuard() bool {
+func (fsm *SimpleJobReconciler) IsNotFoundGuard(_ ...string) bool {
     return fsm.ExtendedState.Instance.TypeMeta.Kind == ""
 }
 ```
@@ -876,17 +878,17 @@ import (
 const FinalizerName = "jobs.example.com/simplejob-finalizer"
 
 // +vectorsigma:guard:IsBeingDeleted
-func (fsm *YourReconciler) IsBeingDeletedGuard() bool {
+func (fsm *YourReconciler) IsBeingDeletedGuard(_ ...string) bool {
     return !fsm.ExtendedState.Instance.GetDeletionTimestamp().IsZero()
 }
 
 // +vectorsigma:guard:HasFinalizer
-func (fsm *YourReconciler) HasFinalizerGuard() bool {
+func (fsm *YourReconciler) HasFinalizerGuard(_ ...string) bool {
     return controllerutil.ContainsFinalizer(&fsm.ExtendedState.Instance, FinalizerName)
 }
 
 // +vectorsigma:guard:HasNoFinalizer
-func (fsm *YourReconciler) HasNoFinalizerGuard() bool {
+func (fsm *YourReconciler) HasNoFinalizerGuard(_ ...string) bool {
     return !controllerutil.ContainsFinalizer(&fsm.ExtendedState.Instance, FinalizerName)
 }
 ```
