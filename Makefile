@@ -52,6 +52,10 @@ fmt: ## Run go fmt against code.
 vet: ## Run go vet
 	go vet ./...
 
+.PHONY: generate
+generate:
+	@go run main.go -i docs/vectorsigma-statechart.md -o internal
+
 build: fmt vet ## Build the binary.
 	@go build -ldflags $(LDFLAGS) -o vectorsigma
 
