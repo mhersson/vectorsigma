@@ -960,3 +960,145 @@ Waiting --> [*]
 		})
 	}
 }
+
+func TestParseErrorEvent(t *testing.T) {
+	type args struct {
+		data string
+	}
+
+	tests := []struct {
+		name string
+		args args
+		want *uml.FSM
+	}{
+		{
+			name: "Error event transition",
+			want: &uml.FSM{
+				InitialState: uml.InitialState,
+				States: map[string]*uml.State{
+					uml.InitialState: {
+						Name: uml.InitialState,
+						Transitions: []uml.Transition{
+							{Target: "Initializing", Guard: ""},
+						},
+					},
+					"Initializing": {
+						Name: "Initializing",
+						Transitions: []uml.Transition{
+							{
+								Target:  "ErrorState",
+								Guard:   "error",
+								IsEvent: true,
+							},
+							{Target: "Processing", Guard: ""},
+						},
+						Composite: uml.Composite{
+							InitialState: uml.InitialState,
+							States: map[string]*uml.State{
+								uml.InitialState: {
+									Name: uml.InitialState,
+									Transitions: []uml.Transition{
+										{Target: "LoadingContext", Guard: ""},
+									},
+								},
+								"LoadingContext": {
+									Name: "LoadingContext",
+									Actions: []uml.Action{{
+										Name:   "LoadContext",
+										Params: "",
+									}},
+									Transitions: []uml.Transition{
+										{Target: "LoadingData", Guard: ""},
+									},
+								},
+								"LoadingData": {
+									Name: "LoadingData",
+									Actions: []uml.Action{{
+										Name:   "LoadData",
+										Params: "",
+									}},
+									Transitions: []uml.Transition{
+										{Target: uml.FinalState, Guard: ""},
+									},
+								},
+								uml.FinalState: {
+									Name: uml.FinalState,
+								},
+							},
+						},
+					},
+					"Processing": {
+						Name: "Processing",
+						Actions: []uml.Action{{
+							Name:   "Process",
+							Params: "",
+						}},
+						Transitions: []uml.Transition{
+							{Target: uml.FinalState, Guard: ""},
+						},
+					},
+					"ErrorState": {
+						Name: "ErrorState",
+						Actions: []uml.Action{{
+							Name:   "HandleError",
+							Params: "",
+						}},
+						Transitions: []uml.Transition{
+							{Target: uml.FinalState, Guard: ""},
+						},
+					},
+					uml.FinalState: {
+						Name: uml.FinalState,
+					},
+				},
+				Title:       "ErrorEventTest",
+				ActionNames: []string{"HandleError", "LoadContext", "LoadData", "Process"},
+				GuardNames:  nil,
+				AllStates: []string{
+					"ErrorState", "FinalState", "InitialState", "Initializing", "LoadingContext", "LoadingData", "Processing",
+				},
+			},
+			args: args{
+				data: `
+@startuml
+
+title Error Event Test
+
+[*] --> Initializing
+
+state Initializing {
+	[*] --> LoadingContext
+	LoadingContext: do / LoadContext
+	LoadingContext --> LoadingData
+	LoadingData: do / LoadData
+	LoadingData --> [*]
+}
+
+Initializing --> ErrorState : error
+Initializing --> Processing
+
+Processing: do / Process
+Processing --> [*]
+
+ErrorState: do / HandleError
+ErrorState --> [*]
+
+@enduml
+`,
+			},
+		},
+	}
+
+	t.Parallel()
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := uml.Parse(tt.args.data); !cmp.Equal(got, tt.want) {
+				fmt.Println(cmp.Diff(got, tt.want))
+				t.Errorf("Parse() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
