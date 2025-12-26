@@ -62,10 +62,25 @@ type Generator struct {
 func (g *Generator) ExecuteTemplate(filename string) ([]byte, error) {
 	titleTransformer := cases.Title(language.English)
 
+	// transitionIndex calculates the correct index for a transition in the Transitions map
+	// by counting how many non-event transitions come before it
+	transitionIndex := func(transitions []uml.Transition, currentIndex int) int {
+		count := 0
+
+		for i := 0; i < currentIndex; i++ {
+			if !transitions[i].IsEvent {
+				count++
+			}
+		}
+
+		return count
+	}
+
 	funcMap := template.FuncMap{
-		"title":   titleTransformer.String,
-		"toLower": strings.ToLower,
-		"toUpper": strings.ToUpper,
+		"title":           titleTransformer.String,
+		"toLower":         strings.ToLower,
+		"toUpper":         strings.ToUpper,
+		"transitionIndex": transitionIndex,
 	}
 
 	tmpl, err := template.New(filepath.Base(filename)).Funcs(funcMap).ParseFS(templates, filename)

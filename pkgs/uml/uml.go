@@ -30,6 +30,7 @@ import (
 const (
 	InitialState = "InitialState"
 	FinalState   = "FinalState"
+	ErrorEvent   = "error" // Special event keyword for error transitions
 	// [*] --> InitialState. Before we replace the [*] with InitialState.
 	firstInitialStatePattern = `^\s*\[\*\].*$`
 	titlePattern             = `^title\s(.*)$`
@@ -64,6 +65,7 @@ type Transition struct {
 	Guard       string
 	GuardParams string
 	Action      *Action
+	IsEvent     bool // True if this is an event transition (e.g., "error")
 }
 
 type Action struct {
@@ -176,6 +178,9 @@ func (f *FSM) IsGuardedTransition(line string) bool {
 		transition := m[2]
 		guard := m[3]
 
+		// Check if this is an error event transition
+		isEvent := strings.ToLower(guard) == ErrorEvent
+
 		// Check if the guard has parameters (m[4] would be the full match including parens, m[5] is the content)
 		guardParams := ""
 
@@ -190,7 +195,10 @@ func (f *FSM) IsGuardedTransition(line string) bool {
 			guardParams = `"` + strings.Join(paramList, `","`) + `"`
 		}
 
-		f.Guard(guard)
+		// Only register guards that are not events
+		if !isEvent {
+			f.Guard(guard)
+		}
 
 		var action *Action
 		// Check if there is an action behind the guard (after ::)
@@ -221,11 +229,12 @@ func (f *FSM) IsGuardedTransition(line string) bool {
 						Guard:       guard,
 						GuardParams: guardParams,
 						Action:      action,
+						IsEvent:     isEvent,
 					},
 				},
 			}
 		} else {
-			newTransition := Transition{Target: transition, Guard: guard, GuardParams: guardParams, Action: action}
+			newTransition := Transition{Target: transition, Guard: guard, GuardParams: guardParams, Action: action, IsEvent: isEvent}
 			f.States[state].Transitions = append(f.States[state].Transitions, newTransition)
 		}
 

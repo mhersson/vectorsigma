@@ -26,6 +26,13 @@ transitions.
   - [6. Transitions](#6-transitions)
   - [7. Composite States](#7-composite-states)
     - [7.1 Defining Composite States](#71-defining-composite-states)
+    - [7.2 Error Events](#72-error-events)
+      - [7.2.1 Error Event Syntax](#721-error-event-syntax)
+      - [7.2.2 Benefits of Error Events](#722-benefits-of-error-events)
+      - [7.2.3 Traditional vs Error Event Approach](#723-traditional-vs-error-event-approach)
+      - [7.2.4 Behavior](#724-behavior)
+      - [7.2.5 Example](#725-example)
+      - [7.2.6 Backward Compatibility](#726-backward-compatibility)
   - [8. Notes](#8-notes)
 
 <!-- markdown-toc end -->
@@ -347,6 +354,103 @@ CompositeState -[bold]-> StateA
 
 In this example, `CompositeState` contains two nested states: `NestedState1` and
 `NestedState2`.
+
+### 7.2 Error Events
+
+VectorSigma supports error events for composite states, allowing you to define
+error transitions that are automatically triggered when any action within the
+composite state returns an error.
+
+#### 7.2.1 Error Event Syntax
+
+To define an error transition, use the `error` keyword:
+
+```plantuml
+state CompositeStat {
+  [*] --> SubState1
+  SubState1: do / Action1
+  SubState1 --> SubState2
+  SubState2: do / Action2
+  SubState2 --> [*]
+}
+
+CompositeState --> ErrorHandling : error
+```
+
+In this example, if either `Action1` or `Action2` returns an error, the state
+machine will automatically transition from `CompositeState` to `ErrorHandling`.
+
+#### 7.2.2 Benefits of Error Events
+
+Error events provide several advantages over traditional `IsError` guard
+approaches:
+
+- **Cleaner diagrams**: No need for repetitive `IsError` guards on every state
+  within a composite state
+- **Centralized error handling**: Define error transitions once at the composite
+  level
+- **Declarative error handling**: Express error flows as events in your state
+  diagram
+- **Automatic triggering**: Errors automatically trigger the transition without
+  explicit guard checks
+
+#### 7.2.3 Traditional vs Error Event Approach
+
+**Traditional approach with IsError guards:**
+
+```plantuml
+state Initializing {
+    InitContext: do / InitializeContext
+    InitContext --> [*] : IsError
+    InitContext --> LoadData
+
+    LoadData: do / LoadDataFromDB
+    LoadData --> [*] : IsError
+    LoadData --> [*]
+}
+```
+
+**Error event approach:**
+
+```plantuml
+state Initializing {
+    InitContext: do / InitializeContext
+    InitContext --> LoadData
+
+    LoadData: do / LoadDataFromDB
+    LoadData --> [*]
+}
+
+Initializing --> ErrorHandling : error
+```
+
+#### 7.2.4 Behavior
+
+When an action within a composite state returns an error:
+
+1. The error is stored in `ExtendedState.Error`
+2. If an error transition is defined for the composite state, the state machine
+   transitions to the target state
+3. If no error transition is defined, the behavior falls back to the traditional
+   approach (error stored in ExtendedState, guards can check it)
+
+**Important**: All actions within a composite state execute sequentially, even
+if earlier actions fail. The error transition is only evaluated after the
+composite state completes.
+
+#### 7.2.5 Example
+
+See the [error-events example](../examples/error-events/) for a complete working
+implementation demonstrating error event handling in an order processing state
+machine.
+
+#### 7.2.6 Backward Compatibility
+
+Error events are fully backward compatible:
+
+- Existing `IsError` guards continue to work as before
+- States without error transitions behave unchanged
+- You can mix error events and `IsError` guards in the same state machine
 
 ## 8. Notes
 
