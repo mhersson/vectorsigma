@@ -22,11 +22,13 @@ THE SOFTWARE.
 package generator_test
 
 import (
+	"context"
 	"os/exec"
 	"testing"
 
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mhersson/vectorsigma/pkgs/generator"
@@ -183,10 +185,10 @@ func TestGenerator_FormatCode(t *testing.T) {
 				}
 
 				if _, err := exec.LookPath("goimports"); err == nil {
-					mockShell.On("NewCommand", "goimports", "-w", "/path/to/file").Return(mockCmd)
+					mockShell.On("NewCommand", mock.Anything, "goimports", "-w", "/path/to/file").Return(mockCmd)
 					mockCmd.EXPECT().Run().Return(nil)
 				} else {
-					mockShell.On("NewCommand", "go", "fmt", "/path/to/file").Return(mockCmd)
+					mockShell.On("NewCommand", mock.Anything, "go", "fmt", "/path/to/file").Return(mockCmd)
 					mockCmd.EXPECT().Run().Return(nil)
 				}
 
@@ -203,7 +205,7 @@ func TestGenerator_FormatCode(t *testing.T) {
 			t.Parallel()
 
 			g := tt.setup()
-			err := g.FormatCode(tt.filepath)
+			err := g.FormatCode(context.Background(), tt.filepath)
 			require.NoError(t, err)
 			g.Shell.(*mock_shell.MockInterface).AssertExpectations(t)
 		})

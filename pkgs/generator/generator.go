@@ -23,6 +23,7 @@ package generator
 
 import (
 	"bytes"
+	"context"
 	"embed"
 	"fmt"
 	"os/exec"
@@ -99,7 +100,7 @@ func (g *Generator) WriteFile(path string, data []byte) error {
 }
 
 // Format the generated code.
-func (g *Generator) FormatCode(path string) error {
+func (g *Generator) FormatCode(ctx context.Context, path string) error {
 	const goCmd = "go"
 
 	const goImportsCmd = "goimports"
@@ -109,7 +110,7 @@ func (g *Generator) FormatCode(path string) error {
 		formatCmd = []string{goImportsCmd, "-w", path}
 	}
 
-	if err := g.Shell.NewCommand(formatCmd[0], formatCmd[1:]...).Run(); err != nil {
+	if err := g.Shell.NewCommand(ctx, formatCmd[0], formatCmd[1:]...).Run(); err != nil {
 		return fmt.Errorf("failed to format code at %s: %w", path, err)
 	}
 

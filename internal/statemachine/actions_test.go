@@ -12,6 +12,7 @@ import (
 	"github.com/mhersson/vectorsigma/pkgs/uml"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -755,9 +756,9 @@ func TestVectorSigma_FormatCodeAction(t *testing.T) {
 			}
 
 			if _, err := exec.LookPath("goimports"); err == nil {
-				mockShell.EXPECT().NewCommand("goimports", "-w", "out/testfile").Return(mockCmd)
+				mockShell.EXPECT().NewCommand(mock.Anything, "goimports", "-w", "out/testfile").Return(mockCmd)
 			} else {
-				mockShell.EXPECT().NewCommand("go", "fmt", "out/testfile").Return(mockCmd)
+				mockShell.EXPECT().NewCommand(mock.Anything, "go", "fmt", "out/testfile").Return(mockCmd)
 			}
 
 			mockCmd.EXPECT().Run().Return(nil)

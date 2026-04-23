@@ -1,6 +1,7 @@
 package shell
 
 import (
+	"context"
 	"os/exec"
 )
 
@@ -20,15 +21,15 @@ func (c *Command) Run() error {
 }
 
 type Interface interface {
-	NewCommand(name string, args ...string) CmdRunner
+	NewCommand(ctx context.Context, name string, args ...string) CmdRunner
 }
 
 type Shell struct{}
 
 // nolint:ireturn
 // NewCommand creates a new Command instance with the given name and arguments.
-func (s *Shell) NewCommand(name string, args ...string) CmdRunner {
-	cmd := exec.Command(name, args...)
+func (s *Shell) NewCommand(ctx context.Context, name string, args ...string) CmdRunner {
+	cmd := exec.CommandContext(ctx, name, args...)
 
 	return &Command{cmd: cmd}
 }

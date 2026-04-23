@@ -1,6 +1,7 @@
 package statemachine
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -266,7 +267,7 @@ func (fsm *VectorSigma) FormatCodeAction(_ ...string) error {
 			continue
 		}
 
-		err := fsm.Context.Generator.FormatCode(filepath.Join(fsm.ExtendedState.Output, filename))
+		err := fsm.Context.Generator.FormatCode(context.Background(), filepath.Join(fsm.ExtendedState.Output, filename))
 		if err != nil {
 			return fmt.Errorf("%w", err)
 		}

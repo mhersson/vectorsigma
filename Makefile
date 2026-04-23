@@ -52,6 +52,9 @@ fmt: ## Run go fmt against code.
 vet: ## Run go vet
 	go vet ./...
 
+lint: ## Run golangci-lint
+	golangci-lint run ./...
+
 .PHONY: generate
 generate:
 	@go run main.go -i docs/vectorsigma-statechart.md -o internal

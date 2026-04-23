@@ -3,6 +3,8 @@
 package mock_shell
 
 import (
+	"context"
+
 	shell "github.com/mhersson/vectorsigma/pkgs/shell"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -20,14 +22,14 @@ func (_m *MockInterface) EXPECT() *MockInterface_Expecter {
 	return &MockInterface_Expecter{mock: &_m.Mock}
 }
 
-// NewCommand provides a mock function with given fields: name, args
-func (_m *MockInterface) NewCommand(name string, args ...string) shell.CmdRunner {
+// NewCommand provides a mock function with given fields: ctx, name, args
+func (_m *MockInterface) NewCommand(ctx context.Context, name string, args ...string) shell.CmdRunner {
 	_va := make([]interface{}, len(args))
 	for _i := range args {
 		_va[_i] = args[_i]
 	}
 	var _ca []interface{}
-	_ca = append(_ca, name)
+	_ca = append(_ca, ctx, name)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
@@ -36,8 +38,8 @@ func (_m *MockInterface) NewCommand(name string, args ...string) shell.CmdRunner
 	}
 
 	var r0 shell.CmdRunner
-	if rf, ok := ret.Get(0).(func(string, ...string) shell.CmdRunner); ok {
-		r0 = rf(name, args...)
+	if rf, ok := ret.Get(0).(func(context.Context, string, ...string) shell.CmdRunner); ok {
+		r0 = rf(ctx, name, args...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(shell.CmdRunner)
@@ -53,22 +55,23 @@ type MockInterface_NewCommand_Call struct {
 }
 
 // NewCommand is a helper method to define mock.On call
+//   - ctx context.Context
 //   - name string
 //   - args ...string
-func (_e *MockInterface_Expecter) NewCommand(name interface{}, args ...interface{}) *MockInterface_NewCommand_Call {
+func (_e *MockInterface_Expecter) NewCommand(ctx interface{}, name interface{}, args ...interface{}) *MockInterface_NewCommand_Call {
 	return &MockInterface_NewCommand_Call{Call: _e.mock.On("NewCommand",
-		append([]interface{}{name}, args...)...)}
+		append([]interface{}{ctx, name}, args...)...)}
 }
 
-func (_c *MockInterface_NewCommand_Call) Run(run func(name string, args ...string)) *MockInterface_NewCommand_Call {
+func (_c *MockInterface_NewCommand_Call) Run(run func(ctx context.Context, name string, args ...string)) *MockInterface_NewCommand_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := make([]string, len(args)-1)
-		for i, a := range args[1:] {
+		variadicArgs := make([]string, len(args)-2)
+		for i, a := range args[2:] {
 			if a != nil {
 				variadicArgs[i] = a.(string)
 			}
 		}
-		run(args[0].(string), variadicArgs...)
+		run(args[0].(context.Context), args[1].(string), variadicArgs...)
 	})
 	return _c
 }
@@ -78,7 +81,7 @@ func (_c *MockInterface_NewCommand_Call) Return(_a0 shell.CmdRunner) *MockInterf
 	return _c
 }
 
-func (_c *MockInterface_NewCommand_Call) RunAndReturn(run func(string, ...string) shell.CmdRunner) *MockInterface_NewCommand_Call {
+func (_c *MockInterface_NewCommand_Call) RunAndReturn(run func(context.Context, string, ...string) shell.CmdRunner) *MockInterface_NewCommand_Call {
 	_c.Call.Return(run)
 	return _c
 }

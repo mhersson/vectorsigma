@@ -153,13 +153,13 @@ func checkOutput(t *testing.T, goldenPath, outputPath string) error {
 
 		var genBytes []byte
 
-		genBytes, err = os.ReadFile(filepath)
+		genBytes, err = os.ReadFile(filepath) //nolint:gosec
 		if err != nil {
 			return err //nolint:wrapcheck
 		}
 
 		genstr := string(genBytes)
-		golden, err := os.ReadFile(path)
+		golden, err := os.ReadFile(path) //nolint:gosec
 		require.NoError(t, err)
 
 		assert.Equal(t, string(golden), genstr, "%s: %s", outputPath, path)
@@ -176,7 +176,7 @@ func cleanup(outputPath string) error {
 	}
 
 	// Copy wanted existing file to the destination folder
-	err = os.MkdirAll(outputPath, 0o755)
+	err = os.MkdirAll(outputPath, 0o755) //nolint:gosec
 	if err != nil {
 		return err
 	}
@@ -226,7 +226,7 @@ func createDirIfNotExists(directory string) error {
 	dir := filepath.Dir(directory)
 
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		if err = os.MkdirAll(dir, 0o755); err != nil {
+		if err = os.MkdirAll(dir, 0o755); err != nil { //nolint:gosec
 			return fmt.Errorf("failed to create %s: %w", dir, err)
 		}
 	}
