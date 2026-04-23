@@ -49,10 +49,11 @@ type Guard struct {
 
 // StateConfig holds the actions and guards for a state.
 type StateConfig struct {
-	Actions     []Action
-	Guards      []Guard
-	Transitions map[int]StateName // Maps guard index to the next state
-	Composite   CompositeState
+	Actions         []Action
+	Guards          []Guard
+	Transitions     map[int]StateName // Maps guard index to the next state
+	Composite       CompositeState
+	ErrorTransition StateName // Target state for error events (empty if not defined)
 }
 
 type CompositeState struct {
@@ -179,6 +180,13 @@ func run(fsm *TrafficLight, stateConfigs map[StateName]StateConfig, depth int) e
 			if err != nil {
 				fsm.Context.Logger.Error("composite state machine failed", "state", fsm.CurrentState, "error", err)
 				fsm.ExtendedState.Error = err
+
+				// Check if there's an error event transition defined for this composite state
+				if config.ErrorTransition != "" {
+					fsm.Context.Logger.Debug("error event triggered", "from", parentState, "to", config.ErrorTransition)
+					fsm.CurrentState = config.ErrorTransition
+					continue
+				}
 			}
 
 			fsm.Context.Logger.Debug("exiting composite state", "state", parentState)
@@ -189,6 +197,13 @@ func run(fsm *TrafficLight, stateConfigs map[StateName]StateConfig, depth int) e
 			if err != nil {
 				fsm.Context.Logger.Error("action failed", "state", fsm.CurrentState, "error", err)
 				fsm.ExtendedState.Error = err
+
+				// Check if there's an error event transition defined for this state
+				if config.ErrorTransition != "" {
+					fsm.Context.Logger.Debug("error event triggered", "from", fsm.CurrentState, "to", config.ErrorTransition)
+					fsm.CurrentState = config.ErrorTransition
+					continue
+				}
 			}
 		}
 
