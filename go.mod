@@ -4,10 +4,10 @@ go 1.25.9
 
 require (
 	github.com/dave/dst v0.27.4
-	github.com/google/go-cmp v0.6.0
+	github.com/google/go-cmp v0.7.0
 	github.com/spf13/afero v1.15.0
 	github.com/spf13/cobra v1.10.2
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.11.1
 	golang.org/x/mod v0.35.0
 	golang.org/x/text v0.36.0
 )
