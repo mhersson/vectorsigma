@@ -3,6 +3,7 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/mit)
 [![Go Report Card](https://goreportcard.com/badge/github.com/mhersson/vectorsigma)](https://goreportcard.com/report/github.com/mhersson/vectorsigma)
 [![GitHub release](https://img.shields.io/github/v/release/mhersson/vectorsigma)](https://github.com/mhersson/vectorsigma/releases)
+[![CI](https://github.com/mhersson/vectorsigma/actions/workflows/ci.yaml/badge.svg)](https://github.com/mhersson/vectorsigma/actions/workflows/ci.yaml)
 
 VectorSigma is a tool designed to generate finite state machines (FSM) in Go
 from UML diagrams. It supports creating standalone applications, extending
