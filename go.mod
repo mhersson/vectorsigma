@@ -8,8 +8,8 @@ require (
 	github.com/spf13/afero v1.15.0
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.11.1
-	golang.org/x/mod v0.36.0
-	golang.org/x/text v0.37.0
+	golang.org/x/mod v0.37.0
+	golang.org/x/text v0.38.0
 )
 
 require (
@@ -18,7 +18,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
-	golang.org/x/sync v0.20.0 // indirect
-	golang.org/x/tools v0.44.0 // indirect
+	golang.org/x/sync v0.21.0 // indirect
+	golang.org/x/tools v0.45.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
