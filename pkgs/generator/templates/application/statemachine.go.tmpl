@@ -50,10 +50,11 @@ type Guard struct {
 
 // StateConfig holds the actions and guards for a state.
 type StateConfig struct {
-	Actions     []Action
-	Guards      []Guard
-	Transitions map[int]StateName // Maps guard index to the next state
-	Composite   CompositeState
+	Actions         []Action
+	Guards          []Guard
+	Transitions     map[int]StateName // Maps guard index to the next state
+	Composite       CompositeState
+	ErrorTransition StateName // Target state for error events (empty if not defined)
 }
 
 type CompositeState struct {
@@ -87,6 +88,7 @@ func New() *{{ .FSM.Title }} {
 	}
 
 {{- define "stateConfigStructure" -}}
+{{- $allTransitions := .Transitions -}}
 {
 	Actions: []Action{
 {{- range $action := .Actions }}
@@ -95,7 +97,7 @@ func New() *{{ .FSM.Title }} {
 	},
 	Guards: []Guard{
 {{- range  $trans := .Transitions }}
-	{{- if ne $trans.Guard "" }}
+	{{- if and (ne $trans.Guard "") (not $trans.IsEvent) }}
    	{{- if $trans.Action  }}
 		{
 			Name: {{ $trans.Guard }},
@@ -115,7 +117,9 @@ func New() *{{ .FSM.Title }} {
 	},
 	Transitions: map[int]StateName{
 {{- range $ind, $trans := .Transitions }}
-		{{ $ind }}: {{ $trans.Target }},
+	{{- if not $trans.IsEvent }}
+		{{ transitionIndex $allTransitions $ind }}: {{ $trans.Target }},
+	{{- end }}
 {{- end }}
 	},
 	{{- if ne .Composite.InitialState "" }}
@@ -130,6 +134,11 @@ func New() *{{ .FSM.Title }} {
 		{{- end }}
 		},
 	},
+	{{- end }}
+	{{- range $trans := .Transitions }}
+	{{- if and $trans.IsEvent (eq $trans.Guard "error") }}
+	ErrorTransition: {{ $trans.Target }},
+	{{- end }}
 	{{- end }}
 }
 {{- end -}}
@@ -180,6 +189,13 @@ func run(fsm  *{{ .FSM.Title }}, stateConfigs map[StateName]StateConfig, depth i
 			if err != nil {
 				fsm.Context.Logger.Error("composite state machine failed", "state", fsm.CurrentState, "error", err)
 				fsm.ExtendedState.Error = err
+
+				// Check if there's an error event transition defined for this composite state
+				if config.ErrorTransition != "" {
+					fsm.Context.Logger.Debug("error event triggered", "from", parentState, "to", config.ErrorTransition)
+					fsm.CurrentState = config.ErrorTransition
+					continue
+				}
 			}
 
 			fsm.Context.Logger.Debug("exiting composite state", "state", parentState )
@@ -190,6 +206,13 @@ func run(fsm  *{{ .FSM.Title }}, stateConfigs map[StateName]StateConfig, depth i
 			if err != nil {
 				fsm.Context.Logger.Error("action failed", "state", fsm.CurrentState, "error", err)
 				fsm.ExtendedState.Error = err
+
+				// Check if there's an error event transition defined for this state
+				if config.ErrorTransition != "" {
+					fsm.Context.Logger.Debug("error event triggered", "from", fsm.CurrentState, "to", config.ErrorTransition)
+					fsm.CurrentState = config.ErrorTransition
+					continue
+				}
 			}
 		}
 
